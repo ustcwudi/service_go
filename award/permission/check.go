@@ -30,22 +30,25 @@ func checkPermission(c *gin.Context, action string) bool {
 	if current := getCurrentUser(c); current != nil {
 		if current.Role != nil {
 			if array, err := mongo.FindManyAuthority(bson.M{"role": *current.Role, "action": action}, nil); err == nil {
-				for _, aspect := range *array {
-					// 设置注入函数
-					if len(aspect.Injection) > 0 {
-						for _, method := range aspect.Injection {
-							if index := strings.IndexRune(method, '='); index > 0 {
-								field := method[:index]
-								function := method[index+1:]
-								dot := strings.IndexRune(method, '.')
-								key := field[:dot]
-								field = field[dot+1:]
-								Injections[function](c, key, field)
-							} else {
-								Triggers[method](c)
+				if len(*array) > 0 {
+					for _, aspect := range *array {
+						// 设置注入函数
+						if len(aspect.Injection) > 0 {
+							for _, method := range aspect.Injection {
+								if index := strings.IndexRune(method, '='); index > 0 {
+									field := method[:index]
+									function := method[index+1:]
+									dot := strings.IndexRune(method, '.')
+									key := field[:dot]
+									field = field[dot+1:]
+									Injections[function](c, key, field)
+								} else {
+									Triggers[method](c)
+								}
 							}
 						}
 					}
+					return true
 				}
 			}
 			return !config.Service.Auth
