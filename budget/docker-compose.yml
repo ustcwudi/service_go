@@ -1,0 +1,75 @@
+version: "3"
+services:
+  service:
+    image: ustcwudi/service:budget
+    depends_on:
+      - mongo
+      - minio
+    ports:
+      - "8080:8080"
+      - "88:88"
+      - "80:80"
+      - "21:21"
+      - "30000-30099:30000-30099"
+    networks:
+      - "net"
+    environment:
+      AUTH: "FALSE"
+      DEBUG: "FALSE"
+      CAPTCHA: "FALSE"
+      MONGODB_ADDRESS: mongodb://mongo:27017
+      MONGODB_USERNAME: root
+      MONGODB_PASSWORD: 123456
+      MINIO_ENDPOINT: minio:9000
+      MINIO_KEY: minio
+      MINIO_SECRET: minio123
+      FTP_USER: hubu
+      FTP_PASS: hubu2020
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1g"
+        max-file: "10"
+    volumes:
+      - "./docker/front:/front"
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - "net"
+    volumes:
+      - "mongodb:/data/db"
+    environment:
+      TZ: Asia/Shanghai
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+  minio:
+    image: minio/minio
+    volumes:
+      - "./docker/minio:/data"
+    ports:
+      - "9000:9000"
+    networks:
+      - "net"
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+  watchtower:
+    depends_on:
+      - service
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -c -e
+networks:
+  net:
+    driver: bridge
+volumes:
+  mongodb:

@@ -1,0 +1,22 @@
+{
+  "Description": "角色",
+  "Fields": [
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "名称",
+      "Search": "like"
+    },
+    {
+      "Name": "Homepage",
+      "Type": "string",
+      "Description": "主页"
+    },
+    {
+      "Name": "Remark",
+      "Type": "string",
+      "Description": "备注",
+      "Search": "like"
+    }
+  ]
+}

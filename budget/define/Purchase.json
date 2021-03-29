@@ -1,0 +1,47 @@
+{
+  "Description": "项目采购",
+  "Fields": [
+    {
+      "Name": "Budget",
+      "Type": "id",
+      "Description": "所属预算",
+      "Link": "Budget"
+    },
+    {
+      "Name": "Department",
+      "Type": "id",
+      "Description": "部门",
+      "Link": "Department"
+    },
+    {
+      "Name": "Commodity",
+      "Type": "string",
+      "Description": "品名",
+      "Search": "like"
+    },
+    {
+      "Name": "Quantity",
+      "Type": "int",
+      "Description": "数量",
+      "Search": "equal"
+    },
+    {
+      "Name": "Amount",
+      "Type": "float",
+      "Description": "金额",
+      "Search": "equal"
+    },
+    {
+      "Name": "AdjustQuantity",
+      "Type": "int",
+      "Description": "调整后数量",
+      "Search": "equal"
+    },
+    {
+      "Name": "AdjustAmount",
+      "Type": "float",
+      "Description": "调整后金额",
+      "Search": "equal"
+    }
+  ]
+}

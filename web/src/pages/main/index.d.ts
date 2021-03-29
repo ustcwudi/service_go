@@ -1,0 +1,45 @@
+// 菜单项
+interface MenuItem {
+  key?: string;
+  title: string;
+  path?: string;
+  parent?: string;
+  icon?: string;
+  children?: MenuItem[];
+}
+
+// 表格属性
+interface TableProps<T> {
+  style?: React.CSSProperties;
+  where?: {};
+  moreColumn?: Column<T>[]; // 更多表格列
+  moreColumnButton?: (model: T) => JSX.Element[]; // 更多列按钮
+  moreTableButton?: JSX.Element[]; // 更多表格按钮
+  moreSelectionButton?: JSX.Element[]; // 更多选中按钮
+  render?: string[]; // 指定渲染的列
+  renderAdd?: string[]; // 指定新增的列
+  renderUpdate?: string[]; // 指定修改的列
+  renderSearch?: string[]; // 指定搜索的列
+  renderColumnButton?: string[]; // 指定列按钮
+  renderTableButton?: string[]; // 指定表格按钮
+  renderSelectionButton?: string[]; // 指定选中按钮
+  canSelect?: 'checkbox' | 'radio';
+  onSelect?: (selection: T[]) => void;
+}
+
+// 表格列属性
+interface Column<M> {
+  key: string; // 键名
+  title: string; // 表头
+  ellipsis?: boolean;
+  render?: (model: M) => string | JSX.Element | JSX.Element[]; // 表格内容渲染
+  renderForm?: () => string | JSX.Element | JSX.Element[]; // 表单渲染
+  renderSearch?: () => string | JSX.Element | JSX.Element[]; // 搜索表单渲染
+}
+
+// 数据查询条件
+interface QueryOption<T> {
+  where: { trash: boolean } & T;
+  sort: { field: string; order: string }[];
+  pagination: { current?: number; pageSize?: number };
+}

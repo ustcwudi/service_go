@@ -1,0 +1,46 @@
+{
+  "Description": "上传",
+  "Fields": [
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "名称",
+      "Search": "like"
+    },
+    {
+      "Name": "Ext",
+      "Type": "string",
+      "Description": "后缀",
+      "Search": "equal"
+    },
+    {
+      "Name": "User",
+      "Type": "id",
+      "Link": "User",
+      "Description": "用户"
+    },
+    {
+      "Name": "Size",
+      "Type": "int",
+      "Description": "大小"
+    },
+    {
+      "Name": "Table",
+      "Type": "string",
+      "Description": "表名",
+      "Search": "equal"
+    },
+    {
+      "Name": "Field",
+      "Type": "string",
+      "Description": "字段",
+      "Search": "equal"
+    },
+    {
+      "Name": "Key",
+      "Type": "id",
+      "Description": "关联外键",
+      "Search": "equal"
+    }
+  ]
+}

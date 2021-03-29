@@ -1,0 +1,89 @@
+{
+  "Description": "年度目标",
+  "Fields": [
+    {
+      "Name": "Budget",
+      "Type": "id",
+      "Description": "所属预算",
+      "Link": "Budget"
+    },
+    {
+      "Name": "Department",
+      "Type": "id",
+      "Description": "部门",
+      "Link": "Department"
+    },
+    {
+      "Name": "Goal",
+      "Type": "string",
+      "Description": "年度目标",
+      "Search": "like"
+    },
+    {
+      "Name": "FirstLevel",
+      "Type": "string",
+      "Description": "一级指标",
+      "Search": "like"
+    },
+    {
+      "Name": "SecondLevel",
+      "Type": "string",
+      "Description": "二级指标",
+      "Search": "like"
+    },
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "名称",
+      "Search": "like"
+    },
+    {
+      "Name": "BeforeLastYearValue",
+      "Type": "string",
+      "Description": "前年指标值",
+      "Search": "like"
+    },
+    {
+      "Name": "LastYearValue",
+      "Type": "string",
+      "Description": "上年指标",
+      "Search": "like"
+    },
+    {
+      "Name": "EstimatedValue",
+      "Type": "string",
+      "Description": "预计当年",
+      "Search": "like"
+    },
+    {
+      "Name": "AdjustValue",
+      "Type": "string",
+      "Description": "当年调整后",
+      "Search": "like"
+    },
+    {
+      "Name": "Standard",
+      "Type": "string",
+      "Description": "绩效标准",
+      "Search": "like"
+    },
+    {
+      "Name": "CompletionQuantity",
+      "Type": "string",
+      "Description": "完成数量",
+      "Search": "like"
+    },
+    {
+      "Name": "CompletionPossibility",
+      "Type": "string",
+      "Description": "完成可能性",
+      "Search": "like"
+    },
+    {
+      "Name": "CompletionExplanation",
+      "Type": "string",
+      "Description": "完成说明",
+      "Search": "like"
+    }
+  ]
+}

@@ -1,0 +1,644 @@
+{
+  "List": [
+    {
+      "Name": "Article",
+      "Description": "文章",
+      "Fields": [
+        {
+          "Name": "Category",
+          "Type": "primitive.ObjectID",
+          "Link": "Category",
+          "Description": "类别"
+        },
+        {
+          "Name": "Link",
+          "Type": "string",
+          "Description": "外链"
+        },
+        {
+          "Name": "Title",
+          "Type": "string",
+          "Description": "标题",
+          "Search": "like"
+        },
+        {
+          "Name": "Author",
+          "Type": "string",
+          "Description": "作者",
+          "Search": "like"
+        },
+        {
+          "Name": "Tags",
+          "Type": "[]string",
+          "Description": "标签"
+        },
+        {
+          "Name": "Summary",
+          "Type": "string",
+          "Description": "摘要"
+        },
+        {
+          "Name": "Content",
+          "Type": "string",
+          "Description": "内容"
+        },
+        {
+          "Name": "Template",
+          "Type": "string",
+          "Description": "模版"
+        },
+        {
+          "Name": "ThumbImage",
+          "Type": "string",
+          "Description": "缩略图"
+        },
+        {
+          "Name": "ViewCount",
+          "Type": "int",
+          "Description": "观看次数"
+        },
+        {
+          "Name": "LikeCount",
+          "Type": "int",
+          "Description": "点赞次数"
+        },
+        {
+          "Name": "CommentCount",
+          "Type": "int",
+          "Description": "评论次数"
+        },
+        {
+          "Name": "FavoriteCount",
+          "Type": "int",
+          "Description": "收藏次数"
+        },
+        {
+          "Name": "Priority",
+          "Type": "int",
+          "Description": "优先级"
+        }
+      ]
+    },
+    {
+      "Name": "Category",
+      "Description": "类别",
+      "Fields": [
+        {
+          "Name": "Parent",
+          "Type": "primitive.ObjectID",
+          "Link": "Category",
+          "Description": "父节点"
+        },
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Description": "名称"
+        },
+        {
+          "Name": "Description",
+          "Type": "string",
+          "Description": "描述"
+        },
+        {
+          "Name": "Priority",
+          "Type": "int",
+          "Description": "优先级"
+        }
+      ]
+    },
+    {
+      "Name": "Comment",
+      "Description": "评论",
+      "Fields": [
+        {
+          "Name": "Parent",
+          "Type": "primitive.ObjectID",
+          "Description": "父节点"
+        },
+        {
+          "Name": "Object",
+          "Type": "primitive.ObjectID",
+          "Description": "评论对象"
+        },
+        {
+          "Name": "Type",
+          "Type": "string",
+          "Description": "评论类型"
+        },
+        {
+          "Name": "Author",
+          "Type": "string",
+          "Description": "作者"
+        },
+        {
+          "Name": "User",
+          "Type": "primitive.ObjectID",
+          "Link": "User",
+          "Description": "作者"
+        },
+        {
+          "Name": "Content",
+          "Type": "string",
+          "Description": "内容"
+        },
+        {
+          "Name": "LikeCount",
+          "Type": "int",
+          "Description": "点赞次数"
+        },
+        {
+          "Name": "DislikeCount",
+          "Type": "int",
+          "Description": "倒赞次数"
+        },
+        {
+          "Name": "CommentCount",
+          "Type": "int",
+          "Description": "评论次数"
+        }
+      ]
+    },
+    {
+      "Name": "Commodity",
+      "Description": "商品",
+      "Fields": [
+        {
+          "Name": "User",
+          "Type": "primitive.ObjectID",
+          "Link": "User",
+          "Description": "用户"
+        },
+        {
+          "Name": "Shop",
+          "Type": "primitive.ObjectID",
+          "Link": "Shop",
+          "Description": "商店"
+        },
+        {
+          "Name": "Category",
+          "Type": "primitive.ObjectID",
+          "Link": "Category",
+          "Description": "类别"
+        },
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Description": "名称"
+        },
+        {
+          "Name": "Tags",
+          "Type": "[]string",
+          "Description": "标签"
+        },
+        {
+          "Name": "Stock",
+          "Type": "int",
+          "Description": "库存"
+        },
+        {
+          "Name": "Price",
+          "Type": "int",
+          "Description": "价格（分）"
+        },
+        {
+          "Name": "OldPrice",
+          "Type": "int",
+          "Description": "原始价格（分）"
+        },
+        {
+          "Name": "Weight",
+          "Type": "int",
+          "Description": "重量（克）"
+        },
+        {
+          "Name": "MainOptionName",
+          "Type": "string",
+          "Description": "主选项名"
+        },
+        {
+          "Name": "MainOption",
+          "Type": "[]string",
+          "Description": "主选项"
+        },
+        {
+          "Name": "MinorOptionName",
+          "Type": "string",
+          "Description": "次选项名"
+        },
+        {
+          "Name": "MinorOption",
+          "Type": "[]string",
+          "Description": "次选项"
+        },
+        {
+          "Name": "OptionsPrice",
+          "Type": "map[string]int",
+          "Description": "选项价格（分）"
+        },
+        {
+          "Name": "OptionsStock",
+          "Type": "map[string]int",
+          "Description": "选项库存"
+        },
+        {
+          "Name": "Summary",
+          "Type": "string",
+          "Description": "简介"
+        },
+        {
+          "Name": "Content",
+          "Type": "string",
+          "Description": "内容"
+        },
+        {
+          "Name": "Template",
+          "Type": "string",
+          "Description": "模版"
+        },
+        {
+          "Name": "ThumbImage",
+          "Type": "string",
+          "Description": "缩略图"
+        },
+        {
+          "Name": "Images",
+          "Type": "[]string",
+          "Description": "轮播图"
+        },
+        {
+          "Name": "ViewCount",
+          "Type": "int",
+          "Description": "查看次数"
+        },
+        {
+          "Name": "CommentCount",
+          "Type": "int",
+          "Description": "评论次数"
+        },
+        {
+          "Name": "FavoriteCount",
+          "Type": "int",
+          "Description": "收藏次数"
+        },
+        {
+          "Name": "Priority",
+          "Type": "int",
+          "Description": "优先级"
+        }
+      ]
+    },
+    {
+      "Name": "Menu",
+      "Description": "菜单",
+      "Fields": [
+        {
+          "Name": "Parent",
+          "Type": "primitive.ObjectID",
+          "Link": "Menu",
+          "Description": "父节点"
+        },
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Description": "名称"
+        },
+        {
+          "Name": "Link",
+          "Type": "string",
+          "Description": "链接"
+        },
+        {
+          "Name": "Priority",
+          "Type": "int",
+          "Description": "优先级"
+        },
+        {
+          "Name": "Role",
+          "Type": "[]primitive.ObjectID",
+          "Link": "Role",
+          "Description": "角色"
+        },
+        {
+          "Name": "Position",
+          "Type": "string",
+          "Description": "位置"
+        }
+      ]
+    },
+    {
+      "Name": "Order",
+      "Description": "订单",
+      "Fields": [
+        {
+          "Name": "User",
+          "Type": "primitive.ObjectID",
+          "Link": "User",
+          "Description": "用户ID"
+        },
+        {
+          "Name": "Commodity",
+          "Type": "primitive.ObjectID",
+          "Link": "Commodity",
+          "Description": "商品"
+        },
+        {
+          "Name": "Transaction",
+          "Type": "primitive.ObjectID",
+          "Link": "Transaction",
+          "Description": "交易"
+        },
+        {
+          "Name": "Number",
+          "Type": "int",
+          "Description": "数量"
+        },
+        {
+          "Name": "Price",
+          "Type": "int",
+          "Description": "价格（分）"
+        },
+        {
+          "Name": "MainOption",
+          "Type": "string",
+          "Description": "主选项"
+        },
+        {
+          "Name": "MinorOption",
+          "Type": "string",
+          "Description": "次选项"
+        },
+        {
+          "Name": "PayTime",
+          "Type": "int64",
+          "Description": "付款时间"
+        }
+      ]
+    },
+    {
+      "Name": "Setting",
+      "Description": "配置",
+      "Fields": [
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Description": "名称"
+        },
+        {
+          "Name": "Description",
+          "Type": "string",
+          "Description": "描述"
+        },
+        {
+          "Name": "Regex",
+          "Type": "string",
+          "Description": "正则限制"
+        },
+        {
+          "Name": "Value",
+          "Type": "string",
+          "Description": "值"
+        },
+        {
+          "Name": "Role",
+          "Type": "[]primitive.ObjectID",
+          "Link": "Role",
+          "Description": "角色"
+        }
+      ]
+    },
+    {
+      "Name": "Shop",
+      "Description": "商店",
+      "Fields": [
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Description": "名称"
+        },
+        {
+          "Name": "User",
+          "Type": "primitive.ObjectID",
+          "Link": "User",
+          "Description": "用户"
+        },
+        {
+          "Name": "ThumbImage",
+          "Type": "string",
+          "Description": "缩略图"
+        },
+        {
+          "Name": "Description",
+          "Type": "string",
+          "Description": "描述"
+        },
+        {
+          "Name": "Level",
+          "Type": "int",
+          "Description": "等级"
+        },
+        {
+          "Name": "Score",
+          "Type": "int",
+          "Description": "评分"
+        }
+      ]
+    },
+    {
+      "Name": "Transaction",
+      "Description": "交易",
+      "Fields": [
+        {
+          "Name": "User",
+          "Type": "primitive.ObjectID",
+          "Link": "User",
+          "Description": "用户"
+        },
+        {
+          "Name": "Order",
+          "Type": "[]primitive.ObjectID",
+          "Link": "Order",
+          "Description": "订单"
+        },
+        {
+          "Name": "Money",
+          "Type": "int",
+          "Description": "金额（分）"
+        },
+        {
+          "Name": "PayTime",
+          "Type": "int64",
+          "Description": "成交时间"
+        },
+        {
+          "Name": "SerialNumber",
+          "Type": "string",
+          "Description": "序列号"
+        }
+      ]
+    },
+    {
+      "Name": "User",
+      "Description": "用户",
+      "Fields": [
+        {
+          "Name": "Account",
+          "Type": "string",
+          "Description": "账号",
+          "Search": "like"
+        },
+        {
+          "Name": "Password",
+          "Type": "string",
+          "Description": "密码",
+          "Hide": ["Table", "Search"]
+        },
+        {
+          "Name": "Role",
+          "Type": "primitive.ObjectID",
+          "Link": "Role",
+          "Description": "角色"
+        },
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Description": "姓名",
+          "Search": "like"
+        },
+        {
+          "Name": "Avatar",
+          "Type": "string",
+          "Description": "头像",
+          "Hide": ["Table", "Search", "Form"],
+          "Upload": true
+        },
+        {
+          "Name": "Phone",
+          "Type": "string",
+          "Description": "手机",
+          "Search": "like"
+        },
+        {
+          "Name": "Email",
+          "Type": "string",
+          "Description": "邮箱",
+          "Search": "like"
+        },
+        {
+          "Name": "Enable",
+          "Type": "bool",
+          "Description": "状态"
+        }
+      ]
+    },
+    {
+      "Name": "Role",
+      "Description": "角色",
+      "Fields": [
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Description": "名称",
+          "Search": "like"
+        },
+        {
+          "Name": "Remark",
+          "Type": "string",
+          "Description": "备注",
+          "Search": "like"
+        }
+      ]
+    },
+    {
+      "Name": "Upload",
+      "Description": "上传",
+      "Fields": [
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Description": "名称",
+          "Search": "like"
+        },
+        {
+          "Name": "Ext",
+          "Type": "string",
+          "Description": "后缀",
+          "Search": "equal"
+        },
+        {
+          "Name": "User",
+          "Type": "primitive.ObjectID",
+          "Link": "User",
+          "Description": "用户"
+        },
+        {
+          "Name": "Size",
+          "Type": "int64",
+          "Description": "大小"
+        },
+        {
+          "Name": "Table",
+          "Type": "string",
+          "Description": "表名",
+          "Search": "equal"
+        },
+        {
+          "Name": "Field",
+          "Type": "string",
+          "Description": "字段",
+          "Search": "equal"
+        },
+        {
+          "Name": "Key",
+          "Type": "primitive.ObjectID",
+          "Description": "关联外键",
+          "Search": "equal"
+        }
+      ]
+    },
+    {
+      "Name": "Authority",
+      "Description": "权限",
+      "Fields": [
+        {
+          "Name": "Role",
+          "Type": "primitive.ObjectID",
+          "Link": "Role",
+          "Description": "角色"
+        },
+        {
+          "Name": "Name",
+          "Type": "string",
+          "Description": "名称",
+          "Search": "like"
+        },
+        {
+          "Name": "Path",
+          "Type": "string",
+          "Description": "路径",
+          "Search": "like"
+        },
+        {
+          "Name": "Method",
+          "Type": "[]string",
+          "Description": "方法",
+          "Map": [
+            { "Key": "GET", "Value": "GET" },
+            { "Key": "POST", "Value": "POST" },
+            { "Key": "PUT", "Value": "PUT" },
+            { "Key": "DELETE", "Value": "DELETE" }
+          ]
+        },
+        {
+          "Name": "Field",
+          "Type": "[]string",
+          "Description": "域"
+        },
+        {
+          "Name": "Injection",
+          "Type": "[]string",
+          "Description": "注入"
+        }
+      ]
+    }
+  ]
+}

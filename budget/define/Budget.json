@@ -1,0 +1,455 @@
+{
+  "Description": "预算",
+  "Fields": [
+    {
+      "Name": "Category",
+      "Type": "int",
+      "Description": "类别",
+      "Search": "equal"
+    },
+    {
+      "Name": "IsChild",
+      "Type": "bool",
+      "Description": "是否子项目"
+    },
+    {
+      "Name": "IsAdjust",
+      "Type": "bool",
+      "Description": "是否调整"
+    },
+    {
+      "Name": "Parent",
+      "Type": "id",
+      "Description": "父节点",
+      "Link": "Budget"
+    },
+    {
+      "Name": "SuperiorDepartment",
+      "Type": "id",
+      "Description": "归口部门",
+      "Link": "Department"
+    },
+    {
+      "Name": "Department",
+      "Type": "id",
+      "Description": "部门",
+      "Link": "Department"
+    },
+    {
+      "Name": "PrincipalCode",
+      "Type": "string",
+      "Description": "负责人账号",
+      "Search": "like"
+    },
+    {
+      "Name": "PrincipalName",
+      "Type": "string",
+      "Description": "负责人姓名",
+      "Search": "like"
+    },
+    {
+      "Name": "PrincipalPhone",
+      "Type": "string",
+      "Description": "负责人电话",
+      "Search": "like"
+    },
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "名称",
+      "Search": "like"
+    },
+    {
+      "Name": "Code",
+      "Type": "string",
+      "Description": "编号",
+      "Search": "like"
+    },
+    {
+      "Name": "GovernmentQuota",
+      "Type": "float",
+      "Description": "财政拨款额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "StateCapitalQuota",
+      "Type": "float",
+      "Description": "国资收益额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "SchoolQuota",
+      "Type": "float",
+      "Description": "学费收入额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "OtherQuota",
+      "Type": "float",
+      "Description": "其它资金额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "TotalQuota",
+      "Type": "float",
+      "Description": "总计",
+      "Search": "equal"
+    },
+    {
+      "Name": "AllowAboveQuota",
+      "Type": "bool",
+      "Description": "允许超额"
+    },
+    {
+      "Name": "AboveQuota",
+      "Type": "float",
+      "Description": "超额额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "DirectQuota",
+      "Type": "float",
+      "Description": "直接管理额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "DepartmentQuota",
+      "Type": "float",
+      "Description": "下达院系额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "DistributeQuota",
+      "Type": "float",
+      "Description": "其它分配额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "Attribute",
+      "Type": "string",
+      "Description": "属性",
+      "Search": "like"
+    },
+    {
+      "Name": "Type",
+      "Type": "string",
+      "Description": "类型",
+      "Search": "like"
+    },
+    {
+      "Name": "FundType",
+      "Type": "string",
+      "Description": "经费类型",
+      "Search": "like"
+    },
+    {
+      "Name": "Year",
+      "Type": "int",
+      "Description": "年度",
+      "Search": "equal"
+    },
+    {
+      "Name": "StartYear",
+      "Type": "int",
+      "Description": "开始年份",
+      "Search": "equal"
+    },
+    {
+      "Name": "EndYear",
+      "Type": "int",
+      "Description": "结束年份",
+      "Search": "equal"
+    },
+    {
+      "Name": "ExpenseType",
+      "Type": "string",
+      "Description": "支出分类",
+      "Search": "like"
+    },
+    {
+      "Name": "YearBudget",
+      "Type": "float",
+      "Description": "本年预算",
+      "Search": "equal"
+    },
+    {
+      "Name": "TotalBudget",
+      "Type": "float",
+      "Description": "项目总预算",
+      "Search": "equal"
+    },
+    {
+      "Name": "State",
+      "Type": "string",
+      "Description": "状态",
+      "Map": [
+        {
+          "Key": "new",
+          "Value": "新建"
+        },
+        {
+          "Key": "fill",
+          "Value": "待填报"
+        },
+        {
+          "Key": "adjust",
+          "Value": "待调整"
+        },
+        {
+          "Key": "sum",
+          "Value": "待汇总"
+        },
+        {
+          "Key": "submit",
+          "Value": "已提交"
+        },
+        {
+          "Key": "pass1",
+          "Value": "部门审核"
+        },
+        {
+          "Key": "pass2",
+          "Value": "归口初核"
+        },
+        {
+          "Key": "pass3",
+          "Value": "归口复核"
+        },
+        {
+          "Key": "pass4",
+          "Value": "财务初核"
+        },
+        {
+          "Key": "pass4",
+          "Value": "财务复核"
+        }
+      ]
+    },
+    {
+      "Name": "LastYearFund",
+      "Type": "float",
+      "Description": "上年批复",
+      "Search": "equal"
+    },
+    {
+      "Name": "LastYearExpense",
+      "Type": "float",
+      "Description": "上年执行",
+      "Search": "equal"
+    },
+    {
+      "Name": "LastYearSurplus",
+      "Type": "float",
+      "Description": "上年结余",
+      "Search": "equal"
+    },
+    {
+      "Name": "BeforeLastYearFund",
+      "Type": "float",
+      "Description": "前年批复",
+      "Search": "equal"
+    },
+    {
+      "Name": "BeforeLastYearExpense",
+      "Type": "float",
+      "Description": "前年执行",
+      "Search": "equal"
+    },
+    {
+      "Name": "BeforeLastYearSurplus",
+      "Type": "float",
+      "Description": "前年结余",
+      "Search": "equal"
+    },
+    {
+      "Name": "Modification",
+      "Type": "string",
+      "Description": "变动说明",
+      "Search": "like"
+    },
+    {
+      "Name": "OtherFund",
+      "Type": "float",
+      "Description": "其他资金",
+      "Search": "equal"
+    },
+    {
+      "Name": "StateFund",
+      "Type": "float",
+      "Description": "政府性基金",
+      "Search": "equal"
+    },
+    {
+      "Name": "PublicFund",
+      "Type": "float",
+      "Description": "一般公共预算",
+      "Search": "equal"
+    },
+    {
+      "Name": "Basis",
+      "Type": "string",
+      "Description": "立项依据",
+      "Search": "like"
+    },
+    {
+      "Name": "Implementation",
+      "Type": "string",
+      "Description": "实施方案",
+      "Search": "like"
+    },
+    {
+      "Name": "PlanFirstQuarter",
+      "Type": "float",
+      "Description": "一季度支付计划",
+      "Search": "equal"
+    },
+    {
+      "Name": "PlanSecondQuarter",
+      "Type": "float",
+      "Description": "二季度支付计划",
+      "Search": "equal"
+    },
+    {
+      "Name": "PlanThirdQuarter",
+      "Type": "float",
+      "Description": "三季度支付计划",
+      "Search": "equal"
+    },
+    {
+      "Name": "PlanFourthQuarter",
+      "Type": "float",
+      "Description": "四季度支付计划",
+      "Search": "equal"
+    },
+    {
+      "Name": "LongtermGoal",
+      "Type": "string",
+      "Description": "长期绩效目标",
+      "Search": "like"
+    },
+    {
+      "Name": "AnnualGoal",
+      "Type": "string",
+      "Description": "年度绩效目标",
+      "Search": "like"
+    },
+    {
+      "Name": "LongtermFirstTarget",
+      "Type": "int",
+      "Description": "长期目标一级指标数量",
+      "Search": "equal"
+    },
+    {
+      "Name": "LongtermFirstCompletion",
+      "Type": "int",
+      "Description": "长期目标一级指标完成数",
+      "Search": "equal"
+    },
+    {
+      "Name": "LongtermSecondTarget",
+      "Type": "int",
+      "Description": "长期目标二级指标数量",
+      "Search": "equal"
+    },
+    {
+      "Name": "LongtermSecondCompletion",
+      "Type": "int",
+      "Description": "长期目标二级指标完成数",
+      "Search": "equal"
+    },
+    {
+      "Name": "AnnualFirstTarget",
+      "Type": "int",
+      "Description": "年度目标一级指标数量",
+      "Search": "equal"
+    },
+    {
+      "Name": "AnnualFirstCompletion",
+      "Type": "int",
+      "Description": "年度目标一级指标完成数",
+      "Search": "equal"
+    },
+    {
+      "Name": "AnnualSecondTarget",
+      "Type": "int",
+      "Description": "年度目标二级指标数量",
+      "Search": "equal"
+    },
+    {
+      "Name": "AnnualSecondCompletion",
+      "Type": "int",
+      "Description": "年度目标二级指标完成数",
+      "Search": "equal"
+    },
+    {
+      "Name": "CompletionFirstQuarter",
+      "Type": "float",
+      "Description": "一季度支付计划完成",
+      "Search": "equal"
+    },
+    {
+      "Name": "CompletionSecondQuarter",
+      "Type": "float",
+      "Description": "二季度支付计划完成",
+      "Search": "equal"
+    },
+    {
+      "Name": "CompletionThirdQuarter",
+      "Type": "float",
+      "Description": "三季度支付计划完成",
+      "Search": "equal"
+    },
+    {
+      "Name": "CompletionFourthQuarter",
+      "Type": "float",
+      "Description": "四季度支付计划完成",
+      "Search": "equal"
+    },
+    {
+      "Name": "PlayYear",
+      "Type": "float",
+      "Description": "全年用款计划",
+      "Search": "equal"
+    },
+    {
+      "Name": "CompletionYear",
+      "Type": "float",
+      "Description": "全年已用款额",
+      "Search": "equal"
+    },
+    {
+      "Name": "Completion",
+      "Type": "int",
+      "Description": "完成度",
+      "Search": "equal"
+    },
+    {
+      "Name": "Adjustment",
+      "Type": "float",
+      "Description": "调整",
+      "Search": "equal"
+    },
+    {
+      "Name": "AdjustmentExplanation",
+      "Type": "string",
+      "Description": "调整说明",
+      "Search": "like"
+    },
+    {
+      "Name": "Attachment",
+      "Type": "string",
+      "Description": "附件",
+      "Upload": true
+    },
+    {
+      "Name": "ChildrenCount",
+      "Type": "int",
+      "Description": "子项目总数"
+    },
+    {
+      "Name": "PurchaseCount",
+      "Type": "int",
+      "Description": "采购条目总数"
+    }
+  ]
+}

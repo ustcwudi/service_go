@@ -1,0 +1,13 @@
+{
+  "Description": "用户",
+  "Fields": [
+    {
+      "Name": "School",
+      "Type": "id",
+      "Link": "School",
+      "Description": "单位",
+      "Nullable": true,
+      "Search": "equal"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "Description": "权限",
+  "Fields": [
+    {
+      "Name": "Role",
+      "Type": "id[]",
+      "Link": "Role",
+      "Description": "角色",
+      "Search": "equal"
+    },
+    {
+      "Name": "Action",
+      "Type": "string[]",
+      "Description": "行为",
+      "Search": "equal"
+    },
+    {
+      "Name": "Injection",
+      "Type": "string[]",
+      "Description": "注入",
+      "Search": "equal"
+    }
+  ]
+}

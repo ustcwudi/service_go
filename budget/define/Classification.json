@@ -1,0 +1,34 @@
+{
+  "Description": "支出分类",
+  "Fields": [
+    {
+      "Name": "Parent",
+      "Type": "id",
+      "Description": "父节点",
+      "Link": "Classification"
+    },
+    {
+      "Name": "IsChild",
+      "Type": "bool",
+      "Description": "是否子节点"
+    },
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "名称",
+      "Search": "like"
+    },
+    {
+      "Name": "Type",
+      "Type": "int",
+      "Description": "类别",
+      "Search": "equal"
+    },
+    {
+      "Name": "Code",
+      "Type": "string",
+      "Description": "编号",
+      "Search": "like"
+    }
+  ]
+}

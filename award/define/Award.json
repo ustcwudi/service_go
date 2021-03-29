@@ -1,0 +1,80 @@
+{
+  "Description": "奖证",
+  "Fields": [
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "姓名",
+      "Search": "equal",
+      "Nullable": true
+    },
+    {
+      "Name": "Code",
+      "Type": "string",
+      "Description": "证号",
+      "Search": "equal",
+      "Nullable": true
+    },
+    {
+      "Name": "Class",
+      "Type": "string",
+      "Description": "班组",
+      "Search": "equal",
+      "Nullable": true
+    },
+    {
+      "Name": "Audit",
+      "Type": "bool",
+      "Description": "审核",
+      "Search": "equal"
+    },
+    {
+      "Name": "Issuer",
+      "Type": "id",
+      "Link": "User",
+      "Description": "发布人",
+      "Search": "equal"
+    },
+    {
+      "Name": "Auditor",
+      "Type": "string",
+      "Description": "审核人",
+      "Nullable": true,
+      "Search": "equal"
+    },
+    {
+      "Name": "Template",
+      "Type": "id",
+      "Link": "Template",
+      "Search": "equal",
+      "Description": "模板"
+    },
+    {
+      "Name": "Table",
+      "Type": "id",
+      "Link": "Table",
+      "Description": "报表",
+      "Search": "equal",
+      "Nullable": true
+    },
+    {
+      "Name": "School",
+      "Type": "id",
+      "Link": "School",
+      "Description": "单位",
+      "Search": "equal"
+    },
+    {
+      "Name": "Parameter",
+      "Type": "map[string]string",
+      "Description": "参数",
+      "Search": "equal"
+    },
+    {
+      "Name": "Remark",
+      "Type": "string",
+      "Description": "备注",
+      "Search": "like"
+    }
+  ]
+}

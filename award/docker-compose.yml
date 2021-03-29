@@ -1,0 +1,89 @@
+version: "3"
+services:
+  service:
+    image: ustcwudi/service:award
+    depends_on:
+      - mongo
+      - redis
+      - minio
+    ports:
+      - 8080:8080
+      - 443:443
+      - 80:80
+    networks:
+      - net
+    volumes:
+      - ./docker/ssl:/ssl
+    environment:
+      AUTH: "FALSE"
+      DEBUG: "FALSE"
+      CAPTCHA: "TRUE"
+      MONGODB_ADDRESS: mongodb://mongo:27017
+      MONGODB_USERNAME: root
+      MONGODB_PASSWORD: 123456
+      MINIO_ENDPOINT: minio:9000
+      MINIO_KEY: minio
+      MINIO_SECRET: minio123
+      REDIS_ADDRESS: 127.0.0.1:6379
+      REDIS_PASSWORD: 123456
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1g"
+        max-file: "10"
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+    networks:
+      - net
+    volumes:
+      - mongodb:/data/db
+    environment:
+      TZ: Asia/Shanghai
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+  redis:
+    image: redis
+    volumes:
+      - ./docker/redis:/data
+    privileged: true
+    command:
+      /bin/bash -c "echo 511 > /proc/sys/net/core/somaxconn
+      && echo 1 > /proc/sys/vm/overcommit_memory
+      && echo -e 'dir /data \nappendonly yes' > /etc/redis.conf
+      && echo never > /sys/kernel/mm/transparent_hugepage/enabled
+      && redis-server /etc/redis.conf --requirepass 123456"
+    ports:
+      - 6379:6379
+    networks:
+      - "net"
+  minio:
+    image: minio/minio
+    volumes:
+      - ./docker/minio:/data
+    ports:
+      - 9000:9000
+    networks:
+      - net
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+  watchtower:
+    depends_on:
+      - service
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -c -e
+networks:
+  net:
+    driver: bridge
+volumes:
+  mongodb:

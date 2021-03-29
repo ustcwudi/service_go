@@ -1,0 +1,6 @@
+id,name,homepage
+999999999999999999999999,超级管理员,/main/base/user/
+000000000000000000000001,管理员,/main/award/audit/
+000000000000000000000002,领导,/main/award/audit/
+000000000000000000000003,主任,/main/award/print/
+000000000000000000000004,教师,/main/award/apply/

@@ -1,0 +1,15 @@
+# dependencies
+/node_modules
+/yarn.lock
+/package-lock.json
+
+# production
+/dist
+/src/pages/main/base/
+/src/pages/main/award/
+
+# umi
+/src/.umi
+/src/.umi-production
+/src/.umi-test
+/.env.local

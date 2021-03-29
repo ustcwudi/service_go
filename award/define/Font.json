@@ -1,0 +1,17 @@
+{
+  "Description": "字体",
+  "Fields": [
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "名称",
+      "Search": "like"
+    },
+    {
+      "Name": "File",
+      "Type": "string",
+      "Description": "文件",
+      "Upload": true
+    }
+  ]
+}

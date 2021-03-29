@@ -1,0 +1,37 @@
+{
+  "Description": "菜单",
+  "Fields": [
+    {
+      "Name": "Parent",
+      "Type": "id",
+      "Link": "Menu",
+      "Description": "父菜单",
+      "Nullable": true
+    },
+    {
+      "Name": "Role",
+      "Type": "id[]",
+      "Link": "Role",
+      "Description": "角色",
+      "Search": "equal"
+    },
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "名称",
+      "Search": "like"
+    },
+    {
+      "Name": "Path",
+      "Type": "string",
+      "Description": "路径",
+      "Search": "like"
+    },
+    {
+      "Name": "Icon",
+      "Type": "string",
+      "Description": "图标",
+      "Search": "like"
+    }
+  ]
+}

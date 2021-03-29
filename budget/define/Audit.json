@@ -1,0 +1,82 @@
+{
+  "Description": "审核信息",
+  "Fields": [
+    {
+      "Name": "Budget",
+      "Type": "id",
+      "Description": "所属预算",
+      "Link": "Budget"
+    },
+    {
+      "Name": "Department",
+      "Type": "id",
+      "Description": "部门",
+      "Link": "Department"
+    },
+    {
+      "Name": "State",
+      "Type": "string",
+      "Description": "状态",
+      "Map": [
+        {
+          "Key": "new",
+          "Value": "新建"
+        },
+        {
+          "Key": "fill",
+          "Value": "待填报"
+        },
+        {
+          "Key": "adjust",
+          "Value": "待调整"
+        },
+        {
+          "Key": "sum",
+          "Value": "待汇总"
+        },
+        {
+          "Key": "submit",
+          "Value": "已提交"
+        },
+        {
+          "Key": "pass1",
+          "Value": "部门审核"
+        },
+        {
+          "Key": "pass2",
+          "Value": "归口初核"
+        },
+        {
+          "Key": "pass3",
+          "Value": "归口复核"
+        },
+        {
+          "Key": "pass4",
+          "Value": "财务初核"
+        },
+        {
+          "Key": "pass4",
+          "Value": "财务复核"
+        }
+      ]
+    },
+    {
+      "Name": "Comment",
+      "Type": "string",
+      "Description": "批示",
+      "Search": "like"
+    },
+    {
+      "Name": "BudgetState",
+      "Type": "string",
+      "Description": "审核时状态",
+      "Search": "like"
+    },
+    {
+      "Name": "Reviewer",
+      "Type": "id",
+      "Description": "审核人",
+      "Link": "User"
+    }
+  ]
+}

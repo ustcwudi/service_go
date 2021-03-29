@@ -1,0 +1,149 @@
+{
+  "Description": "预算汇总",
+  "Fields": [
+    {
+      "Name": "Category",
+      "Type": "int",
+      "Description": "类别",
+      "Search": "equal"
+    },
+    {
+      "Name": "SuperiorDepartment",
+      "Type": "id",
+      "Description": "归口部门",
+      "Link": "Department"
+    },
+    {
+      "Name": "Department",
+      "Type": "id",
+      "Description": "部门",
+      "Link": "Department"
+    },
+    {
+      "Name": "PrincipalCode",
+      "Type": "string",
+      "Description": "负责人账号",
+      "Search": "like"
+    },
+    {
+      "Name": "PrincipalName",
+      "Type": "string",
+      "Description": "负责人姓名",
+      "Search": "like"
+    },
+    {
+      "Name": "PrincipalPhone",
+      "Type": "string",
+      "Description": "负责人电话",
+      "Search": "like"
+    },
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "名称",
+      "Search": "like"
+    },
+    {
+      "Name": "Code",
+      "Type": "string",
+      "Description": "编号",
+      "Search": "like"
+    },
+    {
+      "Name": "GovernmentQuota",
+      "Type": "float",
+      "Description": "财政拨款额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "StateCapitalQuota",
+      "Type": "float",
+      "Description": "国资收益额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "SchoolQuota",
+      "Type": "float",
+      "Description": "学费收入额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "OtherQuota",
+      "Type": "float",
+      "Description": "其它资金额度",
+      "Search": "equal"
+    },
+    {
+      "Name": "TotalQuota",
+      "Type": "float",
+      "Description": "总计",
+      "Search": "equal"
+    },
+    {
+      "Name": "Year",
+      "Type": "int",
+      "Description": "年度",
+      "Search": "equal"
+    },
+    {
+      "Name": "ExpenseType",
+      "Type": "string",
+      "Description": "支出分类",
+      "Search": "like"
+    },
+    {
+      "Name": "YearBudget",
+      "Type": "float",
+      "Description": "本年预算",
+      "Search": "equal"
+    },
+    {
+      "Name": "TotalBudget",
+      "Type": "float",
+      "Description": "项目总预算",
+      "Search": "equal"
+    },
+    {
+      "Name": "LastYearFund",
+      "Type": "float",
+      "Description": "上年批复",
+      "Search": "equal"
+    },
+    {
+      "Name": "LastYearExpense",
+      "Type": "float",
+      "Description": "上年执行",
+      "Search": "equal"
+    },
+    {
+      "Name": "LastYearSurplus",
+      "Type": "float",
+      "Description": "上年结余",
+      "Search": "equal"
+    },
+    {
+      "Name": "BeforeLastYearFund",
+      "Type": "float",
+      "Description": "前年批复",
+      "Search": "equal"
+    },
+    {
+      "Name": "BeforeLastYearExpense",
+      "Type": "float",
+      "Description": "前年执行",
+      "Search": "equal"
+    },
+    {
+      "Name": "BeforeLastYearSurplus",
+      "Type": "float",
+      "Description": "前年结余",
+      "Search": "equal"
+    },
+    {
+      "Name": "List",
+      "Type": "id[]",
+      "Description": "分项列表",
+      "Link": "Budget"
+    }
+  ]
+}

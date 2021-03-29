@@ -1,0 +1,107 @@
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.4.0/dist/vuetify.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.4.0/dist/vuetify.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-form ref="form" v-model="valid" lazy-validation>
+                <v-container>
+                    <v-row>
+                        <v-col cols="10">
+                            <v-alert v-show="error != ''" dense outlined type="error">
+                                {{error}}
+                            </v-alert>
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col cols="3">
+                            <v-select outlined v-model="select" :items="items" label="查询类别"></v-select>
+                        </v-col>
+                        <v-col cols="7">
+                            <v-text-field outlined v-model="content" :rules="rules" label="查询内容"></v-text-field>
+                        </v-col>
+                        <v-col cols="2">
+                            <v-btn color="blue-grey" class="white--text" fab @click="validate">
+                                <v-icon dark>
+                                    mdi-book-search-outline
+                                </v-icon>
+                            </v-btn>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </v-form>
+            <v-container>
+                <v-row dense>
+                    <v-col v-for="item in list" :cols="4">
+                        <v-card>
+                            <v-card-text v-for="key in Object.keys(item.parameter)">
+                                <p>{{key}}</p>
+                                <div class="text--primary">
+                                    {{item.parameter[key]}}
+                                </div>
+                                <v-spacer></v-spacer>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-btn text color="teal accent-4" :href="`/api/award/display/${item.id}`"
+                                    target="_blank">
+                                    下载证书
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </v-container>
+        </v-app>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            vuetify: new Vuetify(),
+            data: {
+                error: '',
+                valid: false,
+                content: '',
+                rules: [
+                    v => v.length > 0 || '',
+                    v => v.length <= 50 || '输入内容太长',
+                ],
+                select: '证书编号',
+                items: [
+                    '教师',
+                    '证书编号',
+                ],
+                list: []
+            },
+            methods: {
+                validate() {
+                    const id = window.location.href.split("?")[1]
+                    const that = this
+                    if (this.$refs.form.validate()) {
+                        fetch(`/api/award/search/${id}?${this.select}=${this.content}`, {
+                            method: 'GET'
+                        }).then(function (res) {
+                            res.json().then(function (result) {
+                                console.log(result, result.data)
+                                if (result && result.data) {
+                                    that.list = result.data
+                                    that.error = ""
+                                } else {
+                                    that.list = []
+                                    that.error = "查询结果为空"
+                                }
+                            })
+                        })
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

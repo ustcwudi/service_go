@@ -1,0 +1,36 @@
+{
+  "Description": "班组",
+  "Fields": [
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "名称",
+      "Search": "like"
+    },
+    {
+      "Name": "School",
+      "Type": "id",
+      "Link": "School",
+      "Description": "单位",
+      "Search": "equal"
+    },
+    {
+      "Name": "Teacher",
+      "Type": "string",
+      "Description": "负责人",
+      "Search": "like"
+    },
+    {
+      "Name": "Phone",
+      "Type": "string",
+      "Description": "手机号",
+      "Search": "equal"
+    },
+    {
+      "Name": "Remark",
+      "Type": "string",
+      "Description": "备注",
+      "Search": "like"
+    }
+  ]
+}

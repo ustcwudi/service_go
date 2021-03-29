@@ -1,0 +1,11 @@
+{
+  "Description": "用户",
+  "Fields": [
+    {
+      "Name": "Department",
+      "Type": "id",
+      "Link": "Department",
+      "Description": "部门"
+    }
+  ]
+}

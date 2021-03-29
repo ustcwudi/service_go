@@ -1,0 +1,44 @@
+debug: true
+port: 8080
+captcha: false
+auth: false
+upload:
+  size: 10
+mysql:
+  enable: false
+  user: root
+  password: root
+  address: 127.0.0.1:3306
+  database: core
+  collation: utf8mb4_unicode_ci
+  net: tcp
+  parsetime: true
+  allownativepasswords: true
+  maxidlecount: 50
+  maxopencount: 100
+mongodb:
+  enable: true
+  address: mongodb://localhost:27017
+  username: root
+  password: 123456
+  database: core
+  timeout: 5
+minio:
+  endpoint: localhost:9000
+  key: minio
+  secret: minio123
+redis:
+  address: 127.0.0.1:6379
+  password: 123456
+security:
+  salt: ^*Y$*(#
+  secret: something-very-secret
+log:
+  level: debug
+template:
+  path: template
+jwt:
+  key: jwt
+  secret: jwt_!@#$%^&*
+  exp: 720
+  alg: HS256

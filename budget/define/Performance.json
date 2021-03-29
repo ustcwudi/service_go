@@ -1,0 +1,119 @@
+{
+  "Description": "绩效监控",
+  "Fields": [
+    {
+      "Name": "Budget",
+      "Type": "id",
+      "Description": "所属预算",
+      "Link": "Budget"
+    },
+    {
+      "Name": "Reason",
+      "Type": "string",
+      "Description": "原因",
+      "Search": "like"
+    },
+    {
+      "Name": "Comment",
+      "Type": "string",
+      "Description": "建议",
+      "Search": "like"
+    },
+    {
+      "Name": "BeginAmount",
+      "Type": "float",
+      "Description": "年初预算金额",
+      "Search": "equal"
+    },
+    {
+      "Name": "HalfYearAmount",
+      "Type": "float",
+      "Description": "半年执行数",
+      "Search": "equal"
+    },
+    {
+      "Name": "HalfYearRate",
+      "Type": "float",
+      "Description": "半年执行率",
+      "Search": "equal"
+    },
+    {
+      "Name": "YearRate",
+      "Type": "float",
+      "Description": "全年执行率",
+      "Search": "equal"
+    },
+    {
+      "Name": "PublicBeginAmount",
+      "Type": "float",
+      "Description": "公共预算年初预算金额",
+      "Search": "equal"
+    },
+    {
+      "Name": "PublicHalfYearAmount",
+      "Type": "float",
+      "Description": "公共预算半年执行数",
+      "Search": "equal"
+    },
+    {
+      "Name": "PublicHalfYearRate",
+      "Type": "float",
+      "Description": "公共预算半年执行率",
+      "Search": "equal"
+    },
+    {
+      "Name": "PublicYearRate",
+      "Type": "float",
+      "Description": "公共预算全年执行率",
+      "Search": "equal"
+    },
+    {
+      "Name": "GovernmentBeginAmount",
+      "Type": "float",
+      "Description": "政府基金年初预算金额",
+      "Search": "equal"
+    },
+    {
+      "Name": "GovernmentHalfYearAmount",
+      "Type": "float",
+      "Description": "政府基金半年执行数",
+      "Search": "equal"
+    },
+    {
+      "Name": "GovernmentHalfYearRate",
+      "Type": "float",
+      "Description": "政府基金半年执行率",
+      "Search": "equal"
+    },
+    {
+      "Name": "GovernmentYearRate",
+      "Type": "float",
+      "Description": "政府基金全年执行率",
+      "Search": "equal"
+    },
+    {
+      "Name": "OtherBeginAmount",
+      "Type": "float",
+      "Description": "其他资金年初预算金额",
+      "Search": "equal"
+    },
+    {
+      "Name": "OtherHalfYearAmount",
+      "Type": "float",
+      "Description": "其他资金半年执行数",
+      "Search": "equal"
+    },
+    {
+      "Name": "OtherHalfYearRate",
+      "Type": "float",
+      "Description": "其他资金半年执行率",
+      "Search": "equal"
+    },
+    {
+      "Name": "OtherYearRate",
+      "Type": "float",
+      "Description": "其他资金全年执行率",
+      "Search": "equal"
+    }
+  ]
+}

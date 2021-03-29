@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "award"
+		},
+		{
+			"path": "budget"
+		},
+		{
+			"path": "lib"
+		},
+		{
+			"path": "shop"
+		},
+		{
+			"path": "tool"
+		},
+		{
+			"path": "web"
+		}
+	]
+}

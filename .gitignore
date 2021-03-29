@@ -1,0 +1,17 @@
+# misc
+.DS_Store
+.vscode
+
+# generate
+docs
+*/api/*/admin.go
+*/api/route.go
+*/model/
+*/mongo/
+docker
+
+# file
+*.exe
+*.log
+go.sum
+__debug_bin

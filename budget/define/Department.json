@@ -1,0 +1,17 @@
+{
+  "Description": "部门",
+  "Fields": [
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "名称",
+      "Search": "like"
+    },
+    {
+      "Name": "Code",
+      "Type": "string",
+      "Description": "编号",
+      "Search": "like"
+    }
+  ]
+}

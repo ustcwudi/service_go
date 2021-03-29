@@ -1,0 +1,83 @@
+{
+  "Description": "预算明细",
+  "Fields": [
+    {
+      "Name": "Budget",
+      "Type": "id",
+      "Description": "所属预算",
+      "Link": "Budget"
+    },
+    {
+      "Name": "Department",
+      "Type": "id",
+      "Description": "部门",
+      "Link": "Department"
+    },
+    {
+      "Name": "Child",
+      "Type": "string",
+      "Description": "子项目编号",
+      "Search": "equal"
+    },
+    {
+      "Name": "Action",
+      "Type": "string",
+      "Description": "项目活动",
+      "Search": "like"
+    },
+    {
+      "Name": "Description",
+      "Type": "string",
+      "Description": "活动内板表述",
+      "Search": "like"
+    },
+    {
+      "Name": "ExpenseType",
+      "Type": "string",
+      "Description": "支出经济分类",
+      "Search": "like"
+    },
+    {
+      "Name": "ExpenseTypeCode",
+      "Type": "string",
+      "Description": "支出经济分类编号",
+      "Search": "like"
+    },
+    {
+      "Name": "Amount",
+      "Type": "float",
+      "Description": "金额",
+      "Search": "equal"
+    },
+    {
+      "Name": "Detail",
+      "Type": "string",
+      "Description": "依据及说明",
+      "Search": "like"
+    },
+    {
+      "Name": "SpentAmount",
+      "Type": "float",
+      "Description": "已使用金额",
+      "Search": "equal"
+    },
+    {
+      "Name": "AdjustAmount",
+      "Type": "float",
+      "Description": "调整后金额",
+      "Search": "equal"
+    },
+    {
+      "Name": "AdjustExplanation",
+      "Type": "string",
+      "Description": "调整说明",
+      "Search": "like"
+    },
+    {
+      "Name": "Remark",
+      "Type": "string",
+      "Description": "备注",
+      "Search": "like"
+    }
+  ]
+}

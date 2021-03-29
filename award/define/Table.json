@@ -1,0 +1,41 @@
+{
+  "Description": "表格",
+  "Fields": [
+    {
+      "Name": "Name",
+      "Type": "string",
+      "Description": "名称",
+      "Search": "like"
+    },
+    {
+      "Name": "School",
+      "Type": "id",
+      "Link": "School",
+      "Description": "单位",
+      "Search": "equal"
+    },
+    {
+      "Name": "File",
+      "Type": "string",
+      "Description": "文件",
+      "Upload": true
+    },
+    {
+      "Name": "Template",
+      "Type": "id",
+      "Link": "Template",
+      "Description": "模板"
+    },
+    {
+      "Name": "Search",
+      "Type": "string[]",
+      "Description": "查询"
+    },
+    {
+      "Name": "Remark",
+      "Type": "string",
+      "Description": "备注",
+      "Search": "like"
+    }
+  ]
+}
