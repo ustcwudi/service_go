@@ -12,7 +12,7 @@ WORKDIR /service/tool
 RUN go run main.go award
 
 WORKDIR /service/award
-RUN go mod download && \
+RUN go mod tidy && go mod download && \
     go get -u github.com/swaggo/swag/cmd/swag && \
     swag init -g service.go && \
     CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o service .
