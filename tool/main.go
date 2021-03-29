@@ -299,7 +299,7 @@ func generate(module string) {
 	filepath.Walk("../"+module+"/api/", func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(info.Name(), ".go") {
 			path := path[8+len(module) : len(path)-3]
-			if index := strings.Index(path, "\\"); index > 0 {
+			if index := strings.IndexAny(path, "\\/"); index > 0 {
 				pathList = append(pathList, path[:index]+".Route"+UpperCase(path[index+1:])+"(router)")
 			} else if path != "route" {
 				pathList = append(pathList, "Route"+UpperCase(path)+"(router)")
