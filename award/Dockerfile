@@ -1,8 +1,5 @@
 FROM golang:alpine AS builder
 
-RUN set -eux && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
-ENV GOPROXY https://goproxy.cn
-
 WORKDIR /
 RUN apk update && \
     apk add git nodejs npm && \
@@ -21,7 +18,6 @@ RUN go mod download && \
     CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o service .
 
 WORKDIR /service/web
-RUN npm config set registry https://registry.npm.taobao.org
 RUN npm install && npm run build
 
 FROM nginx:alpine AS final
