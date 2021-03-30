@@ -1,26 +1,33 @@
 package storage
 
 import (
-	"mime/multipart"
+	"context"
 	"lib/config"
 	"lib/log"
+	"mime/multipart"
 
-	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 // Client Minio Client
 var Client *minio.Client
 
 func init() {
-	Client, _ = minio.New(config.Service.Minio.Endpoint, config.Service.Minio.Key, config.Service.Minio.Secret, false)
+	var err error
+	Client, err = minio.New(config.Service.Minio.Endpoint, &minio.Options{Creds: credentials.NewStaticV4(config.Service.Minio.Key, config.Service.Minio.Secret, ""), Secure: false})
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // CreateBucket 创建存储区
 func CreateBucket(bucket string) {
-	exist, _ := Client.BucketExists(bucket)
-	if !exist {
+	ctx := context.Background()
+	exist, err := Client.BucketExists(ctx, bucket)
+	if err == nil && !exist {
 		log.Info("create bucket " + bucket)
-		Client.MakeBucket(bucket, "")
+		Client.MakeBucket(ctx, bucket, minio.MakeBucketOptions{Region: "us-east-1"})
 	}
 }
 
@@ -32,7 +39,7 @@ func Upload(bucket string, objectName string, file *multipart.FileHeader) error 
 	}
 	defer src.Close()
 
-	_, err = Client.PutObject(bucket, objectName, src, -1, minio.PutObjectOptions{})
+	_, err = Client.PutObject(context.Background(), bucket, objectName, src, -1, minio.PutObjectOptions{})
 	if err != nil {
 		log.Error(err)
 	}
@@ -41,7 +48,7 @@ func Upload(bucket string, objectName string, file *multipart.FileHeader) error 
 
 // Download 下载文件
 func Download(bucket string, objectName string) (*minio.Object, error) {
-	object, err := Client.GetObject(bucket, objectName, minio.GetObjectOptions{})
+	object, err := Client.GetObject(context.Background(), bucket, objectName, minio.GetObjectOptions{})
 	if err != nil {
 		log.Error(err)
 	}
@@ -50,7 +57,7 @@ func Download(bucket string, objectName string) (*minio.Object, error) {
 
 // Remove 删除文件
 func Remove(bucket string, objectName string) error {
-	err := Client.RemoveObject(bucket, objectName)
+	err := Client.RemoveObject(context.Background(), bucket, objectName, minio.RemoveObjectOptions{})
 	if err != nil {
 		log.Error(err)
 	}

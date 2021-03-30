@@ -1,10 +1,11 @@
 package redis
 
 import (
+	"context"
 	"lib/config"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 )
 
 // DB 设置
@@ -14,21 +15,21 @@ func init() {
 	DB = redis.NewClient(&redis.Options{
 		Addr:     config.Service.Redis.Address,
 		Password: config.Service.Redis.Password,
-		DB:       1,
+		DB:       0,
 	})
 }
 
 // Set 设置
 func Set(group, key string, value interface{}, expiration time.Duration) error {
-	return DB.Set(group+":"+key, value, expiration).Err()
+	return DB.Set(context.Background(), group+":"+key, value, expiration).Err()
 }
 
 // Get 获取
 func Get(group, key string) (string, error) {
-	return DB.Get(group + ":" + key).Result()
+	return DB.Get(context.Background(), group+":"+key).Result()
 }
 
 // Del 删除
 func Del(group, key string) (int64, error) {
-	return DB.Del(group + ":" + key).Result()
+	return DB.Del(context.Background(), group+":"+key).Result()
 }
