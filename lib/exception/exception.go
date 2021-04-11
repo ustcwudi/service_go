@@ -2,29 +2,13 @@ package exception
 
 import (
 	"fmt"
+	"lib/define"
+	"lib/log"
 	"net/http"
 	"runtime"
-	"lib/log"
 
 	"github.com/gin-gonic/gin"
 )
-
-// Exception 异常
-type Exception struct {
-	Code    uint16
-	Message string
-}
-
-const (
-	// SYSTEM 系统异常
-	SYSTEM = iota
-	// SERVICE 服务异常
-	SERVICE = iota
-)
-
-func (e *Exception) Error() string {
-	return fmt.Sprintf("%s[%d]", e.Message, e.Code)
-}
 
 // Middleware gin中间件
 func Middleware() gin.HandlerFunc {
@@ -37,16 +21,16 @@ func Middleware() gin.HandlerFunc {
 
 				var (
 					message   string
-					exception *Exception
+					exception *define.Exception
 					ok        bool
 				)
 				if message, ok = err.(string); ok {
 					c.JSON(http.StatusInternalServerError, gin.H{
-						"code":    SERVICE,
+						"code":    define.Error,
 						"message": "service error: " + message,
 					})
 					return
-				} else if exception, ok = err.(*Exception); ok {
+				} else if exception, ok = err.(*define.Exception); ok {
 					c.JSON(http.StatusInternalServerError, gin.H{
 						"code":    exception.Code,
 						"message": exception.Message,
@@ -54,7 +38,7 @@ func Middleware() gin.HandlerFunc {
 					return
 				} else {
 					c.JSON(http.StatusInternalServerError, gin.H{
-						"code":    SYSTEM,
+						"code":    define.Error,
 						"message": "system error",
 					})
 					return
@@ -68,5 +52,5 @@ func Middleware() gin.HandlerFunc {
 func printStack() {
 	var buf [4096]byte
 	n := runtime.Stack(buf[:], false)
-	fmt.Printf(string(buf[:n]))
+	fmt.Print(string(buf[:n]))
 }

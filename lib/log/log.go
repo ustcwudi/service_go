@@ -31,7 +31,6 @@ func init() {
 	logger = zap.New(zapcore.NewTee(
 		zapcore.NewCore(zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()), zapcore.Lock(os.Stdout), level),
 	))
-	logger.Info("Logger Init Success")
 }
 
 // Middleware gin中间件

@@ -276,7 +276,7 @@ func Upload{{$elem.Name}}(c *gin.Context) {
 	var attachments []model.Upload
 	for _, file := range files {
 		if file.Size > {{c $elem.Size}}*1024*1024 {
-			c.JSON(http.StatusOK, result.SetCode(define.OutOfLimitError))
+			c.JSON(http.StatusOK, result.SetCode(define.LogicError))
 			return
 		}
 		var attachment model.Upload
@@ -298,7 +298,7 @@ func Upload{{$elem.Name}}(c *gin.Context) {
 	c.JSON(http.StatusOK, result.SetData(list)){{else if eq $elem.Type "string"}}
 	file := files[0]
 	if file.Size > config.Service.Upload.Size*1024*1024 {
-		c.JSON(http.StatusOK, result.SetCode(define.OutOfLimitError))
+		c.JSON(http.StatusOK, result.SetCode(define.LogicError))
 		return
 	}
 	index := strings.LastIndex(file.Filename, ".")
