@@ -4,8 +4,9 @@ import (
 	"lib/config"
 	"lib/log"
 	"net/http"
+	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/gbrlsnchs/jwt/v3"
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,18 +42,14 @@ func CheckJwt(c *gin.Context) bool {
 		}
 	}
 
-	tokenClaims, err := jwt.ParseWithClaims(token, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.Service.Jwt.Secret), nil
-	})
-
+	var payload jwt.Payload
+	var key = jwt.NewHS256([]byte(config.Service.Jwt.Secret))
+	validate := jwt.ValidatePayload(&payload, jwt.ExpirationTimeValidator(time.Now()))
+	_, err = jwt.Verify([]byte(token), key, &payload, validate)
 	if err != nil {
 		log.Error(err)
 		return false
 	}
-
-	if claims, ok := tokenClaims.Claims.(*jwt.StandardClaims); ok && tokenClaims.Valid {
-		c.Set("id", claims.Audience)
-		return true
-	}
-	return false
+	c.Set("id", payload.Subject)
+	return true
 }

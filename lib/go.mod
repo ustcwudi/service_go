@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize/v2 v2.3.2
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/gbrlsnchs/jwt/v3 v3.0.0
 	github.com/gin-contrib/cache v1.1.0
 	github.com/gin-contrib/pprof v1.3.0
 	github.com/gin-contrib/zap v0.0.1
@@ -12,6 +12,7 @@ require (
 	github.com/go-playground/validator/v10 v10.5.0
 	github.com/go-redis/redis/v8 v8.8.2
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/google/uuid v1.2.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/minio/minio-go/v7 v7.0.10
 	github.com/mojocn/base64Captcha v1.3.4

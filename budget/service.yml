@@ -41,4 +41,3 @@ jwt:
   key: jwt
   secret: jwt_!@#$%^&*
   exp: 720
-  alg: HS256

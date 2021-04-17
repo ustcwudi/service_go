@@ -53,7 +53,6 @@ type ServiceYml struct {
 		Key    string
 		Secret string
 		Exp    int
-		Alg    string
 	}
 	Wechat struct {
 		AppID     string
