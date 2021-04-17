@@ -9,13 +9,19 @@ import (
 	"lib/define"
 	"lib/log"
 	"lib/route"
-	"lib/util"{{if eq .Name "Upload"}}
-	"lib/storage"{{end}}{{if .Upload}}
+	"lib/util"
+	{{- if eq .Name "Upload"}}
+	"lib/storage"
+	{{- end}}
+	{{- if .Upload}}
 	"lib/config"
 	"lib/storage"
-	"path"{{end}}
-	"net/http"{{if or .Link .Upload}}
-	"strings"{{end}}
+	"path"
+	{{- end}}
+	"net/http"
+	{{- if or .Link .Upload}}
+	"strings"
+	{{- end}}
 	"unicode"
 	"time"
 
@@ -62,8 +68,10 @@ func Query(c *gin.Context) {
 	if pagination, exist := c.Get("pagination"); exist {
 		// 分页查询
 		p := pagination.(define.Pagination)
-		if list, err := mongo.FindMany{{.Name}}Skip(where, (p.Current-1)*p.PageSize, p.PageSize, nil, getProjection(c)); err == nil { {{if .Link}}
-			mapData(strings.Split(c.Request.Header.Get("Link"), ","), list, &result){{end}}
+		if list, err := mongo.FindMany{{.Name}}Skip(where, (p.Current-1)*p.PageSize, p.PageSize, nil, getProjection(c)); err == nil {
+			{{- if .Link}}
+			linkData(strings.Split(c.Request.Header.Get("Link"), ","), list, &result)
+			{{- end}}
 			count, _ := mongo.Count{{.Name}}(where)
 			c.JSON(http.StatusOK, result.SetData(list).SetTotal(count))
 		} else {
@@ -72,8 +80,10 @@ func Query(c *gin.Context) {
 		}
 	} else {
 		// 总查询
-		if list, err := mongo.FindMany{{.Name}}(where, getProjection(c)); err == nil { {{if .Link}}
-			mapData(strings.Split(c.Request.Header.Get("Link"), ","), list, &result){{end}}
+		if list, err := mongo.FindMany{{.Name}}(where, getProjection(c)); err == nil {
+			{{- if .Link}}
+			linkData(strings.Split(c.Request.Header.Get("Link"), ","), list, &result)
+			{{- end}}
 			c.JSON(http.StatusOK, result.SetData(list))
 		} else {
 			log.Error(err.Error())
@@ -116,8 +126,10 @@ func List(c *gin.Context) {
 	// 数据库查询
 	sort := c.MustGet("sort").(bson.M)
 	pagination := c.MustGet("pagination").(define.Pagination)
-	if list, err := mongo.FindMany{{.Name}}Skip(where, (pagination.Current-1)*pagination.PageSize, pagination.PageSize, sort, getProjection(c)); err == nil { {{if .Link}}
-		mapData(strings.Split(c.Request.Header.Get("Link"), ","), list, &result){{end}}
+	if list, err := mongo.FindMany{{.Name}}Skip(where, (pagination.Current-1)*pagination.PageSize, pagination.PageSize, sort, getProjection(c)); err == nil {
+		{{- if .Link}}
+		linkData(strings.Split(c.Request.Header.Get("Link"), ","), list, &result)
+		{{- end}}
 		count, _ := mongo.Count{{.Name}}(where)
 		c.JSON(http.StatusOK, result.SetData(list).SetTotal(count))
 	} else {
@@ -139,8 +151,10 @@ func Add(c *gin.Context) {
 	switch data := data.(type) {
 	case model.{{.Name}}:
 		// 数据库新增
-		if r, err := mongo.InsertOne{{.Name}}(&data); err == nil { {{if .Link}}
-			mapData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.{{.Name}}{data}, &result){{end}}
+		if r, err := mongo.InsertOne{{.Name}}(&data); err == nil {
+			{{- if .Link}}
+			linkData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.{{.Name}}{data}, &result)
+			{{- end}}
 			c.Set("result", r)
 			c.JSON(http.StatusOK, result.SetData(data))
 		} else {
@@ -176,8 +190,10 @@ func Edit(c *gin.Context) {
 	// 数据库操作
 	if ids, err := mongo.Get{{.Name}}IDList(where); err == nil {
 		if _, err := mongo.UpdateMany{{.Name}}(bson.M{"_id": bson.M{"$in": ids}}, data); err == nil {
-			updates, _ := mongo.FindMany{{.Name}}(bson.M{"_id": bson.M{"$in": ids}}, nil){{if .Link}}
-			mapData(strings.Split(c.Request.Header.Get("Link"), ","), updates, &result){{end}}
+			updates, _ := mongo.FindMany{{.Name}}(bson.M{"_id": bson.M{"$in": ids}}, nil)
+			{{- if .Link}}
+			linkData(strings.Split(c.Request.Header.Get("Link"), ","), updates, &result)
+			{{- end}}
 			c.JSON(http.StatusOK, result.SetData(updates))
 		} else {
 			log.Error(err.Error())
@@ -237,19 +253,23 @@ func Restore(c *gin.Context) {
 func Delete(c *gin.Context) {
 	var result define.Result
 	// 生成查询条件
-	where := c.MustGet("where").(map[string]interface{}){{if eq .Name "Upload"}}
+	where := c.MustGet("where").(map[string]interface{})
+	{{- if eq .Name "Upload"}}
 	// 删除文件
 	list, _ := mongo.FindMany{{.Name}}(where, nil)
 	for _, item := range *list {
 		storage.Remove(item.Table+"-"+item.Field, item.ID.Hex()+"."+item.Ext)
-	}{{end}}
+	}
+	{{- end}}
 	// 数据库操作
 	if count, err := mongo.DeleteMany{{.Name}}(where); err == nil {
 		c.JSON(http.StatusOK, result.SetData(count))
 	} else {
 		c.JSON(http.StatusOK, result.SetCode(define.DatabaseError))
 	}
-}{{range $index, $elem := .Fields}}{{if .Upload}}
+}
+
+{{- range $index, $elem := .Fields}}{{if .Upload}}
 
 // Upload{{$elem.Name}} 上传{{.Description}}
 // @summary 上传{{.Description}}
@@ -271,7 +291,8 @@ func Upload{{$elem.Name}}(c *gin.Context) {
 	form, _ := c.MultipartForm()
 	id := form.Value["id"][0]
 	item, _ := mongo.FindOne{{$.Name}}ByID(id, bson.M{"_id": 1, "{{c $elem.Name}}": 1})
-	files := form.File["upload"]{{if eq $elem.Type "string[]"}}
+	files := form.File["upload"]
+	{{- if eq $elem.Type "string[]"}}
 	var list []string
 	var attachments []model.Upload
 	for _, file := range files {
@@ -295,7 +316,8 @@ func Upload{{$elem.Name}}(c *gin.Context) {
 	}
 	mongo.InsertManyUpload(&attachments)
 	mongo.UpdateOne{{$.Name}}(bson.M{"_id": item.ID}, bson.M{"{{c $elem.Name}}": list})
-	c.JSON(http.StatusOK, result.SetData(list)){{else if eq $elem.Type "string"}}
+	c.JSON(http.StatusOK, result.SetData(list))
+	{{- else if eq $elem.Type "string"}}
 	file := files[0]
 	if file.Size > config.Service.Upload.Size*1024*1024 {
 		c.JSON(http.StatusOK, result.SetCode(define.LogicError))
@@ -314,7 +336,8 @@ func Upload{{$elem.Name}}(c *gin.Context) {
 	fileName := "api/admin/{{u $.Name}}/download/{{u $elem.Name}}/"+attachment.ID.Hex()+"."+attachment.Ext
 	storage.Upload("{{h $.Name}}-{{h $elem.Name}}", attachment.ID.Hex()+"."+attachment.Ext, files[0])
 	mongo.UpdateOne{{$.Name}}(bson.M{"_id": item.ID}, bson.M{"{{c $elem.Name}}": fileName})
-	c.JSON(http.StatusOK, result.SetData(fileName)){{end}}
+	c.JSON(http.StatusOK, result.SetData(fileName))
+	{{- end}}
 }
 
 // Download{{$elem.Name}} 下载{{.Description}}
@@ -343,27 +366,38 @@ func Download{{$elem.Name}}(c *gin.Context) {
 		c.Writer.Header().Set("Content-Type", "application/octet-stream")
 	}
 	http.ServeContent(c.Writer, c.Request, id+ext, time.Time{}, reader)
-}{{end}}{{end}}{{if .Link}}
+}
 
-// mapData 生成外链数据
-func mapData(fields []string, list *[]model.{{.Name}}, r *define.Result) {	
+{{- end}}{{end}}
+
+{{- if .Link}}
+
+// linkData 生成外链数据
+func linkData(fields []string, list *[]model.{{.Name}}, r *define.Result) {	
 	if len(*list) > 0 && len(fields) > 0 {
 		for _, l := range fields {
-			switch l { {{range .Fields}}{{if .Link}}
+			switch l {
+			{{- range .Fields}}{{if .Link}}
 			case "{{c .Name}}":
 				var array []primitive.ObjectID
-				for _, e := range *list { {{if .Nullable}}
+				for _, e := range *list {
+					{{- if .Nullable}}
 					if e.{{.Name}} != nil {
 						array = append(array, {{if eq .Type "id"}}*e.{{.Name}}{{else}}(*e.{{.Name}})...{{end}})
-					}{{else}}
-					array = append(array, {{if eq .Type "id"}}e.{{.Name}}{{else}}e.{{.Name}}...{{end}}){{end}}
+					}
+					{{- else}}
+					array = append(array, {{if eq .Type "id"}}e.{{.Name}}{{else}}e.{{.Name}}...{{end}})
+					{{- end}}
 				}
 				result, _ := mongo.FindMany{{.Link}}(bson.M{"_id": bson.M{"$in": array}}, bson.M{})
-				r.AddMapData("{{c .Name}}", result){{end}}{{end}}
+				r.AddMapData("{{c .Name}}", result)
+			{{- end}}{{end}}
 			}
 		}
 	}
-}{{end}}
+}
+
+{{- end}}
 
 // AssertWhere 确认查询数据
 func AssertWhere(c *gin.Context) {
@@ -372,9 +406,11 @@ func AssertWhere(c *gin.Context) {
 	for k, v := range where {
 		// 检查可空字段查询
 		if v == nil {
-			switch k { {{range .Fields}}{{if .Nullable}}
+			switch k {
+			{{- range .Fields}}{{if .Nullable}}
 			case "{{c .Name}}":
-				where[k] = nil{{end}}{{end}}
+				where[k] = nil
+			{{- end}}{{end}}
 			default:
 				delete(where, k)
 			}
@@ -395,40 +431,54 @@ func AssertWhere(c *gin.Context) {
 				where[k] = v
 			case "createTime":
 				pair := util.ToFloatPair(v)
-				where[k] = bson.M{"$gte": pair[0] * 1e6, "$lte": pair[1] * 1e6}{{range .Fields}}{{if or (eq .Type "id") (eq .Type "id[]")}}
+				where[k] = bson.M{"$gte": pair[0] * 1e6, "$lte": pair[1] * 1e6}
+			{{- range .Fields}}{{if or (eq .Type "id") (eq .Type "id[]")}}
 			case "{{c .Name}}":
 				switch v.(type) {
 				case []interface{}:
 					where[k] = bson.M{"$in": util.ToIDArray(v)}
 				default:
 					where[k] = util.ToID(v)
-				}{{else if or (eq .Type "string") (eq .Type "string[]")}}
-			case "{{c .Name}}":{{if eq .Search "like"}}
-				where[k] = primitive.Regex{Pattern: util.ToString(v), Options: "i"}{{else}}
+				}
+			{{- else if or (eq .Type "string") (eq .Type "string[]")}}
+			case "{{c .Name}}":
+				{{- if eq .Search "like"}}
+				where[k] = primitive.Regex{Pattern: util.ToString(v), Options: "i"}
+				{{- else}}
 				switch v.(type) {
 				case []interface{}:
 					where[k] = bson.M{"$in": util.ToStringArray(v)}
 				default:
 					where[k] = util.ToString(v)
-				}{{end}}{{else if or (eq .Type "int") (eq .Type "int[]")}}
-			case "{{c .Name}}":{{if eq .Search "between"}}
+				}
+				{{- end}}
+			{{- else if or (eq .Type "int") (eq .Type "int[]")}}
+			case "{{c .Name}}":
+				{{- if eq .Search "between"}}
 				pair := util.ToFloatPair(v)
-				where[k] = bson.M{"$gte": pair[0], "$lte": pair[1]}{{else}}
+				where[k] = bson.M{"$gte": pair[0], "$lte": pair[1]}
+				{{- else}}
 				switch v.(type) {
 				case []interface{}:
 					where[k] = bson.M{"$in": util.ToIntArray(v)}
 				default:
 					where[k] = util.ToInt(v)
-				}{{end}}{{else if or (eq .Type "float") (eq .Type "float[]")}}
-			case "{{c .Name}}":{{if eq .Search "between"}}
+				}
+				{{- end}}
+			{{- else if or (eq .Type "float") (eq .Type "float[]")}}
+			case "{{c .Name}}":
+				{{- if eq .Search "between"}}
 				pair := util.ToFloatPair(v)
-				where[k] = bson.M{"$gte": pair[0], "$lte": pair[1]}{{else}}
+				where[k] = bson.M{"$gte": pair[0], "$lte": pair[1]}
+				{{- else}}
 				switch v.(type) {
 				case []interface{}:
 					where[k] = bson.M{"$in": util.ToFloatArray(v)}
 				default:
 					where[k] = util.ToFloat(v)
-				}{{end}}{{else if or (eq .Type "map[string]string") (eq .Type "map[string]int") (eq .Type "map[string]float") (eq .Type "map[string]string[]")}}
+				}
+				{{- end}}
+			{{- else if or (eq .Type "map[string]string") (eq .Type "map[string]int") (eq .Type "map[string]float") (eq .Type "map[string]string[]")}}
 			case "{{c .Name}}":
 				switch v := v.(type) {
 				case map[string]interface{}:
@@ -437,11 +487,14 @@ func AssertWhere(c *gin.Context) {
 						allow = append(allow, "{{c .Name}}."+key)
 					}
 					delete(where, k)
-				}{{else if eq .Type "bool"}}
+				}
+			{{- else if eq .Type "bool"}}
 			case "{{c .Name}}":
-				where[k] = util.ToBool(v){{else}}
+				where[k] = util.ToBool(v)
+			{{- else}}
 			case "{{c .Name}}":
-				delete(where, k){{end}}{{end}}
+				delete(where, k)
+			{{- end}}{{end}}
 			default:
 				exist := false
 				for _, value := range allow {
@@ -459,21 +512,26 @@ func AssertWhere(c *gin.Context) {
 	c.Set("where", where)
 }
 
-
-
 // AssertDataMap 确认更新数据
 func AssertDataMap(c *gin.Context) {
 	data := c.MustGet("data").(map[string]interface{})
 	for k, v := range data {
-		switch k { {{range .Fields}}{{if eq .Name "Password"}}
+		switch k {
+		{{- range .Fields}}{{if eq .Name "Password"}}
 		case "password":
-			data[k] = util.HashString(v.(string) + config.Service.Security.Salt){{else}}
+			data[k] = util.HashString(v.(string) + config.Service.Security.Salt)
+		{{- else}}
 		// {{.Description}}
 		case "{{c .Name}}":
-			{{if .Nullable}}if v != nil {
+			{{if .Nullable -}}
+			if v != nil {
 				value := util.To{{mt .Type}}(v)
 				data[k] = &value
-			}{{else}}data[k] = util.To{{mt .Type}}(v){{end}}{{end}}{{end}}
+			}
+			{{- else -}}
+			data[k] = util.To{{mt .Type}}(v)
+			{{- end}}
+		{{- end}}{{end}}
 		default:
 			delete(data, k)
 		}
@@ -490,8 +548,10 @@ func DataTableToMap(c *gin.Context) {
 		if x == 0 {
 			// 翻译表头
 			dictionary := map[string]string{
-				"id": "id",{{range .Fields}}
-				"{{.Description}}": "{{c .Name}}",{{end}}
+				"id": "id",
+				{{- range .Fields}}
+				"{{.Description}}": "{{c .Name}}",
+				{{- end}}
 			}
 			runes := []rune(spans[len(spans)-1])
 			if unicode.IsLower(runes[0]) {
@@ -505,9 +565,11 @@ func DataTableToMap(c *gin.Context) {
 			row := make(map[string]interface{})
 			for y, span := range spans {
 				key := headers[y]
-				switch key { {{range .Fields}}{{if or (eq .Type "int[]") (eq .Type "float[]") (eq .Type "string[]") (eq .Type "id[]")}}
+				switch key {
+				{{- range .Fields}}{{if or (eq .Type "int[]") (eq .Type "float[]") (eq .Type "string[]") (eq .Type "id[]")}}
 				case "{{c .Name}}":
-					row[key] = util.Split(span, ";"){{end}}{{end}}
+					row[key] = util.Split(span, ";")
+				{{- end}}{{end}}
 				default:
 					row[key] = span
 				}
@@ -526,12 +588,16 @@ func DataMapToObject(c *gin.Context) {
 			if v != nil {
 				switch k {
 				case "id":
-					model.ID = util.ToID(v){{range .Fields}}
+					model.ID = util.ToID(v)
+				{{- range .Fields}}
 				// {{.Description}}
 				case "{{c .Name}}":
-					value := util.To{{mt .Type}}(v){{if eq .Name "Password"}}
-					value = util.HashString(value + config.Service.Security.Salt){{end}}
-					model.{{.Name}} = {{if .Nullable}}&{{end}}value{{end}}
+					value := util.To{{mt .Type}}(v)
+					{{- if eq .Name "Password"}}
+					value = util.HashString(value + config.Service.Security.Salt)
+					{{- end}}
+					model.{{.Name}} = {{if .Nullable}}&{{end}}value
+				{{- end}}
 				}
 			}
 		}

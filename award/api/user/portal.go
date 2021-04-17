@@ -62,7 +62,7 @@ func Login(c *gin.Context) {
 		if m, err := mongo.FindOneUser(bson.M{"account": bson.M{"$eq": form.Account}}, nil); err == nil {
 			if m.Password == util.HashString(form.Password+config.Service.Security.Salt) {
 				_ = auth.Login(c, m.ID.Hex(), form.Remember)
-				mapData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.User{*m}, &r)
+				linkData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.User{*m}, &r)
 				c.JSON(http.StatusOK, r.SetData(m).SetMessage("登录成功"))
 			} else {
 				c.JSON(http.StatusOK, r.SetCode(define.AuthError).SetMessage("账号密码错误"))
@@ -97,7 +97,7 @@ func LoginPhone(c *gin.Context) {
 	}
 	if m, err := mongo.FindOneUser(bson.M{"phone": bson.M{"$eq": form.Phone}}, nil); err == nil {
 		_ = auth.Login(c, m.ID.Hex(), form.Remember)
-		mapData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.User{*m}, &r)
+		linkData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.User{*m}, &r)
 		c.JSON(http.StatusOK, r.SetData(m).SetMessage("登录成功"))
 	} else {
 		c.JSON(http.StatusOK, r.SetCode(define.DatabaseError))
@@ -221,7 +221,7 @@ func UpdatePassword(c *gin.Context) {
 func Info(c *gin.Context) {
 	var r define.Result
 	if m, err := mongo.FindOneUserByID(c.MustGet("id").(string), nil); err == nil {
-		mapData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.User{*m}, &r)
+		linkData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.User{*m}, &r)
 		c.JSON(http.StatusOK, r.SetData(m))
 	} else {
 		c.JSON(http.StatusOK, r.SetCode(define.DatabaseError))
