@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -58,7 +57,7 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusOK, r.SetCode(define.FormatError))
 		return
 	}
-	if !config.Service.Captcha || captcha.VerifyString(form.ID, form.Captcha) {
+	if !config.Service.Captcha || util.VerifyCaptcha(form.ID, form.Captcha) {
 		if m, err := mongo.FindOneUser(bson.M{"account": bson.M{"$eq": form.Account}}, nil); err == nil {
 			if m.Password == util.HashString(form.Password+config.Service.Security.Salt) {
 				_ = auth.Login(c, m.ID.Hex(), form.Remember)
@@ -128,7 +127,7 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusOK, r.SetCode(define.FormatError))
 		return
 	}
-	if !config.Service.Captcha || captcha.VerifyString(form.ID, form.Captcha) {
+	if !config.Service.Captcha || util.VerifyCaptcha(form.ID, form.Captcha) {
 		var m model.User
 		m.Account = form.Account
 		m.Avatar = "/static/avatar/" + strconv.FormatInt(time.Now().Unix()%10+1, 10) + ".png"
@@ -165,7 +164,7 @@ func Forget(c *gin.Context) {
 		c.JSON(http.StatusOK, r.SetCode(define.FormatError))
 		return
 	}
-	if !config.Service.Captcha || captcha.VerifyString(form.ID, form.Captcha) {
+	if !config.Service.Captcha || util.VerifyCaptcha(form.ID, form.Captcha) {
 		c.JSON(http.StatusOK, r.SetData(form).SetMessage("密码已重置"))
 	} else {
 		c.JSON(http.StatusOK, r.SetCode(define.AuthError).SetMessage("验证码错误"))
@@ -195,7 +194,7 @@ func UpdatePassword(c *gin.Context) {
 		c.JSON(http.StatusOK, r.SetCode(define.FormatError))
 		return
 	}
-	if !config.Service.Captcha || captcha.VerifyString(form.ID, form.Captcha) {
+	if !config.Service.Captcha || util.VerifyCaptcha(form.ID, form.Captcha) {
 		if currentUser, err := mongo.FindOneUserByID(c.MustGet("id").(string), nil); err == nil {
 			if currentUser.Password == util.HashString(form.OldPassword+config.Service.Security.Salt) {
 				if _, err := mongo.UpdateOneUser(bson.M{"_id": currentUser.ID}, bson.M{"password": util.HashString(form.NewPassword + config.Service.Security.Salt)}); err == nil {
