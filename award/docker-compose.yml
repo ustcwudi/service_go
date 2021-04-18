@@ -6,6 +6,7 @@ services:
       - mongo
       - redis
       - minio
+      - fluent
     ports:
       - 8080:8080
       - 443:443
@@ -27,10 +28,7 @@ services:
       REDIS_ADDRESS: 127.0.0.1:6379
       REDIS_PASSWORD: 123456
     logging:
-      driver: "json-file"
-      options:
-        max-size: "1g"
-        max-file: "10"
+      driver: "fluentd"
   mongo:
     image: mongo
     ports:
@@ -57,7 +55,7 @@ services:
     ports:
       - 6379:6379
     networks:
-      - "net"
+      - net
   minio:
     image: minio/minio
     volumes:
@@ -82,6 +80,38 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: -c -e
+  fluent:
+    image: fluent/fluent-bit
+    volumes:
+      - ./conf/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+      - ./conf/fluent-parser.conf:/fluent-bit/etc/fluent-parser.conf
+    depends_on:
+      - elasticsearch
+    ports:
+      - 24224:24224
+    networks:
+      - net
+  elasticsearch:
+    image: elasticsearch:7.12.0
+    ports:
+      - 9200:9200
+    networks:
+      - net
+    environment:
+      - discovery.type=single-node
+  kibana:
+    image: kibana:7.12.0
+    environment:
+      - I18N_LOCALE=zh-CN
+      - XPACK_GRAPH_ENABLED=true
+      - TIMELION_ENABLED=true
+      - XPACK_MONITORING_COLLECTION_ENABLED="true"
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+    networks:
+      - net
 networks:
   net:
     driver: bridge

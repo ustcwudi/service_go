@@ -26,15 +26,15 @@ RUN apk update && \
     mkdir -p /run/nginx
 
 WORKDIR /app
-COPY --from=builder /service/budget/entrypoint.sh .
+COPY --from=builder /service/budget/conf/entrypoint.sh .
 COPY --from=builder /service/budget/service .
 COPY --from=builder /service/budget/service.yml .
-COPY --from=builder /service/budget/vsftpd.conf .
+COPY --from=builder /service/budget/conf/vsftpd.conf .
 COPY --from=builder /service/budget/template/ ./template/
 COPY --from=builder /service/budget/docs/ ./docs/
 COPY --from=builder /service/budget/static/ ./static/
 COPY --from=builder /service/web/dist/ ./admin/
-COPY --from=builder /service/budget/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /service/budget/conf/nginx.conf /etc/nginx/conf.d/default.conf
 
 LABEL com.centurylinklabs.watchtower.enable="true"
 

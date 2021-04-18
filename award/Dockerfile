@@ -29,7 +29,7 @@ COPY --from=builder /service/award/template/ ./template/
 COPY --from=builder /service/award/docs/ ./docs/
 COPY --from=builder /service/award/static/ ./static/
 COPY --from=builder /service/web/dist/ ./admin/
-COPY --from=builder /service/award/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /service/award/conf/nginx.conf /etc/nginx/conf.d/default.conf
 
 LABEL com.centurylinklabs.watchtower.enable="true"
 
