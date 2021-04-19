@@ -1,7 +1,6 @@
 package permission
 
 import (
-	"lib/config"
 	"net/http"
 	"service/model"
 	"service/mongo"
@@ -25,81 +24,79 @@ func getCurrentUser(c *gin.Context) *model.User {
 	return nil
 }
 
-// checkPermission 检查权限
-func checkPermission(c *gin.Context, action string) bool {
-	if current := getCurrentUser(c); current != nil {
-		if current.Role != nil {
-			if array, err := mongo.FindManyAuthority(bson.M{"role": *current.Role, "action": action}, nil); err == nil {
-				if len(*array) > 0 {
-					for _, aspect := range *array {
-						// 设置注入函数
-						if len(aspect.Injection) > 0 {
-							for _, method := range aspect.Injection {
-								if index := strings.IndexRune(method, '='); index > 0 {
-									field := method[:index]
-									function := method[index+1:]
-									dot := strings.IndexRune(method, '.')
-									key := field[:dot]
-									field = field[dot+1:]
-									Injections[function](c, key, field)
-								} else {
-									Triggers[method](c)
+// Aspect 切面
+func Aspect(action string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if current := getCurrentUser(c); current != nil {
+			if current.Role != nil {
+				if array, err := mongo.FindManyAspect(bson.M{"role": *current.Role, "action": action}, nil); err == nil {
+					if len(*array) > 0 {
+						for _, aspect := range *array {
+							// 设置注入函数
+							if len(aspect.Injection) > 0 {
+								for _, method := range aspect.Injection {
+									if index := strings.IndexRune(method, '='); index > 0 {
+										field := method[:index]
+										function := method[index+1:]
+										dot := strings.IndexRune(method, '.')
+										key := field[:dot]
+										field = field[dot+1:]
+										Injections[function](c, key, field)
+									} else {
+										Triggers[method](c)
+									}
 								}
 							}
 						}
 					}
-					return true
 				}
 			}
-			return !config.Service.Auth
+		}
+	}
+}
+
+// restrict 访问限制
+func restrict(c *gin.Context, table string, action string) bool {
+	if current := getCurrentUser(c); current != nil {
+		if current.Role != nil {
+			if restriction, err := mongo.FindOneRestriction(bson.M{"role": *current.Role, "table": table}, nil); err == nil {
+				// 检查禁止行为
+				if len(restriction.Action) > 0 {
+					for _, forbidden := range restriction.Action {
+						if forbidden == action {
+							return false
+						}
+					}
+				}
+				_, existWhere := c.Get("where")
+				data, existData := c.Get("data")
+				// 设置不可见字段
+				if len(restriction.QueryField) > 0 {
+					c.Set("field", restriction.QueryField)
+				}
+				// 设置禁止更改字段
+				if len(restriction.UpdateField) > 0 && existWhere && existData {
+					for _, field := range restriction.UpdateField {
+						delete(data.(map[string]interface{}), field)
+					}
+				}
+				// 设置禁止插入字段
+				if len(restriction.InsertField) > 0 && !existWhere && existData {
+					for _, field := range restriction.InsertField {
+						delete(data.(map[string]interface{}), field)
+					}
+				}
+			}
+			return true
 		}
 	}
 	return false
 }
 
-// Restrict 访问限制
-func Restrict(table string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if current := getCurrentUser(c); current != nil {
-			if current.Role != nil {
-				if restrictions, err := mongo.FindManyRestriction(bson.M{"role": *current.Role, "table": table}, nil); err == nil {
-					for _, access := range *restrictions {
-						_, existWhere := c.Get("where")
-						data, existData := c.Get("data")
-						// 设置不可见字段
-						if len(access.QueryField) > 0 {
-							c.Set("field", access.QueryField)
-						}
-						// 设置禁止更改字段
-						if len(access.UpdateField) > 0 && existWhere && existData {
-							for _, field := range access.UpdateField {
-								delete(data.(map[string]interface{}), field)
-							}
-						}
-						// 设置禁止插入字段
-						if len(access.InsertField) > 0 && !existWhere && existData {
-							for _, field := range access.InsertField {
-								delete(data.(map[string]interface{}), field)
-							}
-						}
-					}
-				}
-			} else {
-				c.JSON(http.StatusOK, gin.H{
-					"success": false,
-					"message": "权限不足",
-					"code":    401,
-				})
-				c.Abort()
-			}
-		}
-	}
-}
-
 // CheckWebPermission 网页检查权限
-func CheckWeb(action string) gin.HandlerFunc {
+func CheckWeb(table string, action string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if checkPermission(c, action) {
+		if restrict(c, table, action) {
 			return
 		}
 		c.Header("Content-Type", "text/html; charset=utf-8")
@@ -109,9 +106,9 @@ func CheckWeb(action string) gin.HandlerFunc {
 }
 
 // CheckPermission 接口检查权限
-func Check(action string) gin.HandlerFunc {
+func Check(table string, action string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if checkPermission(c, action) {
+		if restrict(c, table, action) {
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{

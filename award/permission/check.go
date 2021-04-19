@@ -60,6 +60,7 @@ func restrict(c *gin.Context, table string, action string) bool {
 	if current := getCurrentUser(c); current != nil {
 		if current.Role != nil {
 			if restriction, err := mongo.FindOneRestriction(bson.M{"role": *current.Role, "table": table}, nil); err == nil {
+				// 检查禁止行为
 				if len(restriction.Action) > 0 {
 					for _, forbidden := range restriction.Action {
 						if forbidden == action {
