@@ -1,7 +1,6 @@
 debug: true
 port: 8080
 captcha: true
-auth: false
 upload:
   size: 20
 mysql:

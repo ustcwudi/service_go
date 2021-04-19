@@ -5,7 +5,6 @@ type ServiceYml struct {
 	Debug   bool
 	Port    string
 	Captcha bool
-	Auth    bool
 	Upload  struct {
 		Size int64
 	}

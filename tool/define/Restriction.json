@@ -28,6 +28,11 @@
       "Name": "InsertField",
       "Type": "string[]",
       "Description": "禁止新增字段"
+    },
+    {
+      "Name": "Action",
+      "Type": "string[]",
+      "Description": "禁止行为"
     }
   ]
 }

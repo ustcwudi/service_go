@@ -37,17 +37,17 @@ func RouteAdmin(router *gin.Engine) {
 	{
 		{{u .Name}} := admin.Group("/{{u .Name}}")
 		{
-			{{u .Name}}.POST("/list", auth.CheckLogin, route.FetchListForm, AssertWhere, permission.Check("{{.Name}}.List"), permission.Restrict("{{.Name}}"), List)
-			{{u .Name}}.GET("", auth.CheckLogin, route.FetchQuery, AssertWhere, permission.Check("{{.Name}}.Query"), permission.Restrict("{{.Name}}"), Query)
-			{{u .Name}}.GET("/count", auth.CheckLogin, route.FetchQuery, AssertWhere, permission.Check("{{.Name}}.Count"), permission.Restrict("{{.Name}}"), Count)
-			{{u .Name}}.POST("", auth.CheckLogin, route.FetchModel, permission.Check("{{.Name}}.Add"), permission.Restrict("{{.Name}}"), DataMapToObject, Add)
-			{{u .Name}}.POST("/import", auth.CheckLogin, route.FetchTable, DataTableToMap, permission.Check("{{.Name}}.Import"), permission.Restrict("{{.Name}}"), DataMapToObject, Add)
-			{{u .Name}}.PUT("", auth.CheckLogin, route.FetchEditForm, AssertDataMap, AssertWhere, permission.Check("{{.Name}}.Edit"), permission.Restrict("{{.Name}}"), Edit)
-			{{u .Name}}.PUT("/trash", auth.CheckLogin, route.FetchWhere, AssertWhere, permission.Check("{{.Name}}.Trash"), permission.Restrict("{{.Name}}"), Trash)
-			{{u .Name}}.PUT("/restore", auth.CheckLogin, route.FetchWhere, AssertWhere, permission.Check("{{.Name}}.Restore"), permission.Restrict("{{.Name}}"), Restore)
-			{{u .Name}}.DELETE("", auth.CheckLogin, route.FetchWhere, AssertWhere, permission.Check("{{.Name}}.Delete"), permission.Restrict("{{.Name}}"), Delete){{range $index, $elem := .Fields}}{{if .Upload}}
-			{{u $.Name}}.POST("/upload/{{u $elem.Name}}", auth.CheckLogin, permission.Check("{{.Name}}.Upload{{$elem.Name}}"), Upload{{$elem.Name}})
-			{{u $.Name}}.GET("/download/{{u $elem.Name}}/:file", auth.CheckLogin, permission.Check("{{.Name}}.Download{{$elem.Name}}"), Download{{$elem.Name}}){{end}}{{end}}
+			{{u .Name}}.POST("/list", auth.CheckLogin, route.FetchListForm, AssertWhere, permission.Check("{{.Name}}", "List"), permission.Aspect("{{.Name}}.List"), List)
+			{{u .Name}}.GET("", auth.CheckLogin, route.FetchQuery, AssertWhere, permission.Check("{{.Name}}", "Query"), permission.Aspect("{{.Name}}.Query"), Query)
+			{{u .Name}}.GET("/count", auth.CheckLogin, route.FetchQuery, AssertWhere, permission.Check("{{.Name}}", "Count"), permission.Aspect("{{.Name}}.Count"), Count)
+			{{u .Name}}.POST("", auth.CheckLogin, route.FetchModel, permission.Check("{{.Name}}", "Add"), permission.Aspect("{{.Name}}.Add"), DataMapToObject, Add)
+			{{u .Name}}.POST("/import", auth.CheckLogin, route.FetchTable, DataTableToMap, permission.Check("{{.Name}}", "Import"), permission.Aspect("{{.Name}}.Import"), DataMapToObject, Add)
+			{{u .Name}}.PUT("", auth.CheckLogin, route.FetchEditForm, AssertDataMap, AssertWhere, permission.Check("{{.Name}}", "Edit"), permission.Aspect("{{.Name}}.Edit"), Edit)
+			{{u .Name}}.PUT("/trash", auth.CheckLogin, route.FetchWhere, AssertWhere, permission.Check("{{.Name}}", "Trash"), permission.Aspect("{{.Name}}.Trash"), Trash)
+			{{u .Name}}.PUT("/restore", auth.CheckLogin, route.FetchWhere, AssertWhere, permission.Check("{{.Name}}", "Restore"), permission.Aspect("{{.Name}}.Restore"), Restore)
+			{{u .Name}}.DELETE("", auth.CheckLogin, route.FetchWhere, AssertWhere, permission.Check("{{.Name}}", "Delete"), permission.Aspect("{{.Name}}.Delete"), Delete){{range $index, $elem := .Fields}}{{if .Upload}}
+			{{u $.Name}}.POST("/upload/{{u $elem.Name}}", auth.CheckLogin, permission.Check("{{.Name}}", "Upload{{$elem.Name}}"), permission.Aspect("{{.Name}}.Upload{{$elem.Name}}"), Upload{{$elem.Name}})
+			{{u $.Name}}.GET("/download/{{u $elem.Name}}/:file", auth.CheckLogin, permission.Check("{{.Name}}", "Download{{$elem.Name}}"), permission.Aspect("{{.Name}}.Download{{$elem.Name}}"), Download{{$elem.Name}}){{end}}{{end}}
 		}
 	}{{range $index, $elem := .Fields}}{{if .Upload}}
 	storage.CreateBucket("{{h $.Name}}-{{h $elem.Name}}"){{end}}{{end}}

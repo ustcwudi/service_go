@@ -16,7 +16,6 @@ services:
     volumes:
       - ./docker/ssl:/ssl
     environment:
-      AUTH: "FALSE"
       DEBUG: "FALSE"
       CAPTCHA: "TRUE"
       MONGODB_ADDRESS: mongodb://mongo:27017

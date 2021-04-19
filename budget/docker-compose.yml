@@ -14,7 +14,6 @@ services:
     networks:
       - "net"
     environment:
-      AUTH: "FALSE"
       DEBUG: "FALSE"
       CAPTCHA: "FALSE"
       MONGODB_ADDRESS: mongodb://mongo:27017

@@ -19,10 +19,6 @@ func init() {
 	if exist {
 		Service.Debug = Debug == "TRUE"
 	}
-	Auth, exist := os.LookupEnv("AUTH")
-	if exist {
-		Service.Auth = Auth == "TRUE"
-	}
 	Captcha, exist := os.LookupEnv("CAPTCHA")
 	if exist {
 		Service.Captcha = Captcha == "TRUE"
