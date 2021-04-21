@@ -17,22 +17,22 @@
     {
       "Name": "QueryField",
       "Type": "string[]",
-      "Description": "不可见字段"
+      "Description": "查询字段"
     },
     {
       "Name": "UpdateField",
       "Type": "string[]",
-      "Description": "禁止修改字段"
+      "Description": "修改字段"
     },
     {
       "Name": "InsertField",
       "Type": "string[]",
-      "Description": "禁止新增字段"
+      "Description": "新增字段"
     },
     {
       "Name": "Action",
       "Type": "string[]",
-      "Description": "禁止行为"
+      "Description": "行为"
     }
   ]
 }
