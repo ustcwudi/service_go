@@ -1,5 +1,6 @@
 debug: true
 port: 8080
+auth: false
 captcha: true
 upload:
   size: 20

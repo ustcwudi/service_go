@@ -137,10 +137,30 @@ func UpdateOne(table string, filter interface{}, update interface{}) (int64, err
 	return result.ModifiedCount, err
 }
 
+// UpdateOneComplex 单个复合修改
+func UpdateOneComplex(table string, filter interface{}, update interface{}) (int64, error) {
+	log.Info("mongodb update one", table, filter, update)
+	result, err := DB.Collection(table).UpdateOne(getContext(), filter, update)
+	if err != nil {
+		log.Error("mongodb update one", err)
+	}
+	return result.ModifiedCount, err
+}
+
 // UpdateMany 多个修改
 func UpdateMany(table string, filter interface{}, update interface{}) (int64, error) {
 	log.Info("mongodb update many", table, filter, update)
 	result, err := DB.Collection(table).UpdateMany(getContext(), filter, bson.M{"$set": update})
+	if err != nil {
+		log.Error("mongodb update many", err)
+	}
+	return result.ModifiedCount, err
+}
+
+// UpdateManyComplex 复合修改
+func UpdateManyComplex(table string, filter interface{}, update interface{}) (int64, error) {
+	log.Info("mongodb update many", table, filter, update)
+	result, err := DB.Collection(table).UpdateMany(getContext(), filter, update)
 	if err != nil {
 		log.Error("mongodb update many", err)
 	}

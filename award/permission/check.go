@@ -1,13 +1,13 @@
 package permission
 
 import (
+	"lib/config"
 	"net/http"
 	"service/model"
 	"service/mongo"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 // getCurrentUser 获取当前用户
@@ -29,23 +29,19 @@ func Aspect(action string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if current := getCurrentUser(c); current != nil {
 			if current.Role != nil {
-				if array, err := mongo.FindManyAspect(bson.M{"role": *current.Role, "action": action}, nil); err == nil {
-					if len(*array) > 0 {
-						for _, aspect := range *array {
-							// 设置注入函数
-							if len(aspect.Injection) > 0 {
-								for _, method := range aspect.Injection {
-									if index := strings.IndexRune(method, '='); index > 0 {
-										field := method[:index]
-										function := method[index+1:]
-										dot := strings.IndexRune(method, '.')
-										key := field[:dot]
-										field = field[dot+1:]
-										Injections[function](c, key, field)
-									} else {
-										Triggers[method](c)
-									}
-								}
+				if injections, exist := AspectCache[current.Role.Hex()+action]; exist {
+					// 设置注入函数
+					if len(injections) > 0 {
+						for _, method := range injections {
+							if index := strings.IndexRune(method, '='); index > 0 {
+								field := method[:index]
+								function := method[index+1:]
+								dot := strings.IndexRune(method, '.')
+								key := field[:dot]
+								field = field[dot+1:]
+								Injections[function](c, key, field)
+							} else {
+								Triggers[method](c)
 							}
 						}
 					}
@@ -59,35 +55,27 @@ func Aspect(action string) gin.HandlerFunc {
 func restrict(c *gin.Context, table string, action string) bool {
 	if current := getCurrentUser(c); current != nil {
 		if current.Role != nil {
-			if restriction, err := mongo.FindOneRestriction(bson.M{"role": *current.Role, "table": table}, nil); err == nil {
-				// 检查禁止行为
-				if len(restriction.Action) > 0 {
-					for _, forbidden := range restriction.Action {
-						if forbidden == action {
-							return false
-						}
-					}
-				}
-				_, existWhere := c.Get("where")
-				data, existData := c.Get("data")
-				// 设置不可见字段
-				if len(restriction.QueryField) > 0 {
-					c.Set("field", restriction.QueryField)
-				}
-				// 设置禁止更改字段
-				if len(restriction.UpdateField) > 0 && existWhere && existData {
-					for _, field := range restriction.UpdateField {
-						delete(data.(map[string]interface{}), field)
-					}
-				}
-				// 设置禁止插入字段
-				if len(restriction.InsertField) > 0 && !existWhere && existData {
-					for _, field := range restriction.InsertField {
-						delete(data.(map[string]interface{}), field)
-					}
+			_, existWhere := c.Get("where")
+			data, existData := c.Get("data")
+			if queryField, exist := QueryFieldCache[current.Role.Hex()+table]; exist {
+				c.Set("field", queryField)
+			}
+			if updateField, exist := UpdateFieldCache[current.Role.Hex()+table]; exist && existWhere && existData {
+				for _, field := range updateField {
+					delete(data.(map[string]interface{}), field)
 				}
 			}
-			return true
+			if insertField, exist := InsertFieldCache[current.Role.Hex()+table]; exist && !existWhere && existData {
+				for _, field := range insertField {
+					delete(data.(map[string]interface{}), field)
+				}
+			}
+			if set, exist := ActionCache[current.Role.Hex()+table]; exist {
+				if pass, ok := set[action]; ok {
+					return pass
+				}
+			}
+			return !config.Service.Auth // Default true in blacklist mode, default false in whitelist mode.
 		}
 	}
 	return false

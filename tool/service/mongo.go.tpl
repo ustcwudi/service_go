@@ -144,6 +144,11 @@ func UpdateOne{{.Name}}(filter interface{}, update bson.M) (int64, error) {
 	return mongo.UpdateOne("{{.Name}}", filter, update)
 }
 
+// UpdateOne{{.Name}}Complex 复合修改单个{{.Description}}数据
+func UpdateOne{{.Name}}Complex(filter interface{}, operation string, update bson.M) (int64, error) {
+	return mongo.UpdateOneComplex("{{.Name}}", filter, bson.M{("$" + operation): update, "$set": bson.M{"updateTime": time.Now().UnixNano()}})
+}
+
 // UpdateOne{{.Name}}ByID 根据ID修改单个{{.Description}}数据
 func UpdateOne{{.Name}}ByID(model *model.{{.Name}}) (int64, error) {
 	model.UpdateTime = time.Now().UnixNano()
@@ -154,6 +159,11 @@ func UpdateOne{{.Name}}ByID(model *model.{{.Name}}) (int64, error) {
 func UpdateMany{{.Name}}(filter interface{}, update bson.M) (int64, error) {
 	update["updateTime"] = time.Now().UnixNano()
 	return mongo.UpdateMany("{{.Name}}", filter, update)
+}
+
+// UpdateMany{{.Name}} 复合修改多个{{.Description}}数据
+func UpdateMany{{.Name}}Complex(filter interface{}, operation string, update bson.M) (int64, error) {
+	return mongo.UpdateManyComplex("{{.Name}}", filter, bson.M{("$" + operation): update, "$set": bson.M{"updateTime": time.Now().UnixNano()}})
 }
 
 // DeleteOne{{.Name}} 删除单个{{.Description}}数据
