@@ -1,13 +1,13 @@
 package permission
 
 import (
-	"lib/config"
 	"net/http"
 	"service/model"
 	"service/mongo"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // getCurrentUser 获取当前用户
@@ -15,10 +15,15 @@ func getCurrentUser(c *gin.Context) *model.User {
 	if current, exist := c.Get("current"); exist {
 		return current.(*model.User)
 	} else {
-		uid := c.MustGet("id").(string)
-		if current, err := mongo.FindOneUserByID(uid, nil); err == nil {
-			c.Set("current", current)
-			return current
+		if uid, exist := c.Get("id"); exist {
+			if current, err := mongo.FindOneUserByID(uid.(string), nil); err == nil {
+				if current.Role != nil {
+					if _, exist := RoleCache[current.Role.Hex()]; exist {
+						c.Set("current", current)
+						return current
+					}
+				}
+			}
 		}
 	}
 	return nil
@@ -28,21 +33,19 @@ func getCurrentUser(c *gin.Context) *model.User {
 func Aspect(action string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if current := getCurrentUser(c); current != nil {
-			if current.Role != nil {
-				if injections, exist := AspectCache[current.Role.Hex()+action]; exist {
-					// 设置注入函数
-					if len(injections) > 0 {
-						for _, method := range injections {
-							if index := strings.IndexRune(method, '='); index > 0 {
-								field := method[:index]
-								function := method[index+1:]
-								dot := strings.IndexRune(method, '.')
-								key := field[:dot]
-								field = field[dot+1:]
-								Injections[function](c, key, field)
-							} else {
-								Triggers[method](c)
-							}
+			if injections, exist := AspectCache[current.Role.Hex()+action]; exist {
+				// 设置注入函数
+				if len(injections) > 0 {
+					for _, method := range injections {
+						if index := strings.IndexRune(method, '='); index > 0 {
+							field := method[:index]
+							function := method[index+1:]
+							dot := strings.IndexRune(method, '.')
+							key := field[:dot]
+							field = field[dot+1:]
+							Injections[function](c, key, field)
+						} else {
+							Triggers[method](c)
 						}
 					}
 				}
@@ -51,32 +54,41 @@ func Aspect(action string) gin.HandlerFunc {
 	}
 }
 
+// GetRestrictQuery 获取查询限制
+func GetRestrictQuery(c *gin.Context, table string) bson.M {
+	if current := getCurrentUser(c); current != nil {
+		if queryField, exist := QueryFieldCache[current.Role.Hex()+table]; exist {
+			projection := make(bson.M)
+			for _, value := range queryField {
+				projection[value] = 0
+			}
+			return projection
+		}
+	}
+	return nil
+}
+
 // restrict 访问限制
 func restrict(c *gin.Context, table string, action string) bool {
 	if current := getCurrentUser(c); current != nil {
-		if current.Role != nil {
-			_, existWhere := c.Get("where")
-			data, existData := c.Get("data")
-			if queryField, exist := QueryFieldCache[current.Role.Hex()+table]; exist {
-				c.Set("field", queryField)
+		if set, exist := ActionCache[current.Role.Hex()+table]; exist {
+			if forbidden, exist := set[action]; exist {
+				return forbidden
 			}
-			if updateField, exist := UpdateFieldCache[current.Role.Hex()+table]; exist && existWhere && existData {
-				for _, field := range updateField {
-					delete(data.(map[string]interface{}), field)
-				}
-			}
-			if insertField, exist := InsertFieldCache[current.Role.Hex()+table]; exist && !existWhere && existData {
-				for _, field := range insertField {
-					delete(data.(map[string]interface{}), field)
-				}
-			}
-			if set, exist := ActionCache[current.Role.Hex()+table]; exist {
-				if pass, ok := set[action]; ok {
-					return pass
-				}
-			}
-			return !config.Service.Auth // Default true in blacklist mode, default false in whitelist mode.
 		}
+		_, existWhere := c.Get("where")
+		data, existData := c.Get("data")
+		if updateField, exist := UpdateFieldCache[current.Role.Hex()+table]; exist && existWhere && existData {
+			for _, field := range updateField {
+				delete(data.(map[string]interface{}), field)
+			}
+		}
+		if insertField, exist := InsertFieldCache[current.Role.Hex()+table]; exist && !existWhere && existData {
+			for _, field := range insertField {
+				delete(data.(map[string]interface{}), field)
+			}
+		}
+		return true
 	}
 	return false
 }

@@ -3,6 +3,7 @@ package util
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"reflect"
 	"strings"
 )
 
@@ -33,4 +34,27 @@ func Split(text string, sep string) []string {
 	} else {
 		return strings.Split(text, sep)
 	}
+}
+
+// CamelCase 驼峰命名
+func CamelCase(name string) string {
+	name = strings.ReplaceAll(name, "ID", "Id")
+	temp := []rune(name)
+	if temp[0] < 91 {
+		temp[0] += 32
+	}
+	return string(temp)
+}
+
+// StructToMap struct转map
+func StructToMap(object interface{}) map[string]interface{} {
+	keys := reflect.TypeOf(object)
+	values := reflect.ValueOf(object)
+
+	var data = make(map[string]interface{})
+	for i := 0; i < keys.NumField(); i++ {
+		key := keys.Field(i).Name
+		data[CamelCase(key)] = values.Field(i).Interface()
+	}
+	return data
 }

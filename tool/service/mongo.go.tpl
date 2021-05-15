@@ -81,6 +81,13 @@ func FindMany{{.Name}}Data(filter interface{}, projection interface{}) (*[]map[s
 	if err == nil {
 		err = cursor.All(context, &list)
 	}
+	// 重命名_id
+	for _, item := range list {
+		if id, exist := item["_id"]; exist {
+			item["id"] = id
+			delete(item, "_id")
+		}
+	}
 	return &list, err
 }
 
@@ -108,6 +115,13 @@ func FindMany{{.Name}}DataLimit(filter interface{}, limit int64, sort interface{
 	if err == nil {
 		err = cursor.All(context, &list)
 	}
+	// 重命名_id
+	for _, item := range list {
+		if id, exist := item["_id"]; exist {
+			item["id"] = id
+			delete(item, "_id")
+		}
+	}
 	return &list, err
 }
 
@@ -134,6 +148,13 @@ func FindMany{{.Name}}DataSkip(filter interface{}, skip int64, limit int64, sort
 	cursor, context, err := mongo.FindManySkip("{{.Name}}", filter, skip, limit, sort, projection)
 	if err == nil {
 		err = cursor.All(context, &list)
+	}
+	// 重命名_id
+	for _, item := range list {
+		if id, exist := item["_id"]; exist {
+			item["id"] = id
+			delete(item, "_id")
+		}
 	}
 	return &list, err
 }

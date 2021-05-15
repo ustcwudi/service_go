@@ -23,10 +23,6 @@ func init() {
 	if exist {
 		Service.Captcha = Captcha == "TRUE"
 	}
-	Auth, exist := os.LookupEnv("AUTH")
-	if exist {
-		Service.Auth = Auth == "TRUE"
-	}
 	MongodbAddress, exist := os.LookupEnv("MONGODB_ADDRESS")
 	if exist {
 		Service.Mongodb.Address = MongodbAddress

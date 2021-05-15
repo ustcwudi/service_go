@@ -68,9 +68,9 @@ func Query(c *gin.Context) {
 	if pagination, exist := c.Get("pagination"); exist {
 		// 分页查询
 		p := pagination.(define.Pagination)
-		if list, err := mongo.FindMany{{.Name}}Skip(where, (p.Current-1)*p.PageSize, p.PageSize, nil, getProjection(c)); err == nil {
+		if list, err := mongo.FindMany{{.Name}}DataSkip(where, (p.Current-1)*p.PageSize, p.PageSize, nil, permission.GetRestrictQuery(c, "{{.Name}}")); err == nil {
 			{{- if .Link}}
-			linkData(strings.Split(c.Request.Header.Get("Link"), ","), list, &result)
+			linkData(c, list, &result)
 			{{- end}}
 			count, _ := mongo.Count{{.Name}}(where)
 			c.JSON(http.StatusOK, result.SetData(list).SetTotal(count))
@@ -80,9 +80,9 @@ func Query(c *gin.Context) {
 		}
 	} else {
 		// 总查询
-		if list, err := mongo.FindMany{{.Name}}(where, getProjection(c)); err == nil {
+		if list, err := mongo.FindMany{{.Name}}Data(where, permission.GetRestrictQuery(c, "{{.Name}}")); err == nil {
 			{{- if .Link}}
-			linkData(strings.Split(c.Request.Header.Get("Link"), ","), list, &result)
+			linkData(c, list, &result)
 			{{- end}}
 			c.JSON(http.StatusOK, result.SetData(list))
 		} else {
@@ -126,9 +126,9 @@ func List(c *gin.Context) {
 	// 数据库查询
 	sort := c.MustGet("sort").(bson.M)
 	pagination := c.MustGet("pagination").(define.Pagination)
-	if list, err := mongo.FindMany{{.Name}}Skip(where, (pagination.Current-1)*pagination.PageSize, pagination.PageSize, sort, getProjection(c)); err == nil {
+	if list, err := mongo.FindMany{{.Name}}DataSkip(where, (pagination.Current-1)*pagination.PageSize, pagination.PageSize, sort, permission.GetRestrictQuery(c, "{{.Name}}")); err == nil {
 		{{- if .Link}}
-		linkData(strings.Split(c.Request.Header.Get("Link"), ","), list, &result)
+		linkData(c, list, &result)
 		{{- end}}
 		count, _ := mongo.Count{{.Name}}(where)
 		c.JSON(http.StatusOK, result.SetData(list).SetTotal(count))
@@ -153,7 +153,7 @@ func Add(c *gin.Context) {
 		// 数据库新增
 		if r, err := mongo.InsertOne{{.Name}}(&data); err == nil {
 			{{- if .Link}}
-			linkData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.{{.Name}}{data}, &result)
+			linkData(c, &[]map[string]interface{}{util.StructToMap(data)}, &result)
 			{{- end}}
 			c.Set("result", r)
 			c.JSON(http.StatusOK, result.SetData(data))
@@ -190,9 +190,9 @@ func Edit(c *gin.Context) {
 	// 数据库操作
 	if ids, err := mongo.Get{{.Name}}IDList(where); err == nil {
 		if _, err := mongo.UpdateMany{{.Name}}(bson.M{"_id": bson.M{"$in": ids}}, data); err == nil {
-			updates, _ := mongo.FindMany{{.Name}}(bson.M{"_id": bson.M{"$in": ids}}, nil)
+			updates, _ := mongo.FindMany{{.Name}}Data(bson.M{"_id": bson.M{"$in": ids}}, nil)
 			{{- if .Link}}
-			linkData(strings.Split(c.Request.Header.Get("Link"), ","), updates, &result)
+			linkData(c, updates, &result)
 			{{- end}}
 			c.JSON(http.StatusOK, result.SetData(updates))
 		} else {
@@ -373,24 +373,51 @@ func Download{{$elem.Name}}(c *gin.Context) {
 {{- if .Link}}
 
 // linkData 生成外链数据
-func linkData(fields []string, list *[]model.{{.Name}}, r *define.Result) {	
+func linkData(c *gin.Context, list *[]map[string]interface{}, r *define.Result) {
+	fields := strings.Split(c.Request.Header.Get("Link"), ",")
 	if len(*list) > 0 && len(fields) > 0 {
 		for _, l := range fields {
 			switch l {
 			{{- range .Fields}}{{if .Link}}
 			case "{{c .Name}}":
-				var array []primitive.ObjectID
+				var array primitive.A
 				for _, e := range *list {
-					{{- if .Nullable}}
-					if e.{{.Name}} != nil {
-						array = append(array, {{if eq .Type "id"}}*e.{{.Name}}{{else}}(*e.{{.Name}})...{{end}})
+					if value, exist := e["{{c .Name}}"]; exist {
+						if value != nil {
+							{{- if eq .Type "id"}}
+							contain := false
+							for _, id := range array {
+								if id.(primitive.ObjectID).Hex() == value.(primitive.ObjectID).Hex() {
+									contain = true
+									break
+								}
+							}
+							if !contain {
+								array = append(array, value)
+							}
+							{{else}}
+							for _, item := range value.(primitive.A) {
+								contain := false
+								for _, id := range array {
+									if id.(primitive.ObjectID).Hex() == item.(primitive.ObjectID).Hex() {
+										contain = true
+										break
+									}
+								}
+								if !contain {
+									array = append(array, item)
+								}
+							}
+							{{end}}
+						}
 					}
-					{{- else}}
-					array = append(array, {{if eq .Type "id"}}e.{{.Name}}{{else}}e.{{.Name}}...{{end}})
-					{{- end}}
 				}
-				result, _ := mongo.FindMany{{.Link}}(bson.M{"_id": bson.M{"$in": array}}, bson.M{})
-				r.AddMapData("{{c .Name}}", result)
+				if len(array) > 0 {
+					result, _ := mongo.FindMany{{.Link}}(bson.M{"_id": bson.M{"$in": array}}, permission.GetRestrictQuery(c, "{{.Link}}"))
+					r.AddMapData("{{c .Name}}", result)
+				} else {
+					r.AddMapData("{{c .Name}}", make([]interface{}, 0))
+				}
 			{{- end}}{{end}}
 			}
 		}
@@ -615,17 +642,4 @@ func DataMapToObject(c *gin.Context) {
 		c.Set("data", models)
 	default:
 	}
-}
-
-// getProjection 设置禁用字段
-func getProjection(c *gin.Context) bson.M {
-	projection := make(bson.M)
-	if field, exist := c.Get("field"); exist {
-		if array := field.([]string); len(array) > 0 {
-			for _, value := range array {
-				projection[value] = 0
-			}
-		}
-	}
-	return projection
 }

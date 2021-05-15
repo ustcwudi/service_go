@@ -11,7 +11,6 @@ import (
 
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,16 +20,16 @@ import (
 // RoutePortal portal路由
 func RoutePortal(router *gin.Engine) {
 	api := router.Group("/api")
-	user := api.Group("/user")
+	portal := api.Group("/user")
 	{
-		user.POST("/login", Login)
-		user.POST("/login_phone", LoginPhone)
-		user.POST("/register", Register)
-		user.POST("/forget", Forget)
+		portal.POST("/login", Login)
+		portal.POST("/login_phone", LoginPhone)
+		portal.POST("/register", Register)
+		portal.POST("/forget", Forget)
 
-		user.GET("/info", auth.CheckLogin, Info)
-		user.POST("/update_password", auth.CheckLogin, UpdatePassword)
-		user.POST("/logout", auth.CheckLogin, Logout)
+		portal.GET("/info", auth.CheckLogin, Info)
+		portal.POST("/update_password", auth.CheckLogin, UpdatePassword)
+		portal.POST("/logout", auth.CheckLogin, Logout)
 	}
 }
 
@@ -61,7 +60,8 @@ func Login(c *gin.Context) {
 		if m, err := mongo.FindOneUser(bson.M{"account": bson.M{"$eq": form.Account}}, nil); err == nil {
 			if m.Password == util.HashString(form.Password+config.Service.Security.Salt) {
 				_ = auth.Login(c, m.ID.Hex(), form.Remember)
-				linkData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.User{*m}, &r)
+				c.Set("current", m)
+				linkData(c, &[]map[string]interface{}{util.StructToMap(*m)}, &r)
 				c.JSON(http.StatusOK, r.SetData(m).SetMessage("登录成功"))
 			} else {
 				c.JSON(http.StatusOK, r.SetCode(define.AuthError).SetMessage("账号密码错误"))
@@ -96,7 +96,8 @@ func LoginPhone(c *gin.Context) {
 	}
 	if m, err := mongo.FindOneUser(bson.M{"phone": bson.M{"$eq": form.Phone}}, nil); err == nil {
 		_ = auth.Login(c, m.ID.Hex(), form.Remember)
-		linkData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.User{*m}, &r)
+		c.Set("current", m)
+		linkData(c, &[]map[string]interface{}{util.StructToMap(*m)}, &r)
 		c.JSON(http.StatusOK, r.SetData(m).SetMessage("登录成功"))
 	} else {
 		c.JSON(http.StatusOK, r.SetCode(define.DatabaseError))
@@ -220,7 +221,7 @@ func UpdatePassword(c *gin.Context) {
 func Info(c *gin.Context) {
 	var r define.Result
 	if m, err := mongo.FindOneUserByID(c.MustGet("id").(string), nil); err == nil {
-		linkData(strings.Split(c.Request.Header.Get("Link"), ","), &[]model.User{*m}, &r)
+		linkData(c, &[]map[string]interface{}{util.StructToMap(*m)}, &r)
 		c.JSON(http.StatusOK, r.SetData(m))
 	} else {
 		c.JSON(http.StatusOK, r.SetCode(define.DatabaseError))

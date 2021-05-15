@@ -20,11 +20,11 @@ import (
 // RoutePortal portal路由
 func RoutePortal(router *gin.Engine) {
 	api := router.Group("/api")
-	user := api.Group("/award")
+	portal := api.Group("/award")
 	{
-		user.GET("/display/:id", Display)
-		user.GET("/search/:id", Search)
-		user.GET("/display_list/:type/:ids/:id", DisplayList)
+		portal.GET("/display/:id", Display)
+		portal.GET("/search/:id", Search)
+		portal.GET("/display_list/:type/:ids/:id", DisplayList)
 	}
 }
 
@@ -120,7 +120,7 @@ func Search(c *gin.Context) {
 		if len(query) > 0 {
 			where["deleteTime"] = 0
 			where["table"] = lib_util.ToID(c.Param("id"))
-			list, _ := mongo.FindManyAward(where, getProjection(c))
+			list, _ := mongo.FindManyAward(where, nil)
 			c.JSON(http.StatusOK, result.SetData(list))
 			return
 		}

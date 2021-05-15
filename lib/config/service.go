@@ -5,7 +5,6 @@ type ServiceYml struct {
 	Debug   bool   // 调试模式
 	Port    string // 端口
 	Captcha bool   // 验证码
-	Auth    bool   // TRUE: action whitelist mode; FALSE: action blacklist mode
 	Upload  struct {
 		Size int64
 	}

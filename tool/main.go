@@ -187,18 +187,12 @@ func HyphenCase(name string) string {
 
 // CamelCase 驼峰命名
 func CamelCase(name string) string {
-	var slice []rune
 	name = strings.ReplaceAll(name, "ID", "Id")
-	runes := []rune(name)
-	for index, c := range runes {
-		if c < 91 && index == 0 {
-			c += 32
-			slice = append(slice, c)
-		} else {
-			slice = append(slice, c)
-		}
+	temp := []rune(name)
+	if temp[0] < 91 {
+		temp[0] += 32
 	}
-	return string(slice)
+	return string(temp)
 }
 
 // GetModel 根据名称获取Model

@@ -23,11 +23,11 @@ import (
 // RoutePortal portal路由
 func RoutePortal(router *gin.Engine) {
 	api := router.Group("/api")
-	user := api.Group("/budget")
+	portal := api.Group("/budget")
 	{
-		user.POST("/get_children", auth.CheckLogin, GetChildren)
-		user.POST("/aggregate", auth.CheckLogin, route.FetchListForm, Aggregate)
-		user.GET("/excel/:file", auth.CheckLogin, Excel)
+		portal.POST("/get_children", auth.CheckLogin, GetChildren)
+		portal.POST("/aggregate", auth.CheckLogin, route.FetchListForm, Aggregate)
+		portal.GET("/excel/:file", auth.CheckLogin, Excel)
 	}
 }
 
@@ -83,7 +83,7 @@ func GetChildren(c *gin.Context) {
 func Aggregate(c *gin.Context) {
 	var r define.Result
 	where := c.MustGet("where").(map[string]interface{})
-	list, _ := mongo.FindManyBudget(where, getProjection(c))
+	list, _ := mongo.FindManyBudget(where, nil)
 	var ids []primitive.ObjectID
 	for _, row := range *list {
 		ids = append(ids, row.ID)
