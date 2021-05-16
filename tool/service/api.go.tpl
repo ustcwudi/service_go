@@ -394,8 +394,7 @@ func linkData(c *gin.Context, list *[]map[string]interface{}, r *define.Result) 
 							}
 							if !contain {
 								array = append(array, value)
-							}
-							{{else}}
+							}{{else}}
 							for _, item := range value.(primitive.A) {
 								contain := false
 								for _, id := range array {
@@ -407,8 +406,7 @@ func linkData(c *gin.Context, list *[]map[string]interface{}, r *define.Result) 
 								if !contain {
 									array = append(array, item)
 								}
-							}
-							{{end}}
+							}{{end}}
 						}
 					}
 				}

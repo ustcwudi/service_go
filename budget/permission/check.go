@@ -10,8 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-// getCurrentUser 获取当前用户
-func getCurrentUser(c *gin.Context) *model.User {
+// GetCurrentUser 获取当前用户
+func GetCurrentUser(c *gin.Context) *model.User {
 	if current, exist := c.Get("current"); exist {
 		return current.(*model.User)
 	} else {
@@ -32,7 +32,7 @@ func getCurrentUser(c *gin.Context) *model.User {
 // Aspect 切面
 func Aspect(action string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if current := getCurrentUser(c); current != nil {
+		if current := GetCurrentUser(c); current != nil {
 			if injections, exist := AspectCache[current.Role.Hex()+action]; exist {
 				// 设置注入函数
 				if len(injections) > 0 {
@@ -56,7 +56,7 @@ func Aspect(action string) gin.HandlerFunc {
 
 // GetRestrictQuery 获取查询限制
 func GetRestrictQuery(c *gin.Context, table string) bson.M {
-	if current := getCurrentUser(c); current != nil {
+	if current := GetCurrentUser(c); current != nil {
 		if queryField, exist := QueryFieldCache[current.Role.Hex()+table]; exist {
 			projection := make(bson.M)
 			for _, value := range queryField {
@@ -70,7 +70,7 @@ func GetRestrictQuery(c *gin.Context, table string) bson.M {
 
 // restrict 访问限制
 func restrict(c *gin.Context, table string, action string) bool {
-	if current := getCurrentUser(c); current != nil {
+	if current := GetCurrentUser(c); current != nil {
 		if set, exist := ActionCache[current.Role.Hex()+table]; exist {
 			if forbidden, exist := set[action]; exist {
 				return forbidden
