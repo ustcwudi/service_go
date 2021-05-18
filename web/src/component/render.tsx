@@ -30,7 +30,6 @@ const renderUpload = (value?: string) => {
         return <Link href={value} target="_blank"><PaperClipOutlined /></Link>
     else {
       let ext = value.substring(value.lastIndexOf(".") + 1, value.length);
-      console.log(value)
       if (ext === "jpg" || ext === "jpeg" || ext === "gif" || ext === "png")
         return <Link href={"/" + value} target="_blank"><FileImageOutlined /></Link>
       else if (ext === "pdf")

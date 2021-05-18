@@ -395,16 +395,32 @@ func linkData(c *gin.Context, list *[]map[string]interface{}, r *define.Result) 
 							if !contain {
 								array = append(array, value)
 							}{{else}}
-							for _, item := range value.(primitive.A) {
-								contain := false
-								for _, id := range array {
-									if id.(primitive.ObjectID).Hex() == item.(primitive.ObjectID).Hex() {
-										contain = true
-										break
+							switch value := value.(type) {
+							case primitive.A:
+								for _, item := range value {
+									contain := false
+									for _, id := range array {
+										if id.(primitive.ObjectID).Hex() == item.(primitive.ObjectID).Hex() {
+											contain = true
+											break
+										}
+									}
+									if !contain {
+										array = append(array, item)
 									}
 								}
-								if !contain {
-									array = append(array, item)
+							case []primitive.ObjectID:
+								for _, item := range value {
+									contain := false
+									for _, id := range array {
+										if id.(primitive.ObjectID).Hex() == item.Hex() {
+											contain = true
+											break
+										}
+									}
+									if !contain {
+										array = append(array, item)
+									}
 								}
 							}{{end}}
 						}

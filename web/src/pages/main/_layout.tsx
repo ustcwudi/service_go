@@ -1,13 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { message, Layout, Menu, Breadcrumb, ConfigProvider, Typography } from 'antd';
 import { useModel, useRequest, history } from 'umi';
-import { UserOutlined, PoweroffOutlined, StarOutlined, TagOutlined, KeyOutlined } from '@ant-design/icons';
-import zhCN from 'antd/lib/locale/zh_CN';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import AppBar from '@material-ui/core/AppBar';
+import Button from '@material-ui/core/Button';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import Breadcrumbs from '@material-ui/core/Breadcrumbs';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import Collapse from '@material-ui/core/Collapse';
+import Box from '@material-ui/core/Box';
+import MenuItem from '@material-ui/core/MenuItem';
+import Menu from '@material-ui/core/Menu';
+import Icon from '@/component/icon'
 import UploadPassword from '@/component/update_password'
 
-const { Header, Content, Sider } = Layout;
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    nav: {
+      width: 220,
+      marginTop: theme.spacing(1.25),
+      backgroundColor: theme.palette.background.paper,
+    },
+    nested: {
+      paddingLeft: theme.spacing(4),
+    },
+    logo: {
+      marginRight: theme.spacing(2),
+    },
+    title: {
+      flexGrow: 1,
+      color: 'white'
+    },
+    breadcrumbs: {
+      marginBottom: theme.spacing(2),
+    },
+    breadcrumb: {
+      display: 'flex',
+    },
+    icon: {
+      marginRight: theme.spacing(0.5),
+    },
+    main: {
+      display: 'flex'
+    },
+    content: {
+      padding: theme.spacing(2),
+      flex: 1
+    }
+  }),
+);
 
 export default (props: any) => {
+  const classes = useStyles();
+  // 用户菜单
+  const [userMenuAnchor, setUserMenuAnchor] = React.useState<null | HTMLElement>(null);
   // 通过权限检查
   const [pass, setPass] = useState<boolean>(false);
   // 当前路径
@@ -22,6 +72,8 @@ export default (props: any) => {
   const [breadcrumb, setBreadcrumb] = useState<any[]>([]);
   // 当前一级菜单ID
   const [topMenu, setTopMenu] = useState<string>();
+  // 展开二级菜单ID
+  const [expandMenu, setExpandMenu] = useState<string>();
   // 用户信息
   const { user, role, login, logout } = useModel('auth', model => ({
     user: model.user,
@@ -54,7 +106,7 @@ export default (props: any) => {
           login(result.data, result.map.role[0]);
           menuRequest.run();
         } else {
-          message.error("用户未登录");
+          //message.error("用户未登录");
           history.push('/frame/login');
         }
       },
@@ -70,7 +122,7 @@ export default (props: any) => {
       manual: true,
       onSuccess: (result, params: any) => {
         logout();
-        message.success("退出系统");
+        //message.success("退出系统");
         history.push('/frame/login');
       },
     },
@@ -110,21 +162,31 @@ export default (props: any) => {
     menuArray.forEach((item: any) => {
       // 提取一级菜单
       if (!item.parent) {
-        item.icon = item.icon ? item.icon : <StarOutlined />;
-        menu.push(item);
+        menu.push(item)
       }
     });
     // 提取二级菜单
+    let subMenu: MenuItem[] = [];
     menu.forEach((parent: MenuItem) => {
       parent.children = new Array<MenuItem>();
       menuArray.forEach((item: any) => {
         if (item.parent === parent.key) {
-          item.icon = item.icon ? item.icon : <TagOutlined />;
-          parent.children?.push(item);
+          parent.children?.push(item)
+          subMenu.push(item)
         }
       });
     });
-    setMenuTree(menu);
+    // 提取三级菜单
+    subMenu.forEach((parent: MenuItem) => {
+      menuArray.forEach((item: any) => {
+        if (item.parent === parent.key) {
+          if (parent.children == undefined)
+            parent.children = new Array<MenuItem>()
+          parent.children?.push(item)
+        }
+      });
+    });
+    setMenuTree(menu)
   }, [menuArray]
   );
   // 检查路径权限
@@ -151,56 +213,64 @@ export default (props: any) => {
     setPass(pass);
   }, [menuArray, path]
   );
-  return (<ConfigProvider locale={zhCN}>
-    <Layout style={{ minHeight: '100%' }}>
-      <Header style={{ padding: 0 }}>
-        <div style={{ float: 'left', width: 200, height: 64 }}>
-          <img style={{ float: 'left', margin: '14px 14px 0 30px', width: 36, height: 36 }} src='/static/logo.svg' />
-          <Typography.Title style={{ float: 'left', color: '#eee', marginTop: 18 }} level={4}>管理终端</Typography.Title>
-        </div>
-        <Menu theme="dark" mode="horizontal" selectedKeys={[topMenu ? topMenu : breadcrumb?.[0]?.key]}>
+
+  return <>
+    <AppBar position="static">
+      <Toolbar>
+        <IconButton edge="start" className={classes.logo} color="inherit">
+          <Icon name="Menu" />
+        </IconButton>
+        <Typography variant="h6" className={classes.title}>
+          管理终端
+        </Typography>
+        {
+          menuTree.map((i: MenuItem) => <Button color="inherit" startIcon={<Icon name={i.icon} />} onClick={() => setTopMenu(i.key)} key={i.key}>{i.title}</Button>)
+        }
+        <Button color="inherit" startIcon={<Icon name="AccountCircle" />} onClick={e => setUserMenuAnchor(e.currentTarget)}>{user?.name}</Button>
+      </Toolbar>
+    </AppBar>
+    <Box className={classes.main}>
+      <List component="nav" className={classes.nav}>
+        {
+          menuTree.find((i: MenuItem) => i.key === topMenu)?.children?.map((i: MenuItem) => {
+            return <Box key={i.key}>
+              <ListItem button onClick={() => i.children ? setExpandMenu(i.key) : i.path && history.push(i.path)}>
+                <ListItemIcon><Icon name={i.icon} /></ListItemIcon><ListItemText primary={i.title} />
+                {i.children && <Icon name={expandMenu === i.key ? "ExpandLess" : "ExpandMore"} />}
+              </ListItem>
+              {
+                i.children && <Collapse in={expandMenu === i.key} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    {i.children.map((i: MenuItem) => <ListItem key={i.key} button className={classes.nested} onClick={() => i.path && history.push(i.path)}>
+                      <ListItemIcon><Icon name={i.icon} /></ListItemIcon><ListItemText primary={i.title} />
+                    </ListItem>)}
+                  </List>
+                </Collapse>
+              }
+            </Box>
+          })
+        }
+      </List>
+      <Box className={classes.content}>
+        <Breadcrumbs className={classes.breadcrumbs}>
           {
-            menuTree.map((i: MenuItem) => <Menu.Item icon={i.icon} onClick={() => setTopMenu(i.key)} key={i.key}>{i.title}</Menu.Item>)
+            breadcrumb.map(i => <Typography color="textPrimary" className={classes.breadcrumb} key={i.key}><Icon classes={{ icon: classes.icon }} name={i.icon} /> {i.title}</Typography>)
           }
-          <Menu.SubMenu key="mine" style={{ float: 'right' }} icon={<UserOutlined />} title={user?.name}>
-            <Menu.Item icon={<KeyOutlined />} onClick={() => { setModal(<UploadPassword onCancel={() => setModal(undefined)} />) }} key="modifyPassword">修改密码</Menu.Item>
-            <Menu.Item icon={<PoweroffOutlined />} onClick={() => { exit.run(); }} key="logout">退出系统</Menu.Item>
-          </Menu.SubMenu>
-        </Menu>
-      </Header>
-      <Layout>
-        <Sider width={200}>
-          <Menu
-            mode="inline"
-            selectedKeys={[breadcrumb?.[1]?.key]}
-            style={{ height: '100%' }}
-          >
-            {
-              menuTree.find((i: MenuItem) => i.key === topMenu)?.children?.map((i: MenuItem) =>
-                i.children ? <Menu.SubMenu key={i.key} icon={i.icon} title={i.title}>
-                  {i.children.map((i: MenuItem) => <Menu.Item key={i.key}>{i.title}</Menu.Item>)}
-                </Menu.SubMenu> : <Menu.Item key={i.key} icon={i.icon} onClick={() => i.path && history.push(i.path)}>{i.title}</Menu.Item>)
-            }
-          </Menu>
-        </Sider>
-        <Layout style={{ padding: '0 24px 24px' }}>
-          <Breadcrumb style={{ margin: '16px 0' }}>
-            {
-              breadcrumb.map(i => <Breadcrumb.Item key={i.key}>{i.icon} {i.title}</Breadcrumb.Item>)
-            }
-          </Breadcrumb>
-          <Content
-            style={{
-              margin: 0,
-              minHeight: 680,
-            }}
-          >
-            {pass ? props.children : undefined}
-          </Content>
-        </Layout>
-      </Layout>
-    </Layout>
+        </Breadcrumbs>
+        {pass ? props.children : undefined}
+      </Box>
+    </Box>
+    <Menu
+      anchorEl={userMenuAnchor}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      keepMounted
+      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      open={userMenuAnchor !== null}
+      onClose={() => setUserMenuAnchor(null)}
+    >
+      <MenuItem onClick={() => { setModal(<UploadPassword onCancel={() => setModal(undefined)} />); setUserMenuAnchor(null); }}>修改密码</MenuItem>
+      <MenuItem onClick={() => { exit.run(); setUserMenuAnchor(null); }}>退出登录</MenuItem>
+    </Menu>
     {modal}
-  </ConfigProvider >
-  );
+  </>;
 };
