@@ -21,7 +21,7 @@ import UploadPassword from '@/component/update_password'
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     nav: {
-      width: 220,
+      width: 200,
       marginTop: theme.spacing(1.25),
       backgroundColor: theme.palette.background.paper,
     },

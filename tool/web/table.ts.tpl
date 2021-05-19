@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { message, Table, Button, Tooltip, Space, Typography, Card, Divider, Modal, Popover, Popconfirm } from 'antd';
+import { message, Button, Tooltip, Space, Typography, Card, Divider, Modal, Popover, Popconfirm } from 'antd';
 import { useRequest, history, useModel } from 'umi';
 import allColumns from './columns';
 import ModalForm from '@/component/modal_form'
 import FileUpload from '@/component/file_upload'
 import { exchangeNullable, filter, formFilter, searchFilter, buttonFilter } from '@/util/tableUtil'
 import { SearchOutlined, PlusOutlined, CloseOutlined, DeleteOutlined, LoginOutlined, RedoOutlined, LogoutOutlined, RollbackOutlined, CloudUploadOutlined, MinusOutlined, EditOutlined, UploadOutlined } from '@ant-design/icons';
+import Table from '@/component/table'
 
 const { Title, Text, Link } = Typography;
 
@@ -292,67 +293,27 @@ export default (props: TableProps<{{.Name}}>) => {
   // 初始化搜索控件
   const [searchItems] = useState(searchFilter(allColumns(), props.renderSearch).map(v => v()));
   // 模板
-  return (
-    <Card style={props.style} title={<Title type={trash ? "danger" : undefined} level={4}> {{.Description}} </Title>}
-      // 工具条
-      extra={<Space>
-        {buttonFilter(tableButtons(), props.renderTableButton, props.moreTableButton)}
-        {
-          // 选中工具条
-          selection.rows.length > 0 ? buttonFilter(selectionButtons(), props.renderSelectionButton, props.moreSelectionButton) : undefined
-        }
-      </Space>}>
-      <Table<{{.Name}}>
-        size="small"
-        columns={filter(allColumns(), props.render, props.moreColumn ? [...props.moreColumn, {
-          title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
-        }] : [{
-          title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
-        }])}
-        dataSource={ source.data }
-        rowKey="id"
-        loading={ loading }
-        pagination={ {
-          size: "small",
-          defaultPageSize: 15,
-          total: source.total,
-          showTotal: (total) => <Text type="secondary">共 {total} 条数据</Text>,
-          // 分页事件
-          onChange: (page, size) => setPagination({ current: page, pageSize: size ? size: pagination.pageSize }),
-          pageSizeOptions: ["15", "50", "100"],
-          position: ["bottomRight"],
-          showSizeChanger: true,
-          hideOnSinglePage: false
-        } }
-        rowSelection={ props.canSelect ? {
-          type: props.canSelect,
-          // 单选事件
-          onSelect: (record, selected) => {
-            if (props.canSelect === "checkbox") {
-              let index = selection.rows.findIndex(item => item.id === record.id)
-              selected ? selection.rows.push(record)
-                : index > -1 ? selection.rows.splice(index, 1) : undefined
-              setSelection({ rows: selection.rows, keys: selection.rows.map(v => v.id) })
-              props.onSelect?.(selection.rows)
-            } else {
-              setSelection({ rows: [record], keys: [record.id] })
-              props.onSelect?.([record])
-            }
-          },
-          // 全选事件
-          onSelectAll: (selected, selectedRows, changeRows) => {
-            selected ? selection.rows.push(...changeRows)
-              : changeRows.forEach(record => {
-                let index = selection.rows.findIndex(item => item.id === record.id)
-                index > -1 ? selection.rows.splice(index, 1) : undefined
-              })
-            setSelection({ rows: selection.rows, keys: selection.rows.map(v=>v.id) })
-            props.onSelect?.(selection.rows)
-          },
-          selectedRowKeys: selection.keys
-        } : undefined }
-      />
-      {modal}
-    </Card>
-  );
+  return (<>
+    <Table
+      title={trash ? "{{.Description}}-回收站" : "{{.Description}}"}
+      columns={filter(allColumns(), props.render, props.moreColumn ? [...props.moreColumn, {
+        title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
+      }] : [{
+        title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
+      }])}
+      dataSource={source.data}
+      pagination={ {
+        total: source.total,
+        defaultPageSize: 10,
+        pageSizeOptions: [10, 20, 50, 100],
+        onChange: (page: number, size: number) => setPagination({ current: page, pageSize: size ? size : pagination.pageSize })
+      } }
+      rowSelection={props.canSelect ? {
+        type: props.canSelect,
+        onSelectChange: (records: any[]) => { setSelection({ rows: records, keys: records.map(v => v.id) }); props.onSelect?.(records) }
+      } : undefined}
+      tableButtons={buttonFilter(tableButtons(), props.renderTableButton, props.moreTableButton)}
+      selectionButtons={buttonFilter(selectionButtons(), props.renderSelectionButton, props.moreSelectionButton)} />
+    {modal}
+  </>);
 };
