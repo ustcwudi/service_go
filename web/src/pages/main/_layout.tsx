@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useModel, useRequest, history } from 'umi';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
@@ -15,15 +15,15 @@ import Collapse from '@material-ui/core/Collapse';
 import Box from '@material-ui/core/Box';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
+import Paper from '@material-ui/core/Paper';
 import Icon from '@/component/icon'
 import UploadPassword from '@/component/update_password'
+import context from './context'
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     nav: {
       width: 200,
-      marginTop: theme.spacing(1.25),
-      backgroundColor: theme.palette.background.paper,
     },
     nested: {
       paddingLeft: theme.spacing(4),
@@ -36,7 +36,6 @@ const useStyles = makeStyles((theme: Theme) =>
       color: 'white'
     },
     breadcrumbs: {
-      marginBottom: theme.spacing(2),
     },
     breadcrumb: {
       display: 'flex',
@@ -45,7 +44,13 @@ const useStyles = makeStyles((theme: Theme) =>
       marginRight: theme.spacing(0.5),
     },
     main: {
-      display: 'flex'
+      display: 'flex',
+      minHeight: '100%',
+      paddingTop: theme.spacing(8),
+      backgroundColor: '#eee',
+    },
+    menu: {
+      margin: theme.spacing(2, 0, 2, 2),
     },
     content: {
       padding: theme.spacing(2),
@@ -215,7 +220,7 @@ export default (props: any) => {
   );
 
   return <>
-    <AppBar position="static">
+    <AppBar>
       <Toolbar>
         <IconButton edge="start" className={classes.logo} color="inherit">
           <Icon name="Menu" />
@@ -230,7 +235,7 @@ export default (props: any) => {
       </Toolbar>
     </AppBar>
     <Box className={classes.main}>
-      <List component="nav" className={classes.nav}>
+      <Paper className={classes.menu} elevation={5}><List component="nav" className={classes.nav}>
         {
           menuTree.find((i: MenuItem) => i.key === topMenu)?.children?.map((i: MenuItem) => {
             return <Box key={i.key}>
@@ -250,14 +255,15 @@ export default (props: any) => {
             </Box>
           })
         }
-      </List>
+      </List></Paper>
       <Box className={classes.content}>
-        <Breadcrumbs className={classes.breadcrumbs}>
-          {
-            breadcrumb.map(i => <Typography color="textPrimary" className={classes.breadcrumb} key={i.key}><Icon classes={{ icon: classes.icon }} name={i.icon} /> {i.title}</Typography>)
-          }
-        </Breadcrumbs>
-        {pass ? props.children : undefined}
+        <context.Provider value={{
+          title: <Breadcrumbs className={classes.breadcrumbs}>
+            {
+              breadcrumb.map(i => <Typography color="textPrimary" className={classes.breadcrumb} key={i.key}><Icon classes={{ icon: classes.icon }} name={i.icon} /> {i.title}</Typography>)
+            }
+          </Breadcrumbs>
+        }}>{pass ? props.children : undefined}</context.Provider>
       </Box>
     </Box>
     <Menu

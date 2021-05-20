@@ -26,9 +26,27 @@ import Print from '@material-ui/icons/Print';
 import DynamicFeed from '@material-ui/icons/DynamicFeed';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
+import Add from '@material-ui/icons/Add';
+import Search from '@material-ui/icons/Search';
+import Refresh from '@material-ui/icons/Refresh';
+import Publish from '@material-ui/icons/Publish';
+import Delete from '@material-ui/icons/Delete';
+import DeleteOutline from '@material-ui/icons/DeleteOutline';
 
 export default (props: any) => {
   switch (props.name) {
+    case "DeleteOutline":
+      return <DeleteOutline color={props.color} className={props.classes?.icon} />
+    case "Delete":
+      return <Delete color={props.color} className={props.classes?.icon} />
+    case "Publish":
+      return <Publish color={props.color} className={props.classes?.icon} />
+    case "Add":
+      return <Add color={props.color} className={props.classes?.icon} />
+    case "Search":
+      return <Search color={props.color} className={props.classes?.icon} />
+    case "Refresh":
+      return <Refresh color={props.color} className={props.classes?.icon} />
     case "Menu":
       return <Menu color={props.color} className={props.classes?.icon} />
     case "AccountCircle":

@@ -1,12 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { message, Button, Tooltip, Space, Typography, Card, Divider, Modal, Popover, Popconfirm } from 'antd';
+import React, { useState, useEffect, useContext } from 'react';
+import { message, Button, Space, Typography, Card, Divider, Modal, Popover, Popconfirm } from 'antd';
 import { useRequest, history, useModel } from 'umi';
 import allColumns from './columns';
 import ModalForm from '@/component/modal_form'
 import FileUpload from '@/component/file_upload'
 import { exchangeNullable, filter, formFilter, searchFilter, buttonFilter } from '@/util/tableUtil'
 import { SearchOutlined, PlusOutlined, CloseOutlined, DeleteOutlined, LoginOutlined, RedoOutlined, LogoutOutlined, RollbackOutlined, CloudUploadOutlined, MinusOutlined, EditOutlined, UploadOutlined } from '@ant-design/icons';
-import Table from '@/component/table'
+import TableBody from '@/component/table_body'
+import Table from '@material-ui/core/Table';
+import Tooltip from '@material-ui/core/Tooltip';
+import TableContainer from '@material-ui/core/TableContainer';
+import TablePagination from '@material-ui/core/TablePagination';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Paper from '@material-ui/core/Paper';
+import TableHead from '@/component/table_head';
+import IconButton from '@/component/icon_button';
+import TableToolbar from '@/component/table_toolbar';
+import PaginationAction from '@/component/pagination_action';
+import context from '@/pages/main/context'
 
 const { Title, Text, Link } = Typography;
 
@@ -77,8 +88,11 @@ const reverseMap = (model: any) => {
 }
 
 export default (props: TableProps<{{.Name}}>) => {
+  const mainContext = useContext(context);
   // 数据源
   const [source, setSource] = useState<{ data: {{.Name}}[]; total: number }>({ data: [], total: 0 });
+  // 表格消息
+  const [tableSignal, setTableSignal] = useState<{ message?: 'select_all' | 'select_none' }>({});
   // 选中项
   const [selection, setSelection] = useState<{ rows: {{.Name}}[]; keys: string[] }>({ rows: [], keys: [] });
   // 对话框
@@ -87,7 +101,7 @@ export default (props: TableProps<{{.Name}}>) => {
   const [trash, setTrash] = useState<boolean>(false);
   const [where, setWhere] = useState<object>(null{{.Name}}());
   const [sort, setSort] = useState<[]>([]);
-  const [pagination, setPagination] = useState<{current: number; pageSize: number}>({ current: 1, pageSize: 15 });
+  const [pagination, setPagination] = useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 10 });
   // [废弃/还原]请求
   const action = useRequest((action: string, form: object) => ({
     url: `/api/admin/{{u .Name}}/${action}`,
@@ -103,12 +117,12 @@ export default (props: TableProps<{{.Name}}>) => {
             source.data.splice(source.data.findIndex(row => row.id === id), 1);
           });
           setSource({ data: [...source.data], total: source.total - result.data });
-          setSelection({ rows: [], keys: [] });
-          message.success(`${trash?'还原':'删除'}${result.data}项`);
+          setTableSignal({ message: "select_none" });
+          message.success(`${trash ? '还原' : '删除'}${result.data}项`);
         } else
-          message.warning(`${trash?'还原':'删除'}${result.data}项`);
+          message.warning(`${trash ? '还原' : '删除'}${result.data}项`);
       } else {
-        message.error(`${trash?'还原':'删除'}失败`);
+        message.error(`${trash ? '还原' : '删除'}失败`);
       }
     },
   });
@@ -178,7 +192,7 @@ export default (props: TableProps<{{.Name}}>) => {
       onSuccess: (result, params: any) => {
         if (result.success) {
           if (source.data.length === pagination.pageSize) source.data.pop();
-          mapData({data: [result.data], map: result.map});
+          mapData({ data: [result.data], map: result.map });
           source.data.unshift(result.data);
           setSource({ data: [...source.data], total: source.total + 1 });
           setModal(undefined);
@@ -206,7 +220,7 @@ export default (props: TableProps<{{.Name}}>) => {
               source.data.splice(source.data.findIndex(row => row.id === id), 1);
             });
             setSource({ data: [...source.data], total: source.total - result.data });
-            setSelection({ rows: [], keys: [] });
+            setTableSignal({ message: "select_none" });
             message.success(`彻底删除${result.data}项`);
           } else
             message.warning(`彻底删除${result.data}项`);
@@ -235,40 +249,32 @@ export default (props: TableProps<{{.Name}}>) => {
   // 表格按钮
   const tableButtons = (): { [key: string]: JSX.Element } => {
     return {
-      'add': <Tooltip key="add" title="新增">
-        <Button shape="circle"
-          icon={<PlusOutlined />}
-          onClick={e => setModal(<Modal title={<Text strong>新增</Text>} visible={true} footer={null} onCancel={() => setModal(undefined)}>
-            <ModalForm value={ new{{.Name}}() } onFinish={(record: {{.Name}}) => { insert.run(reverseMap(exchangeNullable(record)));} }>{formFilter(allColumns(), props.renderAdd).map(v => v())}</ModalForm></Modal>)}/>
-      </Tooltip>,
+      'add': <IconButton key="add" icon="Add" title="新增"
+        onClick={(e: any) => setModal(<Modal title={<Text strong>新增</Text>} visible={true} footer={null} onCancel={() => setModal(undefined)}>
+          <ModalForm value={ new{{.Name}}() } onFinish={(record: {{.Name}}) => { insert.run(reverseMap(exchangeNullable(record)));} }>{formFilter(allColumns(), props.renderAdd).map(v => v())}</ModalForm></Modal>)} />,
       'search': <Popover key="search" placement="bottomRight" title={<Title style={ {marginTop: "8px"} } level={5}>搜索</Title>} trigger="click"
         content={<ModalForm style={ {width: '500px'} }
           onFinish={(values: any) => { setWhere(values) } }
           onReset={() => setWhere(null{{.Name}}())}
           value={null{{.Name}}()} >{searchItems}</ModalForm>}>
-        <Tooltip title="搜索"><Button type={Object.keys(exchangeNullable(where)).length ? "primary" : undefined} shape="circle" icon={<SearchOutlined />} /></Tooltip>
+        <IconButton icon="Search" title="搜索" color={Object.keys(exchangeNullable(where)).length ? "primary" : "default"} />
       </Popover>,
-      'refresh': <Tooltip key="refresh" title="刷新">
-        <Button shape="circle" icon={<RedoOutlined />} onClick={e => setWhere({ ...where })} />
-      </Tooltip>,
+      'refresh': <IconButton key="refresh" title="刷新" icon="Refresh" onClick={(e: any) => setWhere({ ...where })} />,
       'import': <FileUpload key="import" action={"/api/admin/{{u $.Name}}/import"}
         onUpload={(list: any) => { message.info(`导入${list.length}项数据`);setWhere(null{{.Name}}()); }}>
-        <Tooltip title="导入"><Button shape="circle" icon={<CloudUploadOutlined />} /></Tooltip>
+        <IconButton title="导入" icon="Publish" />
       </FileUpload>,
-      'trash': <Tooltip key="trash" title={trash ? "离开回收站" : "进入回收站"}>
-        {trash ? <Button shape="circle" icon={<LogoutOutlined />} onClick={e => {
-          message.info("进入回收站"); setTrash(!trash); setSelection({ rows: [], keys: [] });
+      'trash': trash ? <IconButton key="trash" title="回收站" icon="DeleteOutline" onClick={(e: any) => {
+          message.info("离开回收站"); setTrash(!trash); setTableSignal({ message: "select_none" });
         }} />
-          : <Button shape="circle" danger={true}
-            icon={<LoginOutlined />} onClick={e => {
-              message.info("离开回收站"); setTrash(!trash); setSelection({ rows: [], keys: [] });
-            }} />}</Tooltip>
+          : <IconButton key="trash" title="回收站" color="default" icon="Delete" onClick={(e: any) => {
+              message.info("进入回收站"); setTrash(!trash); setTableSignal({ message: "select_none" });
+            }} />
     }
   }
   // 选中按钮
   const selectionButtons = (): { [key: string]: JSX.Element } => {
     return {
-      '|': <Divider key="|" type="vertical" />,
       'trash': <Tooltip key="trash" title={trash ? "恢复" : "回收"}>
         <Button danger={!trash ? true : undefined}
           icon={!trash ? <DeleteOutlined /> : <RollbackOutlined />}
@@ -286,34 +292,59 @@ export default (props: TableProps<{{.Name}}>) => {
         </Popconfirm>
       </Tooltip>,
       'cancel': <Tooltip key="cancel" title={"取消选择"}>
-        <Button shape="circle" icon={<CloseOutlined />} onClick={e => setSelection({ rows: [], keys: [] })} />
+        <Button shape="circle" icon={<CloseOutlined />} onClick={e => setTableSignal({ message: "select_none" })} />
       </Tooltip>
     }
   }
-  // 初始化搜索控件
+  // 搜索控件
   const [searchItems] = useState(searchFilter(allColumns(), props.renderSearch).map(v => v()));
+
   // 模板
-  return (<>
-    <Table
-      title={trash ? "{{.Description}}-回收站" : "{{.Description}}"}
-      columns={filter(allColumns(), props.render, props.moreColumn ? [...props.moreColumn, {
-        title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
-      }] : [{
-        title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
-      }])}
-      dataSource={source.data}
-      pagination={ {
-        total: source.total,
-        defaultPageSize: 10,
-        pageSizeOptions: [10, 20, 50, 100],
-        onChange: (page: number, size: number) => setPagination({ current: page, pageSize: size ? size : pagination.pageSize })
-      } }
-      rowSelection={props.canSelect ? {
-        type: props.canSelect,
-        onSelectChange: (records: any[]) => { setSelection({ rows: records, keys: records.map(v => v.id) }); props.onSelect?.(records) }
-      } : undefined}
+  return <Paper elevation={5}>
+    <TableToolbar
+      title={mainContext.title ? mainContext.title : "用户"}
+      numSelected={selection.keys.length}
       tableButtons={buttonFilter(tableButtons(), props.renderTableButton, props.moreTableButton)}
-      selectionButtons={buttonFilter(selectionButtons(), props.renderSelectionButton, props.moreSelectionButton)} />
+      selectionButtons={buttonFilter(selectionButtons(), props.renderSelectionButton, props.moreSelectionButton)}
+    />
+    {loading ? <LinearProgress /> : <LinearProgress variant="determinate" value={100} />}
+    <TableContainer>
+      <Table>
+        <TableHead<{{.Name}}> columns={filter(allColumns(), props.render, props.moreColumn ? [...props.moreColumn, {
+          title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
+        }] : [{
+          title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
+        }])}
+          type={props.canSelect} onSelectAllClick={(e) => setTableSignal(e.target.checked ? { message: "select_all" } : { message: "select_none" })} />
+        <TableBody<{{.Name}}>
+          dataSource={source.data}
+          columns={filter(allColumns(), props.render, props.moreColumn ? [...props.moreColumn, {
+            title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
+          }] : [{
+            title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
+          }])}
+          selectType={props.canSelect}
+          onSelectChange={(records: any[]) => { setSelection({ rows: records, keys: records.map(v => v.id) }); props.onSelect?.(records) }}
+          signal={tableSignal}
+        />
+      </Table>
+    </TableContainer>
+    <TablePagination
+      component="div"
+      labelRowsPerPage="分页"
+      labelDisplayedRows={() => `${pagination.current} / ${Math.ceil(source.total / pagination.pageSize)}`}
+      page={pagination.current - 1}
+      count={source.total}
+      rowsPerPage={pagination.pageSize}
+      rowsPerPageOptions={[10, 20, 50, 100]}
+      ActionsComponent={PaginationAction}
+      onChangePage={(event: unknown, page: number) => {
+        setPagination({ current: page + 1, pageSize: pagination.pageSize })
+      }}
+      onChangeRowsPerPage={(event: React.ChangeEvent<HTMLInputElement>) => {
+        setPagination({ current: 1, pageSize: parseInt(event.target.value, 10) })
+      }}
+    />
     {modal}
-  </>);
+  </Paper>
 };
