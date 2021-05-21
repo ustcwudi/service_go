@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { message, Button, Space, Typography, Card, Divider, Modal, Popover, Popconfirm } from 'antd';
+import { message, Space, Typography } from 'antd';
 import { useRequest, history, useModel } from 'umi';
 import allColumns from './columns';
 import ModalForm from '@/component/modal_form'
 import FileUpload from '@/component/file_upload'
 import { exchangeNullable, filter, formFilter, searchFilter, buttonFilter } from '@/util/tableUtil'
-import { SearchOutlined, PlusOutlined, CloseOutlined, DeleteOutlined, LoginOutlined, RedoOutlined, LogoutOutlined, RollbackOutlined, CloudUploadOutlined, MinusOutlined, EditOutlined, UploadOutlined } from '@ant-design/icons';
 import TableBody from '@/component/table_body'
 import Table from '@material-ui/core/Table';
-import Tooltip from '@material-ui/core/Tooltip';
+import Collapse from '@material-ui/core/Collapse';
 import TableContainer from '@material-ui/core/TableContainer';
 import TablePagination from '@material-ui/core/TablePagination';
 import LinearProgress from '@material-ui/core/LinearProgress';
@@ -101,7 +100,7 @@ export default (props: TableProps<{{.Name}}>) => {
   const [trash, setTrash] = useState<boolean>(false);
   const [where, setWhere] = useState<object>(null{{.Name}}());
   const [sort, setSort] = useState<[]>([]);
-  const [pagination, setPagination] = useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 10 });
+  const [pagination, setPagination] = useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 15 });
   // [废弃/还原]请求
   const action = useRequest((action: string, form: object) => ({
     url: `/api/admin/{{u .Name}}/${action}`,
@@ -233,16 +232,16 @@ export default (props: TableProps<{{.Name}}>) => {
   // 列按钮
   const columnButtons = (model: {{.Name}}): { [key: string]: JSX.Element } => {
     return {
-      'update': <Tooltip key="upload" title="修改"><EditOutlined onClick={e => {
-        setModal(<Modal title={<Text strong>修改</Text>} visible={true} footer={null} onCancel={() => setModal(undefined)}>
-          <ModalForm value={model} onFinish={(record: {{.Name}}) => { update.run({ patch: reverseMap(exchangeNullable(record)), where: {id: model.id} });} }>
-            {formFilter(allColumns(), props.renderUpdate).map(v => v())}</ModalForm></Modal>)
-        } }/></Tooltip>,
+      'update': <IconButton key="upload" title="修改" icon="Edit" color="default" onClick={(e: any) => {
+        setModal(<ModalForm title="修改" visible={true} footer={null} onCancel={() => setModal(undefined)}
+          value={model} onFinish={(record: {{.Name}}) => { update.run({ patch: reverseMap(exchangeNullable(record)), where: { id: model.id } }); }}>
+          {formFilter(allColumns(), props.renderUpdate).map(v => v())}</ModalForm>)
+      }} />,
       {{- if .Upload}}{{range .Fields}}{{if .Upload}}
       'upload{{.Name}}': <FileUpload key="upload{{.Name}}"
         data={ {id: model.id}} action={"/api/admin/{{u $.Name}}/upload/{{u .Name}}"}
         onUpload={(file: any) => { model.{{u .Name}} = file; setSource({ data: [...source.data], total: source.total }); }}>
-        <Tooltip title="上传{{.Description}}"><UploadOutlined /></Tooltip></FileUpload>,
+        <IconButton color="default" title="上传{{.Description}}" icon="CloudUpload" /></FileUpload>,
       {{- end}}{{end}}{{end}}
     }
   }
@@ -250,66 +249,57 @@ export default (props: TableProps<{{.Name}}>) => {
   const tableButtons = (): { [key: string]: JSX.Element } => {
     return {
       'add': <IconButton key="add" icon="Add" title="新增"
-        onClick={(e: any) => setModal(<Modal title={<Text strong>新增</Text>} visible={true} footer={null} onCancel={() => setModal(undefined)}>
-          <ModalForm value={ new{{.Name}}() } onFinish={(record: {{.Name}}) => { insert.run(reverseMap(exchangeNullable(record)));} }>{formFilter(allColumns(), props.renderAdd).map(v => v())}</ModalForm></Modal>)} />,
-      'search': <Popover key="search" placement="bottomRight" title={<Title style={ {marginTop: "8px"} } level={5}>搜索</Title>} trigger="click"
-        content={<ModalForm style={ {width: '500px'} }
-          onFinish={(values: any) => { setWhere(values) } }
+        onClick={(e: any) => setModal(<ModalForm title="新增" visible={true}
+          onCancel={() => setModal(undefined)} value={new{{.Name}}()}
+          onFinish={(record: {{.Name}}) => { insert.run(reverseMap(exchangeNullable(record))); }}>{formFilter(allColumns(), props.renderAdd).map(v => v())}
+        </ModalForm>)} />,
+      'search': <IconButton key="search" icon="Search" title="搜索" color={Object.keys(exchangeNullable(where)).length ? "primary" : "default"}
+        onClick={(e: any) => setModal(<ModalForm visible={true} title="搜索"
+          onFinish={(values: any) => { setWhere(values) }}
           onReset={() => setWhere(null{{.Name}}())}
-          value={null{{.Name}}()} >{searchItems}</ModalForm>}>
-        <IconButton icon="Search" title="搜索" color={Object.keys(exchangeNullable(where)).length ? "primary" : "default"} />
-      </Popover>,
+          onCancel={() => setModal(undefined)}
+          value={null{{.Name}}()} >{searchItems}</ModalForm>)} />,
       'refresh': <IconButton key="refresh" title="刷新" icon="Refresh" onClick={(e: any) => setWhere({ ...where })} />,
       'import': <FileUpload key="import" action={"/api/admin/{{u $.Name}}/import"}
-        onUpload={(list: any) => { message.info(`导入${list.length}项数据`);setWhere(null{{.Name}}()); }}>
+        onUpload={(list: any) => { message.info(`导入${list.length}项数据`); setWhere(null{{.Name}}()); }}>
         <IconButton title="导入" icon="Publish" />
       </FileUpload>,
       'trash': trash ? <IconButton key="trash" title="回收站" icon="DeleteOutline" onClick={(e: any) => {
-          message.info("离开回收站"); setTrash(!trash); setTableSignal({ message: "select_none" });
+        message.info("离开回收站"); setTrash(!trash); setTableSignal({ message: "select_none" });
+      }} />
+        : <IconButton key="trash" title="回收站" color="default" icon="DeleteOutline" onClick={(e: any) => {
+          message.info("进入回收站"); setTrash(!trash); setTableSignal({ message: "select_none" });
         }} />
-          : <IconButton key="trash" title="回收站" color="default" icon="Delete" onClick={(e: any) => {
-              message.info("进入回收站"); setTrash(!trash); setTableSignal({ message: "select_none" });
-            }} />
     }
   }
   // 选中按钮
   const selectionButtons = (): { [key: string]: JSX.Element } => {
     return {
-      'trash': <Tooltip key="trash" title={trash ? "恢复" : "回收"}>
-        <Button danger={!trash ? true : undefined}
-          icon={!trash ? <DeleteOutlined /> : <RollbackOutlined />}
-          shape="circle" onClick={e => {
-            if (trash) {
-              action.run('restore', { id: selection.keys });
-            } else {
-              action.run('trash', { id: selection.keys });
-            }
-          }} />
-      </Tooltip>,
-      'delete': <Tooltip key="delete" title={"彻底删除"}>
-        <Popconfirm placement="left" title="彻底删除后无法还原，继续操作？" onConfirm={() => remove.run({ id: selection.keys })}>
-          <Button danger={true} shape="circle" icon={<MinusOutlined />} />
-        </Popconfirm>
-      </Tooltip>,
-      'cancel': <Tooltip key="cancel" title={"取消选择"}>
-        <Button shape="circle" icon={<CloseOutlined />} onClick={e => setTableSignal({ message: "select_none" })} />
-      </Tooltip>
+      'trash': <IconButton key="trash" title={trash ? "恢复" : "删除"} color="default"
+        icon={trash ? "SettingsBackupRestore" : "Delete"} onClick={(e: any) => {
+          if (trash) {
+            action.run('restore', { id: selection.keys });
+          } else {
+            action.run('trash', { id: selection.keys });
+          }
+        }} />,
+      'delete': <IconButton key="delete" title={"彻底删除"} icon="DeleteForever" onClick={() => remove.run({ id: selection.keys })} />
     }
   }
   // 搜索控件
   const [searchItems] = useState(searchFilter(allColumns(), props.renderSearch).map(v => v()));
 
   // 模板
-  return <Paper elevation={5}>
+  return <Collapse in={props.display !== false}><Paper elevation={5}>
     <TableToolbar
       title={mainContext.title ? mainContext.title : "用户"}
       numSelected={selection.keys.length}
       tableButtons={buttonFilter(tableButtons(), props.renderTableButton, props.moreTableButton)}
       selectionButtons={buttonFilter(selectionButtons(), props.renderSelectionButton, props.moreSelectionButton)}
     />
-    {loading ? <LinearProgress /> : <LinearProgress variant="determinate" value={100} />}
+    {loading ? <LinearProgress color={trash ? "secondary" : "primary"} /> : <LinearProgress color={trash ? "secondary" : "primary"} variant="determinate" value={100} />}
     <TableContainer>
-      <Table>
+      <Table size="small">
         <TableHead<{{.Name}}> columns={filter(allColumns(), props.render, props.moreColumn ? [...props.moreColumn, {
           title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
         }] : [{
@@ -336,7 +326,7 @@ export default (props: TableProps<{{.Name}}>) => {
       page={pagination.current - 1}
       count={source.total}
       rowsPerPage={pagination.pageSize}
-      rowsPerPageOptions={[10, 20, 50, 100]}
+      rowsPerPageOptions={[15, 25, 50, 100]}
       ActionsComponent={PaginationAction}
       onChangePage={(event: unknown, page: number) => {
         setPagination({ current: page + 1, pageSize: pagination.pageSize })
@@ -346,5 +336,5 @@ export default (props: TableProps<{{.Name}}>) => {
       }}
     />
     {modal}
-  </Paper>
+  </Paper></Collapse>
 };

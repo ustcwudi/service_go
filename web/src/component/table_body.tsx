@@ -10,6 +10,12 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       width: '100%',
+    },
+    ellipsis: {
+      maxWidth: '200px',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
     }
   }),
 );
@@ -70,7 +76,7 @@ export default function <RecordType>(props: { dataSource: any[], columns: Column
               <Radio checked={isSelected(item.id)} onChange={() => handleSelectClick(item, selectType)} />}
           </TableCell>}
           {
-            columns.map(column => <TableCell key={column.key}>{column.render ? column.render(item) : item[column.key]}</TableCell>)
+            columns.map(column => <TableCell className={column.ellipsis ? classes.ellipsis : undefined} key={column.key} align={column.title ? "left" : "right"}>{column.render ? column.render(item) : item[column.key]}</TableCell>)
           }
         </TableRow>
       )

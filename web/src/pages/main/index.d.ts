@@ -10,7 +10,7 @@ interface MenuItem {
 
 // 表格属性
 interface TableProps<T> {
-  style?: React.CSSProperties;
+  display?: boolean;
   where?: {};
   moreColumn?: Column<T>[]; // 更多表格列
   moreColumnButton?: (model: T) => JSX.Element[]; // 更多列按钮

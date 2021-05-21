@@ -38,7 +38,7 @@ export default () => {
         </Steps>
       </ProCard>
       <Table
-        style={current == 0 ? undefined : { display: 'none' }}
+        display={current == 0}
         renderSelectionButton={[]}
         renderTableButton={[]}
         canSelect="radio"

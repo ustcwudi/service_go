@@ -56,7 +56,7 @@ export default () => {
         </Steps>
       </ProCard>
       <AwardTable
-        style={current == 0 ? undefined : { display: 'none' }}
+        display={current == 0}
         where={{ audit: true }}
         renderSelectionButton={['|', 'cancel']}
         canSelect="checkbox"

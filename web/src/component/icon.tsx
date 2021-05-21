@@ -31,10 +31,21 @@ import Search from '@material-ui/icons/Search';
 import Refresh from '@material-ui/icons/Refresh';
 import Publish from '@material-ui/icons/Publish';
 import Delete from '@material-ui/icons/Delete';
+import Edit from '@material-ui/icons/Edit';
 import DeleteOutline from '@material-ui/icons/DeleteOutline';
+import DeleteForever from '@material-ui/icons/DeleteForever';
+import SettingsBackupRestore from '@material-ui/icons/SettingsBackupRestore';
 
 export default (props: any) => {
   switch (props.name) {
+    case "CloudUpload":
+      return <CloudUpload color={props.color} className={props.classes?.icon} />
+    case "Edit":
+      return <Edit color={props.color} className={props.classes?.icon} />
+    case "DeleteForever":
+      return <DeleteForever color={props.color} className={props.classes?.icon} />
+    case "SettingsBackupRestore":
+      return <SettingsBackupRestore color={props.color} className={props.classes?.icon} />
     case "DeleteOutline":
       return <DeleteOutline color={props.color} className={props.classes?.icon} />
     case "Delete":

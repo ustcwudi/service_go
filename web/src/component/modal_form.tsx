@@ -1,29 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Row, Col, Popconfirm } from 'antd';
+import { Form, Row, Col, Popconfirm } from 'antd';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
 
-export default (props: any) => {
+export default (props: { title?: JSX.Element | string, visible: boolean, onReset?: () => void, onCancel?: () => void, onFinish: (values: any) => void, children?: any, footer?: any, style?: any, value: any }) => {
+  const { style, title, visible, value, onFinish, onCancel, onReset, children } = props;
   const [form] = Form.useForm();
-  return <Form style={props.style} form={form} layout="vertical" initialValues={props.value} onFinish={(values: any) => props.onFinish(values)}>
-    <Row gutter={16}>
-      {props.children}
-    </Row>
-    <Row gutter={16}>
-      <Col key="submit">
-        <Form.Item style={{ marginBottom: 0 }}>
-          <Popconfirm
-            title="确认提交？"
-            onConfirm={() => form.submit()}
-          >
-            <Button type="primary" htmlType="submit">确定</Button>
-          </Popconfirm>
-
-        </Form.Item>
-      </Col>
-      <Col key="reset">
-        <Form.Item style={{ marginBottom: 0 }}>
-          <Button htmlType="reset" onClick={e => { form.resetFields(); props.onReset?.(); }}>重置</Button>
-        </Form.Item>
-      </Col>
-    </Row>
-  </Form>
+  return <Dialog open={visible} onClose={onCancel}>
+    <DialogTitle>{title}</DialogTitle>
+    <DialogContent>
+      <Form style={style} form={form} layout="vertical" initialValues={value} onFinish={onFinish}>
+        <Row gutter={16}>
+          {children}
+        </Row>
+      </Form>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={e => { form.resetFields(); onReset?.(); }} color="primary">
+        重置
+        </Button>
+      <Button onClick={form.submit} color="primary">
+        提交
+        </Button>
+    </DialogActions>
+  </Dialog>
 }

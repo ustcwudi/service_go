@@ -113,7 +113,7 @@ export default () => {
         </Steps>
       </ProCard>
       <TemplateTable
-        style={current == 0 ? undefined : { display: 'none' }}
+        display={current == 0}
         renderSelectionButton={[]}
         renderTableButton={[]}
         canSelect="radio"
@@ -156,7 +156,7 @@ export default () => {
         </ProCard>
       )}
       <ClassTable
-        style={current == 2 ? undefined : { display: 'none' }}
+        display={current == 2}
         renderSelectionButton={[]}
         renderTableButton={[]}
         render={['name', 'teacher', 'phone']}

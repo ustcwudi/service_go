@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { createMuiTheme } from '@material-ui/core/styles';
+import { ThemeProvider } from '@material-ui/styles';
 import { useModel, useRequest, history } from 'umi';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
@@ -20,11 +22,15 @@ import Icon from '@/component/icon'
 import UploadPassword from '@/component/update_password'
 import context from './context'
 
+const theme = createMuiTheme({
+  palette: {
+    primary: { main: '#59A289' },
+    secondary: { main: '#a0ac48' },
+  },
+});
+
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
-    nav: {
-      width: 200,
-    },
     nested: {
       paddingLeft: theme.spacing(4),
     },
@@ -50,6 +56,7 @@ const useStyles = makeStyles((theme: Theme) =>
       backgroundColor: '#eee',
     },
     menu: {
+      width: 200,
       margin: theme.spacing(2, 0, 2, 2),
     },
     content: {
@@ -219,7 +226,7 @@ export default (props: any) => {
   }, [menuArray, path]
   );
 
-  return <>
+  return <ThemeProvider theme={theme}>
     <AppBar>
       <Toolbar>
         <IconButton edge="start" className={classes.logo} color="inherit">
@@ -235,7 +242,7 @@ export default (props: any) => {
       </Toolbar>
     </AppBar>
     <Box className={classes.main}>
-      <Paper className={classes.menu} elevation={5}><List component="nav" className={classes.nav}>
+      <Paper className={classes.menu} elevation={5}><List component="nav">
         {
           menuTree.find((i: MenuItem) => i.key === topMenu)?.children?.map((i: MenuItem) => {
             return <Box key={i.key}>
@@ -278,5 +285,5 @@ export default (props: any) => {
       <MenuItem onClick={() => { exit.run(); setUserMenuAnchor(null); }}>退出登录</MenuItem>
     </Menu>
     {modal}
-  </>;
+  </ThemeProvider>;
 };

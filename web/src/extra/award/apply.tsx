@@ -89,7 +89,7 @@ export default () => {
         </Steps>
       </Card>
       <TemplateTable
-        style={current == 0 ? undefined : { display: 'none' }}
+        display={current == 0}
         renderSelectionButton={[]}
         renderTableButton={[]}
         canSelect="radio"
@@ -103,7 +103,7 @@ export default () => {
         }]}
       />
       <StudentTable
-        style={current == 1 ? undefined : { display: 'none' }}
+        display={current == 1}
         canSelect="checkbox"
         render={['name', 'class', 'code', 'sex', 'remark']}
         renderTableButton={['search']}
