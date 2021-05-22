@@ -33,13 +33,13 @@
     {
       "Name": "Background",
       "Type": "string",
-      "Description": "背景图片",
+      "Description": "背景",
       "Upload": true
     },
     {
       "Name": "Signet",
       "Type": "string",
-      "Description": "印章图片",
+      "Description": "印章",
       "Upload": true
     },
     {
