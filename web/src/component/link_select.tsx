@@ -56,6 +56,7 @@ export default (props: any) => {
       labelInValue
       mode={props.multiple ? 'multiple' : undefined}
       style={{ width: '100%' }}
+      dropdownStyle={{ zIndex: 9999 }}
       loading={loading}
       onFocus={e => run({ keyword: keyword, page: 1 })}
       onChange={(value, option: any) => {

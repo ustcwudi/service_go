@@ -12,10 +12,13 @@ const useStyles = makeStyles((theme: Theme) =>
       width: '100%',
     },
     ellipsis: {
-      maxWidth: '200px',
+      maxWidth: '300px',
       whiteSpace: 'nowrap',
       overflow: 'hidden',
-      textOverflow: 'ellipsis'
+      textOverflow: 'ellipsis',
+      '& > *': {
+        margin: theme.spacing(0, 0.5),
+      },
     }
   }),
 );

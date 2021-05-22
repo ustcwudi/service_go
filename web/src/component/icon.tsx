@@ -32,12 +32,27 @@ import Refresh from '@material-ui/icons/Refresh';
 import Publish from '@material-ui/icons/Publish';
 import Delete from '@material-ui/icons/Delete';
 import Edit from '@material-ui/icons/Edit';
+import Replay from '@material-ui/icons/Replay';
+import Remove from '@material-ui/icons/Remove';
+import Telegram from '@material-ui/icons/Telegram';
+import ImageOutlined from '@material-ui/icons/ImageOutlined';
 import DeleteOutline from '@material-ui/icons/DeleteOutline';
 import DeleteForever from '@material-ui/icons/DeleteForever';
 import SettingsBackupRestore from '@material-ui/icons/SettingsBackupRestore';
+import DescriptionOutlined from '@material-ui/icons/DescriptionOutlined';
 
 export default (props: any) => {
   switch (props.name) {
+    case "Replay":
+      return <Replay color={props.color} className={props.classes?.icon} />
+    case "Telegram":
+      return <Telegram color={props.color} className={props.classes?.icon} />
+    case "Remove":
+      return <Remove color={props.color} className={props.classes?.icon} />
+    case "ImageOutlined":
+      return <ImageOutlined color={props.color} className={props.classes?.icon} />
+    case "DescriptionOutlined":
+      return <DescriptionOutlined color={props.color} className={props.classes?.icon} />
     case "CloudUpload":
       return <CloudUpload color={props.color} className={props.classes?.icon} />
     case "Edit":

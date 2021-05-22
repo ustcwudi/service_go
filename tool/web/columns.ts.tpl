@@ -69,7 +69,7 @@ export default function (): { [key: string]: Column<{{.Name}}> } {
     'createTime': {
       title: '创建时间',
       key: 'createTime',
-      render: (model: {{$.Name}}) => model.createTime ? moment(model.createTime / 1000000).format('YYYY-MM-DD') : "",
+      render: (model: {{$.Name}}) => model.createTime ? moment(model.createTime / 1000000).format('YYYY/MM/DD') : "",
       renderSearch: () => SearchRender.renderInt({
         name: 'createTime',
         label: '创建时间',

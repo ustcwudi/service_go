@@ -1,12 +1,14 @@
 import React from 'react';
-import { Typography, Badge, Tooltip, Space, Avatar } from 'antd';
-import { PaperClipOutlined, FileOutlined, FileImageOutlined, FilePdfOutlined, FileExcelOutlined, FileWordOutlined, FilePptOutlined, FileZipOutlined, ProfileOutlined } from '@ant-design/icons';
-
-const { Text, Link } = Typography;
+import { Badge, Space } from 'antd';
+import Link from '@material-ui/core/Link';
+import Chip from '@material-ui/core/Chip';
+import Avatar from '@material-ui/core/Avatar';
+import Tooltip from '@material-ui/core/Tooltip';
+import Icon from '@/component/icon'
 
 const renderBool = (value?: boolean) => {
   return (
-    value === undefined || value === null ? <Badge status="default" /> :
+    value === undefined || value === null ? <Icon color="disabled" name="Remove" /> :
       value === true ?
         <Badge status="success" /> :
         <Badge status="error" />
@@ -14,10 +16,7 @@ const renderBool = (value?: boolean) => {
 };
 
 const renderString = (value?: string) => {
-  return (
-    value === undefined || value === null ? <Badge status="default" /> :
-      <Text>{value}</Text>
-  );
+  return value === undefined || value === null ? <Badge status="default" /> : value
 };
 
 const renderUpload = (value?: string) => {
@@ -27,76 +26,45 @@ const renderUpload = (value?: string) => {
       if ("https://thirdwx.qlogo.cn/" === value.substring(0, 25))
         return <Avatar src={value} />
       else
-        return <Link href={value} target="_blank"><PaperClipOutlined /></Link>
+        return <Link href={value} target="_blank"><Icon color="action" name="ImageOutlined" /></Link>
     else {
       let ext = value.substring(value.lastIndexOf(".") + 1, value.length);
       if (ext === "jpg" || ext === "jpeg" || ext === "gif" || ext === "png")
-        return <Link href={"/" + value} target="_blank"><FileImageOutlined /></Link>
-      else if (ext === "pdf")
-        return <Link href={"/" + value} target="_blank"><FilePdfOutlined /></Link>
-      else if (ext === "xls" || ext === "xlsx")
-        return <Link href={"/" + value} target="_blank"><FileExcelOutlined /></Link>
-      else if (ext === "doc" || ext === "docx")
-        return <Link href={"/" + value} target="_blank"><FileWordOutlined /></Link>
-      else if (ext === "ppt" || ext === "pptx")
-        return <Link href={"/" + value} target="_blank"><FilePptOutlined /></Link>
-      else if (ext === "zip" || ext === "rar")
-        return <Link href={"/" + value} target="_blank"><FileZipOutlined /></Link>
-      else if (ext === "json" || ext === "md")
-        return <Link href={"/" + value} target="_blank"><ProfileOutlined /></Link>
+        return <Link href={"/" + value} target="_blank"><Icon color="action" name="ImageOutlined" /></Link>
       else
-        return <Link href={"/" + value} target="_blank"><FileOutlined /></Link>
+        return <Link href={"/" + value} target="_blank"><Icon color="action" name="DescriptionOutlined" /></Link>
     }
   }
 };
 
 const renderInt = (value?: number) => {
-  return (
-    value === undefined || value === null ? <Badge status="default" /> :
-      <Text>{value}</Text>
-  );
+  return value === undefined || value === null ? <Badge status="default" /> : value
 };
 
 const renderFloat = (value?: number) => {
-  return (
-    value === undefined || value === null ? <Badge status="default" /> :
-      <Text>{value}</Text>
-  );
+  return value === undefined || value === null ? <Badge status="default" /> : value
 };
 
 const renderID = (value?: string | { id: string, name: string }) => {
-  return (
-    value === undefined || value === null ? <Badge status="default" /> :
-      typeof value === "string" ? <Tooltip title={value}><Badge status="warning" /></Tooltip> : <Text code key={value.id}>{value.name}</Text>
-  );
+  return value === undefined || value === null ? <Badge status="default" /> :
+    typeof value === "string" ? <Tooltip key={value} title={value}><Chip size="small" /></Tooltip>
+      : <Tooltip key={value.id} title={value.id}><Chip size="small" label={value.name} /></Tooltip>
 };
 
 const renderStringArray = (value?: string[]) => {
-  return <Space wrap>{
-    value === undefined || value === null ? <Badge status="default" /> :
-      value.map((v, i) => <Text key={i}>{v}</Text>)
-  }</Space>;
+  return value === undefined || value === null ? <Badge status="default" /> : value.map((v, i) => <Chip key={i} size="small" variant="outlined" label={v} />)
 };
 
 const renderIntArray = (value?: number[]) => {
-  return (
-    value === undefined || value === null ? <Badge status="default" /> :
-      <Space wrap>{value.map((v, i) => <Text key={i}>{v}</Text>)}</Space>
-  );
+  return value === undefined || value === null ? <Badge status="default" /> : value.map((v, i) => <Chip key={i} size="small" variant="outlined" label={v} />)
 };
 
 const renderFloatArray = (value?: number[]) => {
-  return (
-    value === undefined || value === null ? <Badge status="default" /> :
-      <Space wrap>{value.map((v, i) => <Text key={i}>{v}</Text>)}</Space>
-  );
+  return value === undefined || value === null ? <Badge status="default" /> : value.map((v, i) => <Chip key={i} size="small" variant="outlined" label={v} />)
 };
 
 const renderIDArray = (value?: (string | { id: string, name: string })[]) => {
-  return (
-    value === undefined || value === null ? <Badge status="default" /> :
-      <Space wrap>{value.map((v: string | { id: string; name: string; }) => renderID(v))}</Space>
-  );
+  return value === undefined || value === null ? <Badge status="default" /> : value.map((v: string | { id: string; name: string; }) => renderID(v))
 };
 
 const renderStringMap = (value?: Map<string, string>) => {
@@ -105,9 +73,9 @@ const renderStringMap = (value?: Map<string, string>) => {
     var list = []
     if (!(value instanceof Map)) value = new Map(Object.entries(value));
     for (let [k, v] of value) {
-      list.push(<Tooltip key={k} title={k}><Text code>{v}</Text></Tooltip>)
+      list.push(<Tooltip key={k} title={k}><Chip size="small" label={v} /></Tooltip>)
     }
-    return <Space wrap>{list}</Space>
+    return list
   }
 };
 
@@ -117,9 +85,9 @@ const renderStringArrayMap = (value?: Map<string, string[]>) => {
     var list = []
     if (!(value instanceof Map)) value = new Map(Object.entries(value));
     for (let [k, v] of value) {
-      list.push(<Tooltip key={k} title={k}><Text code>{v.join(",")}</Text></Tooltip>)
+      list.push(<Tooltip key={k} title={k}><Chip size="small" label={v.join(",")} /></Tooltip>)
     }
-    return <Space wrap>{list}</Space>
+    return list
   }
 };
 
@@ -129,9 +97,9 @@ const renderIntMap = (value?: Map<string, number>) => {
     var list = []
     if (!(value instanceof Map)) value = new Map(Object.entries(value));
     for (let [k, v] of value) {
-      list.push(<Tooltip key={k} title={k}><Text code>{v}</Text></Tooltip>)
+      list.push(<Tooltip key={k} title={k}><Chip size="small" label={v} /></Tooltip>)
     }
-    return <Space wrap>{list}</Space>
+    return list
   }
 };
 
@@ -141,9 +109,9 @@ const renderFloatMap = (value?: Map<string, number>) => {
     var list = []
     if (!(value instanceof Map)) value = new Map(Object.entries(value));
     for (let [k, v] of value) {
-      list.push(<Tooltip key={k} title={k}><Text code>{v}</Text></Tooltip>)
+      list.push(<Tooltip key={k} title={k}><Chip size="small" label={v} /></Tooltip>)
     }
-    return <Space wrap>{list}</Space>
+    return list
   }
 };
 

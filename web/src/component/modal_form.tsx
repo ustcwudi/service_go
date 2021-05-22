@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Popconfirm } from 'antd';
-import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import IconButton from '@/component/icon_button';
 
 export default (props: { title?: JSX.Element | string, visible: boolean, onReset?: () => void, onCancel?: () => void, onFinish: (values: any) => void, children?: any, footer?: any, style?: any, value: any }) => {
   const { style, title, visible, value, onFinish, onCancel, onReset, children } = props;
@@ -19,12 +19,8 @@ export default (props: { title?: JSX.Element | string, visible: boolean, onReset
       </Form>
     </DialogContent>
     <DialogActions>
-      <Button onClick={e => { form.resetFields(); onReset?.(); }} color="primary">
-        重置
-        </Button>
-      <Button onClick={form.submit} color="primary">
-        提交
-        </Button>
+      <IconButton title="重置" icon="Replay" onClick={(e: any) => { form.resetFields(); onReset?.(); }} color="default" />
+      <IconButton title="确认" icon="Telegram" onClick={form.submit} color="primary" />
     </DialogActions>
   </Dialog>
 }

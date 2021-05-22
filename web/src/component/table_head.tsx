@@ -14,7 +14,7 @@ export default function <RecordType>(props: { columns: Column<RecordType>[], typ
           {type === "checkbox" && <Checkbox onChange={onSelectAllClick} />}
         </TableCell>}
         {
-          columns.map((item: any) => <TableCell key={item.key}>{item.title}</TableCell>)
+          columns.map((item: any) => <TableCell key={item.key}> {item.title} </TableCell>)
         }
       </TableRow>
     </TableHead>
