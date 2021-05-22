@@ -57,6 +57,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     menu: {
       width: 200,
+      minWidth: 200,
       margin: theme.spacing(2, 0, 2, 2),
     },
     content: {
