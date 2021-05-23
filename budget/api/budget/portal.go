@@ -28,6 +28,10 @@ func RoutePortal(router *gin.Engine) {
 		portal.POST("/get_children", auth.CheckLogin, GetChildren)
 		portal.POST("/aggregate", auth.CheckLogin, route.FetchListForm, Aggregate)
 		portal.GET("/excel/:file", auth.CheckLogin, Excel)
+		portal.GET("/summary", auth.CheckLogin, route.FetchQuery, AssertWhere, Summary)
+		portal.GET("/one_summary", auth.CheckLogin, route.FetchQuery, AssertWhere, OneLevelSummary)
+		portal.GET("/two_summary", auth.CheckLogin, route.FetchQuery, AssertWhere, TwoLevelSummary)
+		portal.GET("/goal_summary", auth.CheckLogin, route.FetchQuery, AssertWhere, GoalSummary)
 	}
 }
 
@@ -270,4 +274,231 @@ func Excel(c *gin.Context) {
 
 func axis(x int, y int, right int, down int) string {
 	return string(rune('A'+y+right)) + strconv.Itoa(x+1+down)
+}
+
+// Summary 预算汇总
+// @summary 预算汇总
+// @tags budget portal
+// @produce json
+// @param data body map[string]interface{} true "data"
+// @success 200 {object} interface{}
+// @router /api/budget/summary [get]
+func Summary(c *gin.Context) {
+	var r define.Result
+	where := c.MustGet("where").(map[string]interface{})
+	budgets, _ := mongo.FindManyBudget(where, nil)
+	data := make([]map[string]interface{}, 0)
+	for _, budget := range *budgets {
+		row := make(map[string]interface{})
+		amount := .0
+		details, _ := mongo.FindManyBudgetDetail(bson.M{"budget": budget.ID}, bson.M{})
+		for _, detail := range *details {
+			if detail.AdjustAmount > 0 {
+				amount += detail.AdjustAmount
+			} else {
+				amount += detail.Amount
+			}
+		}
+		row["id"] = budget.ID
+		row["name"] = budget.Name
+		row["department"] = budget.Department
+		row["detail"] = details
+		row["amount"] = amount
+		if budget.SchoolQuota > 0 {
+			row["quota"] = "SchoolQuota"
+			row["schoolQuota"] = budget.SchoolQuota
+		} else if budget.GovernmentQuota > 0 {
+			row["quota"] = "GovernmentQuota"
+			row["governmentQuota"] = budget.GovernmentQuota
+		} else {
+			row["quota"] = "OtherQuota"
+			row["otherQuota"] = budget.OtherQuota
+		}
+		row["year"] = budget.Year
+		row["parent"] = budget.Parent
+		row["type"] = budget.Type
+		row["expenseType"] = budget.ExpenseType
+		row["category"] = budget.Category
+		row["categoryType"] = budget.Category > 0
+		data = append(data, row)
+	}
+	ids := make([]primitive.ObjectID, len(data))
+	for _, row := range data {
+		if row["department"] != nil {
+			ids = append(ids, row["department"].(primitive.ObjectID))
+		}
+	}
+	department, _ := mongo.FindManyDepartment(bson.M{"_id": bson.M{"$in": ids}}, bson.M{})
+	c.JSON(http.StatusOK, r.SetData(data).AddMapData("department", department))
+}
+
+// OneLevelSummary 一级汇总
+// @summary 一级汇总
+// @tags budget portal
+// @produce json
+// @param data body map[string]interface{} true "data"
+// @success 200 {object} interface{}
+// @router /api/budget/one_summary [get]
+func OneLevelSummary(c *gin.Context) {
+	var r define.Result
+	where := c.MustGet("where").(map[string]interface{})
+	budgets, _ := mongo.FindManyBudget(where, nil)
+	data := make([]map[string]interface{}, 0)
+	for _, budget := range *budgets {
+		details, _ := mongo.FindManyBudgetDetail(bson.M{"budget": budget.ID}, bson.M{})
+		for _, detail := range *details {
+			amount := .0
+			source := "OtherQuota"
+			code := detail.ExpenseTypeCode
+			category := budget.Category > 0
+			if detail.AdjustAmount > 0 {
+				amount = detail.AdjustAmount
+			} else {
+				amount = detail.Amount
+			}
+			if budget.SchoolQuota > 0 {
+				source = "SchoolQuota"
+			} else if budget.GovernmentQuota > 0 {
+				source = "GovernmentQuota"
+			}
+			find := false
+			for _, row := range data {
+				if row["source"] == source && row["code"] == code && row["category"] == category {
+					row["amount"] = amount + row["amount"].(float64)
+					find = true
+					break
+				}
+			}
+			if !find {
+				row := make(map[string]interface{})
+				row["code"] = code
+				row["source"] = source
+				row["category"] = category
+				row["amount"] = amount
+				data = append(data, row)
+			}
+		}
+	}
+	ids := make([]primitive.ObjectID, len(data))
+	for _, row := range data {
+		if code, ok := row["code"].(string); ok {
+			if id, err := primitive.ObjectIDFromHex(code); err == nil {
+				ids = append(ids, id)
+			}
+		}
+	}
+	classification, _ := mongo.FindManyClassification(bson.M{"_id": bson.M{"$in": ids}}, bson.M{})
+	dictionary := make(map[string]string)
+	for _, item := range *classification {
+		dictionary[item.ID.Hex()] = item.Parent.Hex()
+	}
+	summary := make([]map[string]interface{}, 0)
+	ids = make([]primitive.ObjectID, len(data))
+	for _, item := range data {
+		item["code"] = dictionary[item["code"].(string)]
+		if id, err := primitive.ObjectIDFromHex(item["code"].(string)); err == nil {
+			ids = append(ids, id)
+		}
+		find := false
+		for _, row := range summary {
+			if row["source"].(string) == item["source"].(string) && row["code"].(string) == item["code"].(string) && row["category"].(bool) == item["category"].(bool) {
+				row["amount"] = item["amount"].(float64) + row["amount"].(float64)
+				find = true
+				break
+			}
+		}
+		if !find {
+			summary = append(summary, item)
+		}
+	}
+	classification, _ = mongo.FindManyClassification(bson.M{"_id": bson.M{"$in": ids}}, bson.M{})
+	c.JSON(http.StatusOK, r.SetData(summary).AddMapData("classification", classification))
+}
+
+// TwoLevelSummary 二级汇总
+// @summary 二级汇总
+// @tags budget portal
+// @produce json
+// @param data body map[string]interface{} true "data"
+// @success 200 {object} interface{}
+// @router /api/budget/two_summary [get]
+func TwoLevelSummary(c *gin.Context) {
+	var r define.Result
+	where := c.MustGet("where").(map[string]interface{})
+	budgets, _ := mongo.FindManyBudget(where, nil)
+	data := make([]map[string]interface{}, 0)
+	for _, budget := range *budgets {
+		details, _ := mongo.FindManyBudgetDetail(bson.M{"budget": budget.ID}, bson.M{})
+		for _, detail := range *details {
+			amount := .0
+			source := "OtherQuota"
+			code := detail.ExpenseTypeCode
+			category := budget.Category > 0
+			if detail.AdjustAmount > 0 {
+				amount = detail.AdjustAmount
+			} else {
+				amount = detail.Amount
+			}
+			if budget.SchoolQuota > 0 {
+				source = "SchoolQuota"
+			} else if budget.GovernmentQuota > 0 {
+				source = "GovernmentQuota"
+			}
+			find := false
+			for _, row := range data {
+				if row["source"] == source && row["code"] == code && row["category"] == category {
+					row["amount"] = amount + row["amount"].(float64)
+					find = true
+					break
+				}
+			}
+			if !find {
+				row := make(map[string]interface{})
+				row["code"] = code
+				row["source"] = source
+				row["category"] = category
+				row["amount"] = amount
+				data = append(data, row)
+			}
+		}
+	}
+	ids := make([]primitive.ObjectID, len(data))
+	for _, row := range data {
+		if code, ok := row["code"].(string); ok {
+			if id, err := primitive.ObjectIDFromHex(code); err == nil {
+				ids = append(ids, id)
+			}
+		}
+	}
+	classification, _ := mongo.FindManyClassification(bson.M{"_id": bson.M{"$in": ids}}, bson.M{})
+	c.JSON(http.StatusOK, r.SetData(data).AddMapData("classification", classification))
+}
+
+// GoalSummary 目标汇总
+// @summary 目标汇总
+// @tags budget portal
+// @produce json
+// @param data body map[string]interface{} true "data"
+// @success 200 {object} interface{}
+// @router /api/budget/goal_summary [get]
+func GoalSummary(c *gin.Context) {
+	var r define.Result
+	where := c.MustGet("where").(map[string]interface{})
+	budgets, _ := mongo.FindManyBudget(where, nil)
+	data := make([]map[string]interface{}, 0)
+	for _, budget := range *budgets {
+		row := make(map[string]interface{})
+		goals, _ := mongo.FindManyLongtermGoal(bson.M{"budget": budget.ID}, bson.M{})
+		row["id"] = budget.ID
+		row["name"] = budget.Name
+		row["year"] = budget.Year
+		row["goal"] = goals
+		row["parent"] = budget.Parent
+		row["type"] = budget.Type
+		row["expenseType"] = budget.ExpenseType
+		row["category"] = budget.Category
+		row["categoryType"] = budget.Category > 0
+		data = append(data, row)
+	}
+	c.JSON(http.StatusOK, r.SetData(data))
 }
