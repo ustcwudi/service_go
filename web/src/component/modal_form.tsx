@@ -6,7 +6,17 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@/component/icon_button';
 
-export default (props: { title?: JSX.Element | string, visible: boolean, onReset?: () => void, onCancel?: () => void, onFinish: (values: any) => void, children?: any, footer?: any, style?: any, value: any }) => {
+export default (props: {
+  value: any,
+  style?: any,
+  footer?: any,
+  children?: any,
+  visible: boolean,
+  title?: JSX.Element | string,
+  onReset?: () => void,
+  onCancel?: () => void,
+  onFinish: (values: any) => void
+}) => {
   const { style, title, visible, value, onFinish, onCancel, onReset, children } = props;
   const [form] = Form.useForm();
   return <Dialog open={visible} onClose={onCancel}>

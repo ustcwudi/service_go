@@ -60,6 +60,17 @@ const useStyles = makeStyles((theme: Theme) =>
       minWidth: 200,
       margin: theme.spacing(2, 0, 2, 2),
     },
+    iconMenu: {
+      width: 80,
+      minWidth: 80,
+      margin: theme.spacing(2, 0, 2, 2),
+    },
+    menuItem: {
+      justifyContent: 'center'
+    },
+    menuItemIcon: {
+      color: '#000'
+    },
     content: {
       padding: theme.spacing(2),
       flex: 1
@@ -77,6 +88,8 @@ export default (props: any) => {
   const [path, setPath] = useState('');
   // 对话框
   const [modal, setModal] = useState<JSX.Element | undefined>(undefined);
+  // 对话框
+  const [iconMenu, setIconMenu] = useState<boolean>(false);
   // 菜单列表
   const [menuArray, setMenuArray] = useState<MenuItem[]>([]);
   // 菜单结构
@@ -230,8 +243,8 @@ export default (props: any) => {
   return <ThemeProvider theme={theme}>
     <AppBar>
       <Toolbar>
-        <IconButton edge="start" className={classes.logo} color="inherit">
-          <Icon name="Menu" />
+        <IconButton edge="start" className={classes.logo} color="inherit" onClick={() => setIconMenu(!iconMenu)}>
+          <Icon name={iconMenu ? "MenuOpen" : "Menu"} />
         </IconButton>
         <Typography variant="h6" className={classes.title}>
           管理终端
@@ -243,27 +256,34 @@ export default (props: any) => {
       </Toolbar>
     </AppBar>
     <Box className={classes.main}>
-      <Paper className={classes.menu} elevation={5}><List component="nav">
-        {
-          menuTree.find((i: MenuItem) => i.key === topMenu)?.children?.map((i: MenuItem) => {
-            return <Box key={i.key}>
-              <ListItem button onClick={() => i.children ? setExpandMenu(i.key) : i.path && history.push(i.path)}>
-                <ListItemIcon><Icon name={i.icon} /></ListItemIcon><ListItemText primary={i.title} />
-                {i.children && <Icon name={expandMenu === i.key ? "ExpandLess" : "ExpandMore"} />}
-              </ListItem>
-              {
-                i.children && <Collapse in={expandMenu === i.key} timeout="auto" unmountOnExit>
-                  <List component="div" disablePadding>
-                    {i.children.map((i: MenuItem) => <ListItem key={i.key} button className={classes.nested} onClick={() => i.path && history.push(i.path)}>
-                      <ListItemIcon><Icon name={i.icon} /></ListItemIcon><ListItemText primary={i.title} />
-                    </ListItem>)}
-                  </List>
-                </Collapse>
-              }
-            </Box>
-          })
-        }
-      </List></Paper>
+      <Box className={iconMenu ? classes.iconMenu : classes.menu}>
+        <Paper elevation={5}>
+          <List component="nav">
+            {
+              menuTree.find((i: MenuItem) => i.key === topMenu)?.children?.map((i: MenuItem) => {
+                return <Box key={i.key}>
+                  <ListItem className={classes.menuItem} button onClick={() => i.children ? setExpandMenu(i.key) : i.path && history.push(i.path)}>
+                    {iconMenu ? <Icon name={i.icon} /> : <>
+                      <ListItemIcon className={classes.menuItemIcon}><Icon name={i.icon} /></ListItemIcon>
+                      <ListItemText primary={i.title} />
+                      {i.children && <Icon name={expandMenu === i.key ? "ExpandLess" : "ExpandMore"} />}
+                    </>}
+                  </ListItem>
+                  {
+                    i.children && <Collapse in={expandMenu === i.key} timeout="auto" unmountOnExit>
+                      <List component="div" disablePadding>
+                        {i.children.map((i: MenuItem) => <ListItem key={i.key} button className={classes.menuItem} onClick={() => i.path && history.push(i.path)}>
+                          {iconMenu ? <Icon color="action" name={i.icon} /> : <><ListItemIcon><Icon name={i.icon} /></ListItemIcon><ListItemText primary={i.title} /></>}
+                        </ListItem>)}
+                      </List>
+                    </Collapse>
+                  }
+                </Box>
+              })
+            }
+          </List>
+        </Paper>
+      </Box>
       <Box className={classes.content}>
         <context.Provider value={{
           title: <Breadcrumbs className={classes.breadcrumbs}>

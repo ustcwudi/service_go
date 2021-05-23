@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Block from '@material-ui/icons/Block';
 import Menu from '@material-ui/icons/Menu';
+import MenuOpen from '@material-ui/icons/MenuOpen';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import CardGiftcard from '@material-ui/icons/CardGiftcard';
 import Apps from '@material-ui/icons/Apps';
@@ -33,7 +34,8 @@ import Publish from '@material-ui/icons/Publish';
 import Delete from '@material-ui/icons/Delete';
 import Edit from '@material-ui/icons/Edit';
 import Replay from '@material-ui/icons/Replay';
-import Remove from '@material-ui/icons/Remove';
+import Close from '@material-ui/icons/Close';
+import Check from '@material-ui/icons/Check';
 import Telegram from '@material-ui/icons/Telegram';
 import ImageOutlined from '@material-ui/icons/ImageOutlined';
 import DeleteOutline from '@material-ui/icons/DeleteOutline';
@@ -47,8 +49,10 @@ export default (props: any) => {
       return <Replay color={props.color} className={props.classes?.icon} />
     case "Telegram":
       return <Telegram color={props.color} className={props.classes?.icon} />
-    case "Remove":
-      return <Remove color={props.color} className={props.classes?.icon} />
+    case "Close":
+      return <Close color={props.color} className={props.classes?.icon} />
+    case "Check":
+      return <Check color={props.color} className={props.classes?.icon} />
     case "ImageOutlined":
       return <ImageOutlined color={props.color} className={props.classes?.icon} />
     case "DescriptionOutlined":
@@ -75,6 +79,8 @@ export default (props: any) => {
       return <Refresh color={props.color} className={props.classes?.icon} />
     case "Menu":
       return <Menu color={props.color} className={props.classes?.icon} />
+    case "MenuOpen":
+      return <MenuOpen color={props.color} className={props.classes?.icon} />
     case "AccountCircle":
       return <AccountCircle color={props.color} className={props.classes?.icon} />
     case "CardGiftcard":

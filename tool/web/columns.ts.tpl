@@ -24,7 +24,7 @@ export default function (): { [key: string]: Column<{{.Name}}> } {
       render: (model: {{$.Name}}) => Render.renderUpload(model.{{c .Name}}),
       {{- else}}
       /* render */
-      render: (model: {{$.Name}}) => Render.render{{mt .Type}}(model.{{c .Name}}),
+      render: (model: {{$.Name}}) => Render.render{{if or (eq .Name "Sex") (eq .Name "Gender")}}Sex{{else}}{{mt .Type}}{{end}}(model.{{c .Name}}),
       /* render form */
       renderForm: () => FormRender.render{{mt .Type}}({
         name: '{{c .Name}}',

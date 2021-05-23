@@ -1,30 +1,47 @@
 import React from 'react';
-import { Badge, Space } from 'antd';
+import { styled } from '@material-ui/core/styles';
 import Link from '@material-ui/core/Link';
 import Chip from '@material-ui/core/Chip';
 import Avatar from '@material-ui/core/Avatar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Icon from '@/component/icon'
 
+const Badge = styled(Chip)({
+  width: 8,
+  height: 8
+});
+
+const UserAvatar = styled(Avatar)({
+  width: 30,
+  height: 30
+});
+
 const renderBool = (value?: boolean) => {
   return (
-    value === undefined || value === null ? <Icon color="disabled" name="Remove" /> :
+    value === undefined || value === null ? <Badge color="default" /> :
       value === true ?
-        <Badge status="success" /> :
-        <Badge status="error" />
+        <Icon color="disabled" name="Check" /> :
+        <Icon color="disabled" name="Close" />
+  );
+};
+
+const renderSex = (value?: boolean) => {
+  return (
+    value === undefined || value === null ? <Badge color="default" /> :
+      value === true ? '男' : '女'
   );
 };
 
 const renderString = (value?: string) => {
-  return value === undefined || value === null ? <Badge status="default" /> : value
+  return value === undefined || value === null ? <Badge color="default" /> : value
 };
 
 const renderUpload = (value?: string) => {
-  if (value === undefined || value === null || value === "") return <Badge status="default" />
+  if (value === undefined || value === null || value === "") return <Badge color="default" />
   else {
     if ("http" === value.substring(0, 4))
       if ("https://thirdwx.qlogo.cn/" === value.substring(0, 25))
-        return <Avatar src={value} />
+        return <UserAvatar src={value} />
       else
         return <Link href={value} target="_blank"><Icon color="action" name="ImageOutlined" /></Link>
     else {
@@ -38,37 +55,37 @@ const renderUpload = (value?: string) => {
 };
 
 const renderInt = (value?: number) => {
-  return value === undefined || value === null ? <Badge status="default" /> : value
+  return value === undefined || value === null ? <Badge color="default" /> : value
 };
 
 const renderFloat = (value?: number) => {
-  return value === undefined || value === null ? <Badge status="default" /> : value
+  return value === undefined || value === null ? <Badge color="default" /> : value
 };
 
 const renderID = (value?: string | { id: string, name: string }) => {
-  return value === undefined || value === null ? <Badge status="default" /> :
-    typeof value === "string" ? <Tooltip key={value} title={value}><Chip size="small" /></Tooltip>
+  return value === undefined || value === null ? <Badge color="default" /> :
+    typeof value === "string" ? <Tooltip key={value} title={value}><Badge color="secondary" /></Tooltip>
       : <Tooltip key={value.id} title={value.id}><Chip size="small" label={value.name} /></Tooltip>
 };
 
 const renderStringArray = (value?: string[]) => {
-  return value === undefined || value === null ? <Badge status="default" /> : value.map((v, i) => <Chip key={i} size="small" variant="outlined" label={v} />)
+  return value === undefined || value === null ? <Badge color="default" /> : value.map((v, i) => <Chip key={i} size="small" variant="outlined" label={v} />)
 };
 
 const renderIntArray = (value?: number[]) => {
-  return value === undefined || value === null ? <Badge status="default" /> : value.map((v, i) => <Chip key={i} size="small" variant="outlined" label={v} />)
+  return value === undefined || value === null ? <Badge color="default" /> : value.map((v, i) => <Chip key={i} size="small" variant="outlined" label={v} />)
 };
 
 const renderFloatArray = (value?: number[]) => {
-  return value === undefined || value === null ? <Badge status="default" /> : value.map((v, i) => <Chip key={i} size="small" variant="outlined" label={v} />)
+  return value === undefined || value === null ? <Badge color="default" /> : value.map((v, i) => <Chip key={i} size="small" variant="outlined" label={v} />)
 };
 
 const renderIDArray = (value?: (string | { id: string, name: string })[]) => {
-  return value === undefined || value === null ? <Badge status="default" /> : value.map((v: string | { id: string; name: string; }) => renderID(v))
+  return value === undefined || value === null ? <Badge color="default" /> : value.map((v: string | { id: string; name: string; }) => renderID(v))
 };
 
 const renderStringMap = (value?: Map<string, string>) => {
-  if (value === undefined || value === null) return <Badge status="default" />
+  if (value === undefined || value === null) return <Badge color="default" />
   else {
     var list = []
     if (!(value instanceof Map)) value = new Map(Object.entries(value));
@@ -80,7 +97,7 @@ const renderStringMap = (value?: Map<string, string>) => {
 };
 
 const renderStringArrayMap = (value?: Map<string, string[]>) => {
-  if (value === undefined || value === null) return <Badge status="default" />
+  if (value === undefined || value === null) return <Badge color="default" />
   else {
     var list = []
     if (!(value instanceof Map)) value = new Map(Object.entries(value));
@@ -92,7 +109,7 @@ const renderStringArrayMap = (value?: Map<string, string[]>) => {
 };
 
 const renderIntMap = (value?: Map<string, number>) => {
-  if (value === undefined || value === null) return <Badge status="default" />
+  if (value === undefined || value === null) return <Badge color="default" />
   else {
     var list = []
     if (!(value instanceof Map)) value = new Map(Object.entries(value));
@@ -104,7 +121,7 @@ const renderIntMap = (value?: Map<string, number>) => {
 };
 
 const renderFloatMap = (value?: Map<string, number>) => {
-  if (value === undefined || value === null) return <Badge status="default" />
+  if (value === undefined || value === null) return <Badge color="default" />
   else {
     var list = []
     if (!(value instanceof Map)) value = new Map(Object.entries(value));
@@ -115,4 +132,4 @@ const renderFloatMap = (value?: Map<string, number>) => {
   }
 };
 
-export default { renderBool, renderString, renderUpload, renderInt, renderFloat, renderID, renderStringArray, renderIntArray, renderFloatArray, renderIDArray, renderStringMap, renderStringArrayMap, renderIntMap, renderFloatMap }
+export default { renderBool, renderSex, renderString, renderUpload, renderInt, renderFloat, renderID, renderStringArray, renderIntArray, renderFloatArray, renderIDArray, renderStringMap, renderStringArrayMap, renderIntMap, renderFloatMap }
