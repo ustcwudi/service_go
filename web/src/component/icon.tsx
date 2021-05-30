@@ -35,7 +35,9 @@ import Delete from '@material-ui/icons/Delete';
 import Edit from '@material-ui/icons/Edit';
 import Replay from '@material-ui/icons/Replay';
 import Close from '@material-ui/icons/Close';
+import Cancel from '@material-ui/icons/Cancel';
 import Check from '@material-ui/icons/Check';
+import HelpOutline from '@material-ui/icons/HelpOutline';
 import Telegram from '@material-ui/icons/Telegram';
 import ImageOutlined from '@material-ui/icons/ImageOutlined';
 import DeleteOutline from '@material-ui/icons/DeleteOutline';
@@ -51,8 +53,12 @@ export default (props: any) => {
       return <Telegram color={props.color} className={props.classes?.icon} />
     case "Close":
       return <Close color={props.color} className={props.classes?.icon} />
+    case "Cancel":
+      return <Cancel color={props.color} className={props.classes?.icon} />
     case "Check":
       return <Check color={props.color} className={props.classes?.icon} />
+    case "HelpOutline":
+      return <HelpOutline color={props.color} className={props.classes?.icon} />
     case "ImageOutlined":
       return <ImageOutlined color={props.color} className={props.classes?.icon} />
     case "DescriptionOutlined":

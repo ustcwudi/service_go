@@ -55,11 +55,11 @@ const renderUpload = (value?: string) => {
 };
 
 const renderInt = (value?: number) => {
-  return value === undefined || value === null ? <Badge color="default" /> : value
+  return value === undefined || value === null ? <Badge color="default" /> : value.toString()
 };
 
 const renderFloat = (value?: number) => {
-  return value === undefined || value === null ? <Badge color="default" /> : value
+  return value === undefined || value === null ? <Badge color="default" /> : value.toString()
 };
 
 const renderID = (value?: string | { id: string, name: string }) => {

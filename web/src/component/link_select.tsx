@@ -1,92 +1,82 @@
 import React, { useState, useEffect } from 'react';
 import { useRequest } from 'umi';
-import { Select, Input, Badge, Tooltip } from 'antd';
-import { SearchOutlined, DashOutlined, LoadingOutlined } from '@ant-design/icons';
+import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
+import Box from '@material-ui/core/Box';
+import FormControl from '@material-ui/core/FormControl';
+import MenuItem from '@material-ui/core/MenuItem';
+import InputLabel from '@material-ui/core/InputLabel';
+import Select from '@material-ui/core/Select';
+import TextField from '@material-ui/core/TextField';
+
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    root: {
+      display: 'flex',
+    },
+    select: {
+      flex: 2,
+    },
+    input: {
+      marginLeft: theme.spacing(2),
+      flex: 1,
+    }
+  }),
+);
 
 export default (props: any) => {
-  const getDefaultValue = () => {
-    const defaultValue = props.defaultValue
-      ? Array.isArray(props.defaultValue) // 数组类型
-        ? props.defaultValue.map((i: any) => {
-          return { value: i.id, label: i.name, record: i };
-        })
+  const classes = useStyles();
+  const getDefaultOptions = () => {
+    return props.defaultValue
+      ? Array.isArray(props.defaultValue)
+        ? props.defaultValue // 多项
         : typeof props.defaultValue === 'string'
-          ? [{ value: props.defaultValue, label: <Badge status="warning" />, record: props.defaultValue }] // 字符串
-          : [{ value: props.defaultValue.id, label: props.defaultValue.name, record: props.defaultValue }] // 单项
-      : undefined;
-    return defaultValue;
+          ? [{ id: props.defaultValue, name: props.defaultValue }] // 字符串
+          : [props.defaultValue] // 单项
+      : [];
   }
+  const [defaultValue] = useState(props.multiple ?
+    getDefaultOptions().map((i: any) => i.id)
+    : props.defaultValue ?
+      props.defaultValue.id ? props.defaultValue.id : props.defaultValue
+      : '');
   // 设置选项列表
-  const [options, setOptions] = useState<[]>(getDefaultValue());
-  // 设置总数
-  const [count, setCount] = useState(0);
-  // 设置总数
-  const [total, setTotal] = useState(0);
-  // 设置分页大小
-  const [pageSize, setPageSize] = useState(20);
+  const [options, setOptions] = useState<[{ id: any, name: any }]>(getDefaultOptions());
   // 设置关键词
   const [keyword, setKeyword] = useState("");
   // 获取查询数据
   const { loading, run } = useRequest(
-    e => e.keyword ? `/api/admin/${props.link}?pageSize=${pageSize}&page=${e.page}&name=${e.keyword}`
-      : `/api/admin/${props.link}?pageSize=${pageSize}&page=${e.page}`,
+    `/api/admin/${props.link}?pageSize=10&page=0&name=${keyword}`,
     {
       debounceInterval: 500,
       manual: true,
       onSuccess: (result, params) => {
         if (result.data) {
-          const list = result.data.map((i: { id: any; name: any }) => {
-            return { value: i.id, label: i.name ? i.name : i.id, record: i };
+          const list = result.data;
+          options.forEach(i => {
+            let index = list.findIndex((j: any) => j?.id == i?.id);
+            if (index == -1) list.push(i);
           });
-          if (params[0].page === 1) {
-            setOptions(list);
-          } else
-            setOptions(options ? [...options, ...list] : list);
+          setOptions(list);
         }
-        setCount(result.total ? result.total : 0); // 设置数量
-        setTotal(total == 0 ? result.total : total); // 设置总数
       },
     },
   );
   return (
-    <Select
-      defaultValue={getDefaultValue()}
-      disabled={props.disabled}
-      options={options}
-      labelInValue
-      mode={props.multiple ? 'multiple' : undefined}
-      style={{ width: '100%' }}
-      dropdownStyle={{ zIndex: 9999 }}
-      loading={loading}
-      onFocus={e => run({ keyword: keyword, page: 1 })}
-      onChange={(value, option: any) => {
-        if (option) {
-          props.onChange(
-            props.multiple
-              ? option
-                ? option.map((option: any) => option.record)
-                : []
-              : option
-                ? option.record
-                : undefined,
-          );
-        }
-      }}
-      dropdownRender={menu => (
-        <div>
-          {menu}
-          {total > pageSize ? <div style={{ margin: '8px 10px 5px' }}>
-            {count > options.length
-              ? <div style={{ textAlign: 'center', marginTop: '-8px' }}>
-                {loading ? <LoadingOutlined /> : <Tooltip title="加载更多">
-                  <DashOutlined onClick={e => run({ keyword: keyword, page: options.length / pageSize + 1 })} /></Tooltip>}
-              </div>
-              : undefined}
-            <Input prefix={<SearchOutlined />}
-              onChange={e => { let key = e.target.value.trim(); setKeyword(key); run({ keyword: key, page: 1 }) }} />
-          </div> : undefined}
-        </div>
-      )}
-    ></Select>
+    <Box className={classes.root}>
+      <FormControl className={classes.select} variant="outlined" fullWidth>
+        <InputLabel>{props.label}</InputLabel>
+        <Select
+          onFocus={() => { if (keyword) run(keyword) }}
+          label={props.label}
+          disabled={props.disabled}
+          multiple={props.multiple}
+          onChange={props.onChange}
+          defaultValue={defaultValue}>
+          {options?.map((i: any) => <MenuItem key={i.id} value={i.id}>{i.name}</MenuItem>)}
+        </Select>
+      </FormControl>
+      <TextField disabled={props.disabled} className={classes.input} label={`搜索${props.label}`} variant="outlined" fullWidth onChange={e => setKeyword(e.target.value)}>
+      </TextField>
+    </Box>
   );
 };

@@ -13,12 +13,12 @@ export default function (): { [key: string]: Column<{{.Name}}> } {
       ellipsis: true,
       {{- if eq .Name "Password"}}
       /* if password */
-      renderForm: () => FormRender.render{{mt .Type}}({
+      renderForm: (props: FormItemProps) => FormRender.render{{mt .Type}}({
         name: '{{c .Name}}',
         label: '{{c .Description}}',
         password: true,
         nullable: {{if .Nullable}}true{{else}}false{{end}}
-      })
+      }, props)
       {{- else if .Upload}}
       /* if upload */
       render: (model: {{$.Name}}) => Render.renderUpload(model.{{c .Name}}),
@@ -26,7 +26,7 @@ export default function (): { [key: string]: Column<{{.Name}}> } {
       /* render */
       render: (model: {{$.Name}}) => Render.render{{if or (eq .Name "Sex") (eq .Name "Gender")}}Sex{{else}}{{mt .Type}}{{end}}(model.{{c .Name}}),
       /* render form */
-      renderForm: () => FormRender.render{{mt .Type}}({
+      renderForm: (props: FormItemProps) => FormRender.render{{mt .Type}}({
         name: '{{c .Name}}',
         label: '{{c .Description}}',
         {{- if .Size}}
@@ -45,7 +45,7 @@ export default function (): { [key: string]: Column<{{.Name}}> } {
         rules: [{ required: true }],
         {{- end}}
         nullable: {{if .Nullable}}true{{else}}false{{end}}
-      }),
+      }, props),
       {{- if .Search}}
       /* render search */
       renderSearch: () => SearchRender.render{{mt .Type}}({

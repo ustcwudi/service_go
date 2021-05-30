@@ -235,7 +235,7 @@ export default (props: TableProps<{{.Name}}>) => {
       'update': <IconButton key="upload" title="修改" icon="Edit" color="default" onClick={(e: any) => {
         setModal(<ModalForm title="修改" visible={true} footer={null} onCancel={() => setModal(undefined)}
           value={model} onFinish={(record: {{.Name}}) => { update.run({ patch: reverseMap(exchangeNullable(record)), where: { id: model.id } }); }}>
-          {formFilter(allColumns(), props.renderUpdate).map(v => v())}</ModalForm>)
+          {formFilter(allColumns(), props.renderUpdate).map(v => v({default: {...model}, onChange: (k, v) => console.log(k, v)}))}</ModalForm>)
       }} />,
       {{- if .Upload}}{{range .Fields}}{{if .Upload}}
       'upload{{.Name}}': <FileUpload key="upload{{.Name}}"
@@ -251,7 +251,7 @@ export default (props: TableProps<{{.Name}}>) => {
       'add': <IconButton key="add" icon="Add" title="新增"
         onClick={(e: any) => setModal(<ModalForm title="新增" visible={true}
           onCancel={() => setModal(undefined)} value={new{{.Name}}()}
-          onFinish={(record: {{.Name}}) => { insert.run(reverseMap(exchangeNullable(record))); }}>{formFilter(allColumns(), props.renderAdd).map(v => v())}
+          onFinish={(record: {{.Name}}) => { insert.run(reverseMap(exchangeNullable(record))); }}>{formFilter(allColumns(), props.renderAdd).map(v => v({default: new{{.Name}}(), onChange: (k, v) => console.log(k, v)}))}
         </ModalForm>)} />,
       'search': <IconButton key="search" icon="Search" title="搜索" color={Object.keys(exchangeNullable(where)).length ? "primary" : "default"}
         onClick={(e: any) => setModal(<ModalForm visible={true} title="搜索"

@@ -33,7 +33,7 @@ interface Column<M> {
   title: string; // 表头
   ellipsis?: boolean;
   render?: (model: M) => string | JSX.Element | JSX.Element[]; // 表格内容渲染
-  renderForm?: () => string | JSX.Element | JSX.Element[]; // 表单渲染
+  renderForm?: (props: FormItemProps) => string | JSX.Element | JSX.Element[]; // 表单渲染
   renderSearch?: () => string | JSX.Element | JSX.Element[]; // 搜索表单渲染
 }
 
@@ -42,4 +42,20 @@ interface QueryOption<T> {
   where: { trash: boolean } & T;
   sort: { field: string; order: string }[];
   pagination: { current?: number; pageSize?: number };
+}
+// 表单项属性
+interface FormItemParam {
+  name: string;
+  label: string;
+  nullable: boolean;
+  map?: { [key: string]: string };
+  link?: string;
+  size?: number;
+  password?: boolean;
+  rules?: any[];
+}
+
+interface FormItemProps {
+  default: any;
+  onChange: (name: string, value: any) => void;
 }

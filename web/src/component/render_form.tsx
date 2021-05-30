@@ -1,379 +1,471 @@
-import React, { useState } from 'react';
-import { Select, Radio, Badge, Form, Col, InputNumber, Input } from 'antd';
+import React, { useEffect, useState, useRef } from 'react';
+import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
 import LinkSelect from '@/component/link_select';
+import ArrayInput from '@/component/array_input';
+import MapInput from '@/component/map_input';
 import NullContainer from '@/component/null_container';
+import TextField from '@material-ui/core/TextField';
+import Grid from '@material-ui/core/Grid';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormLabel from '@material-ui/core/FormLabel';
+import moment from 'moment';
 
-// 表单项属性
-interface FormItemParam {
-  name: string;
-  label: string;
-  nullable: boolean;
-  map?: { [key: string]: string };
-  link?: string;
-  size?: number;
-  password?: boolean;
-  rules?: any[];
-}
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    root: {
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'row'
+    },
+    label: {
+      paddingLeft: 14,
+      paddingRight: 20,
+      display: 'flex',
+      textAlign: 'center',
+      alignItems: 'center'
+    },
+    group: {
+      flexDirection: 'row'
+    }
+  }),
+);
 
-// 表单项属性
-interface BoolFormItemProps {
-  value?: boolean;
-  onChange?: (value?: boolean) => void;
-}
+const renderBool = (param: FormItemParam, props: FormItemProps) => {
+  const C = (props: FormItemProps) => {
+    const classes = useStyles();
 
-const renderBool = (param: FormItemParam) => {
-  const C = (props: BoolFormItemProps) => {
-    return <Radio.Group defaultValue={props.value} onChange={e => props.onChange?.(e.target.value)}>
-      <Radio value={true}><Badge status="success" /></Radio>
-      <Radio value={false}><Badge status="error" /></Radio>
-      {param.nullable ? <Radio value={undefined}><Badge status="default" /></Radio> : undefined}
-    </Radio.Group>;
+    return <FormControl className={classes.root} fullWidth>
+      <FormLabel className={classes.label}>{param.label}</FormLabel>
+      <RadioGroup className={classes.group} name={param.name} defaultValue={props.default[param.name] == undefined ? 'undefined' : props.default[param.name]?.toString()}
+        onChange={e => props.onChange?.(param.name, e.currentTarget.value == "undefined" ? undefined : e.currentTarget.value == "true")}>
+        <FormControlLabel value={'true'} control={<Radio />} label={param.name == 'sex' || param.name == 'gender' ? '男' : '✔'} />
+        <FormControlLabel value={'false'} control={<Radio />} label={param.name == 'sex' || param.name == 'gender' ? '女' : '✖'} />
+        {param.nullable ? <FormControlLabel value={'undefined'} control={<Radio />} label='未知' /> : undefined}
+      </RadioGroup>
+    </FormControl>;
   }
-  return <Col key={param.name} span={12}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  return <Grid key={param.name} item xs={6}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface StringFormItemProps {
-  value?: string;
-  onChange?: (value?: string | null) => void; // 空密码框返回null
-}
+const renderString = (param: FormItemParam, props: FormItemProps) => {
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : '')
+    const [value, setValue] = useState(defaultValue.current);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
 
-const renderString = (param: FormItemParam) => {
-  const C = (props: StringFormItemProps) => {
     if (param.map) {
       let choices: { label: string, value: any }[] = [];
       if (param.map) {
         for (let key in param.map) {
           choices.push({ label: key, value: param.map[key] })
         }
+        setValue(choices[0].value);
       }
-      return <NullContainer nullable={param.nullable} {...props} >
-        <Select
-          options={choices}
-          defaultValue={props.value}
-          style={{ width: '100%' }}
-          disabled={props.value === undefined}
-          onChange={value => props.onChange?.(value)} /></NullContainer>
+      return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+        <TextField fullWidth select
+          variant="outlined"
+          label={param.label}
+          defaultValue={defaultValue.current}
+          disabled={disabled}
+          onChange={e => { let v = e.target.value; setValue(v); props.onChange(param.name, v) }} >
+          {choices.map(i => <MenuItem value={i.value}>{i.label}</MenuItem>)}
+        </TextField>
+      </NullContainer>
     }
     else if (param.password)
-      return <NullContainer nullable={param.nullable} {...props}>
-        <Input.Password
-          maxLength={20}
-          disabled={props.value === undefined}
-          onChange={e => props.onChange?.(e.target.value ? e.target.value : null)} /></NullContainer>;
+      return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+        <TextField fullWidth
+          type="password"
+          variant="outlined"
+          label={param.label}
+          defaultValue={defaultValue.current}
+          disabled={disabled}
+          onChange={e => { let v = e.target.value ? e.target.value : null; props.onChange(param.name, v); setValue(v); }} />
+      </NullContainer>;
     else if (param.size && param.size > 100)
-      return <NullContainer nullable={param.nullable} {...props}>
-        <Input.TextArea
-          maxLength={param.size}
-          showCount={true}
-          defaultValue={props.value}
-          disabled={props.value === undefined}
-          rows={param.size > 400 ? param.size > 1000 ? 10 : param.size / 100 : 4}
-          onChange={e => props.onChange?.(e.target.value)} />
+      return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+        <TextField fullWidth multiline
+          variant="outlined"
+          label={param.label}
+          defaultValue={defaultValue.current}
+          disabled={disabled}
+          onChange={e => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} />
       </NullContainer>;
     else
-      return <NullContainer nullable={param.nullable} {...props}>
-        <Input
-          maxLength={100}
-          disabled={props.value === undefined}
-          defaultValue={props.value}
-          onChange={e => props.onChange?.(e.target.value)} /></NullContainer>;
+      return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+        <TextField fullWidth
+          variant="outlined"
+          label={param.label}
+          defaultValue={defaultValue.current}
+          disabled={disabled}
+          onChange={e => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} />
+      </NullContainer>;
   }
-  return <Col key={param.name} span={param.name == "remark" || (param.size && param.size > 100) ? 24 : 12}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  return <Grid key={param.name} item xs={param.name == "remark" || (param.size && param?.size > 100) ? 12 : 6}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface IntFormItemProps {
-  value?: number;
-  onChange?: (value?: number) => void;
-}
+const renderInt = (param: FormItemParam, props: FormItemProps) => {
+  let type = param.name.substring(param.name.length - 4) === "Time" ? "time" : '';
 
-const renderInt = (param: FormItemParam) => {
-  let type = ''
-  if (param.name.substring(param.name.length - 4) === "Time") {
-    type = "time"
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? moment(new Date(props.default[param.name])) : moment())
+    const [value, setValue] = useState(defaultValue.current.unix() * 1000000);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
+
+    return !type ? <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+      <TextField fullWidth
+        type="datetime-local"
+        variant="outlined"
+        label={param.label}
+        InputLabelProps={{ shrink: true }}
+        defaultValue={defaultValue.current.format('YYYY-MM-DDTHH:mm:ss')}
+        disabled={disabled}
+        onChange={e => { let v = moment(e.target.value).unix() * 1000000; props.onChange(param.name, v); setValue(v); }} />
+    </NullContainer>
+      : <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+        <TextField fullWidth
+          type="number"
+          variant="outlined"
+          label={param.label}
+          disabled={disabled}
+          defaultValue={defaultValue.current}
+          InputLabelProps={{ shrink: true }}
+          onChange={e => { let v = parseInt(e.target.value); props.onChange(param.name, v); setValue(v); }} />
+      </NullContainer>
   }
-  const C = (props: IntFormItemProps) => {
-    return <NullContainer nullable={param.nullable} {...props}>
-      <InputNumber
-        style={{ width: '100%' }}
-        precision={0}
-        defaultValue={props.value}
-        disabled={props.value === undefined}
-        onChange={value => props.onChange?.(Number(value))} /></NullContainer>
-  }
-  return <Col key={param.name} span={6}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  return <Grid key={param.name} item xs={6}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface FloatFormItemProps {
-  value?: number;
-  onChange?: (value?: number) => void;
-}
+const renderFloat = (param: FormItemParam, props: FormItemProps) => {
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : 0)
+    const [value, setValue] = useState(defaultValue.current);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
 
-const renderFloat = (param: FormItemParam) => {
-  const C = (props: FloatFormItemProps) => {
-    return <NullContainer nullable={param.nullable} {...props} >
-      <InputNumber
-        style={{ width: '100%' }}
-        defaultValue={props.value}
-        disabled={props.value === undefined}
-        onChange={value => props.onChange?.(Number(value))} /></NullContainer>;
+    return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+      <TextField fullWidth
+        type="number"
+        variant="outlined"
+        label={param.label}
+        defaultValue={defaultValue.current}
+        InputLabelProps={{ shrink: true }}
+        disabled={disabled}
+        onChange={e => { let v = parseFloat(e.target.value); props.onChange(param.name, v); setValue(v); }} />
+    </NullContainer>
   }
-  return <Col key={param.name} span={6}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  return <Grid key={param.name} item xs={6}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface IDFormItemProps {
-  value?: string | { id: string, name: string };
-  onChange?: (value?: string | { id: string, name: string }) => void;
-}
+const renderID = (param: FormItemParam, props: FormItemProps) => {
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : '')
+    const [value, setValue] = useState(defaultValue.current);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
 
-const renderID = (param: FormItemParam) => {
-  const C = (props: IDFormItemProps) => {
     return !param.link ?
-      <NullContainer nullable={param.nullable} {...props} >
-        <Input defaultValue={props.value?.toString()}
-          disabled={props.value === undefined}
-          onChange={e => props.onChange?.(e.target.value)} /></NullContainer>
-      : <NullContainer nullable={param.nullable} {...props} >
+      <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+        <TextField fullWidth
+          variant="outlined"
+          label={param.label}
+          defaultValue={defaultValue.current}
+          disabled={disabled}
+          onChange={e => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} />
+      </NullContainer>
+      : <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
         <LinkSelect
+          label={param.label}
           link={param.link}
-          defaultValue={props.value}
-          disabled={props.value === undefined}
-          onChange={(value: any) => props.onChange?.(value)} /></NullContainer>;
+          defaultValue={defaultValue.current}
+          disabled={disabled}
+          onChange={(e: any) => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} />
+      </NullContainer>;
   }
-  return <Col key={param.name} span={12}>
-    <Form.Item name={param.name} label={param.label} rules={param.nullable ? [] : [{ required: true }]}>
-      <C />
-    </Form.Item>
-  </Col>;
+  return <Grid key={param.name} item xs={12}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface StringArrayFormItemProps {
-  value?: string[];
-  onChange?: (value?: string[]) => void;
-}
-
-const renderStringArray = (param: FormItemParam) => {
+const renderStringArray = (param: FormItemParam, props: FormItemProps) => {
   let choices: { label: string, value: any }[] = [];
   if (param.map) {
     for (let key in param.map) {
       choices.push({ label: key, value: param.map[key] })
     }
   }
-  const C = (props: StringArrayFormItemProps) => {
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : [])
+    const [value, setValue] = useState(defaultValue.current);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
+
     return param.map ?
-      <NullContainer nullable={param.nullable} {...props} >
-        <Select
-          options={choices}
-          defaultValue={props.value}
-          mode="multiple"
-          style={{ width: '100%' }}
-          disabled={props.value === undefined}
-          onChange={value => props.onChange?.(value)} />
-      </NullContainer>
-      : <NullContainer nullable={param.nullable} {...props} >
-        <Select
-          defaultValue={props.value}
-          mode="tags"
-          style={{ width: '100%' }}
-          disabled={props.value === undefined}
-          onChange={value => props.onChange?.(value)}
-          tokenSeparators={[',']} /></NullContainer>;
+      <FormControl variant="outlined" fullWidth>
+        <InputLabel>{param.label}</InputLabel>
+        <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+          <Select multiple
+            label={param.label}
+            defaultValue={defaultValue.current}
+            disabled={disabled}
+            onChange={(e: any) => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} >
+            {choices.map(i => <MenuItem value={i.value}>{i.label}</MenuItem>)}
+          </Select>
+        </NullContainer>
+      </FormControl >
+      : <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+        <ArrayInput
+          label={param.label}
+          defaultValue={defaultValue.current}
+          disabled={disabled}
+          onChange={(e: any) => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} >
+        </ArrayInput></NullContainer>;
   }
-  return <Col key={param.name} span={24}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  return <Grid key={param.name} item xs={12}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface IntArrayFormItemProps {
-  value?: number[];
-  onChange?: (value?: number[]) => void;
-}
-
-const renderIntArray = (param: FormItemParam) => {
-  const C = (props: IntArrayFormItemProps) => {
-    return <NullContainer nullable={param.nullable} {...props} >
-      <Select
-        defaultValue={props.value}
-        mode="tags"
-        style={{ width: '100%' }}
-        disabled={props.value === undefined}
-        onChange={value => props.onChange?.(value)}
-        tokenSeparators={[',']} /></NullContainer>;
+const renderIntArray = (param: FormItemParam, props: FormItemProps) => {
+  let choices: { label: string, value: any }[] = [];
+  if (param.map) {
+    for (let key in param.map) {
+      choices.push({ label: key, value: param.map[key] })
+    }
   }
-  return <Col key={param.name} span={24}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : [])
+    const [value, setValue] = useState(defaultValue.current);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
+
+    return param.map ?
+      <FormControl variant="outlined" fullWidth>
+        <InputLabel>{param.label}</InputLabel>
+        <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+          <Select multiple
+            label={param.label}
+            defaultValue={defaultValue.current}
+            disabled={disabled}
+            onChange={(e: any) => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} >
+            {choices.map(i => <MenuItem value={i.value}>{i.label}</MenuItem>)}
+          </Select>
+        </NullContainer>
+      </FormControl >
+      : <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+        <ArrayInput
+          label={param.label}
+          defaultValue={defaultValue.current}
+          disabled={disabled}
+          onChange={(e: any) => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} >
+        </ArrayInput></NullContainer>;
+  }
+  return <Grid key={param.name} item xs={12}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface FloatArrayFormItemProps {
-  value?: number[];
-  onChange?: (value?: number[]) => void;
-}
-
-const renderFloatArray = (param: FormItemParam) => {
-  const C = (props: FloatArrayFormItemProps) => {
-    return <NullContainer nullable={param.nullable} {...props} >
-      <Select
-        defaultValue={props.value}
-        mode="tags"
-        style={{ width: '100%' }}
-        disabled={props.value === undefined}
-        onChange={value => props.onChange?.(value)}
-        tokenSeparators={[',']} /> </NullContainer>;
+const renderFloatArray = (param: FormItemParam, props: FormItemProps) => {
+  let choices: { label: string, value: any }[] = [];
+  if (param.map) {
+    for (let key in param.map) {
+      choices.push({ label: key, value: param.map[key] })
+    }
   }
-  return <Col key={param.name} span={24}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : [])
+    const [value, setValue] = useState(defaultValue.current);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
+
+    return param.map ?
+      <FormControl variant="outlined" fullWidth>
+        <InputLabel>{param.label}</InputLabel>
+        <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+          <Select multiple
+            label={param.label}
+            defaultValue={defaultValue.current}
+            disabled={disabled}
+            onChange={(e: any) => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} >
+            {choices.map(i => <MenuItem value={i.value}>{i.label}</MenuItem>)}
+          </Select>
+        </NullContainer>
+      </FormControl >
+      : <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+        <ArrayInput
+          label={param.label}
+          defaultValue={defaultValue.current}
+          disabled={disabled}
+          onChange={(e: any) => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} >
+        </ArrayInput></NullContainer>;
+  }
+  return <Grid key={param.name} item xs={12}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface IDArrayFormItemProps {
-  value?: (string | { id: string, name: string })[];
-  onChange?: (value?: (string | { id: string, name: string })[]) => void;
-}
+const renderIDArray = (param: FormItemParam, props: FormItemProps) => {
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : [])
+    const [value, setValue] = useState(defaultValue.current);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
 
-const renderIDArray = (param: FormItemParam) => {
-  const C = (props: IDArrayFormItemProps) => {
-    return <NullContainer nullable={param.nullable} {...props} >
+    return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
       <LinkSelect multiple
+        label={param.label}
         link={param.link}
-        defaultValue={props.value}
-        disabled={props.value === undefined}
-        onChange={(value: any) => props.onChange?.(value)} /></NullContainer>;
+        defaultValue={defaultValue.current}
+        disabled={disabled}
+        onChange={(e: any) => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} />
+    </NullContainer>;
   }
-  return <Col key={param.name} span={24}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  return <Grid key={param.name} item xs={12}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface StringMapFormItemProps {
-  value?: { [key: string]: string };
-  onChange?: (value?: { [key: string]: string }) => void;
-}
 
-const renderStringMap = (param: FormItemParam) => {
-  const C = (props: StringMapFormItemProps) => {
-    return <NullContainer nullable={param.nullable} {...props} >
-      <Input.TextArea
-        disabled={props.value === undefined}
-        defaultValue={props.value ? JSON.stringify(props.value) : ''}
-        onChange={e => {
-          let object = JSON.parse(e.target.value);
-          if (object) props.onChange?.(object);
-        }}
-      ></Input.TextArea></NullContainer>;
+const renderStringMap = (param: FormItemParam, props: FormItemProps) => {
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : {})
+    const [value, setValue] = useState(defaultValue.current);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
+
+    return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+      <MapInput
+        label={param.label}
+        defaultValue={defaultValue.current}
+        disabled={disabled}
+        onChange={(e: any) => {
+          let v: any = {};
+          e.target.value.forEach((i: string) => {
+            let index = i.indexOf(':');
+            v[i.substring(0, index)] = i.substring(index + 1);
+          });
+          props.onChange(param.name, v);
+          setValue(v);
+        }} />
+    </NullContainer>
   }
-  return <Col key={param.name} span={24}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  return <Grid key={param.name} item xs={12}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface StringArrayMapFormItemProps {
-  value?: { [key: string]: string[] };
-  onChange?: (value?: { [key: string]: string[] }) => void;
-}
+const renderStringArrayMap = (param: FormItemParam, props: FormItemProps) => {
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : {})
+    const [value, setValue] = useState(defaultValue.current);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
 
-const renderStringArrayMap = (param: FormItemParam) => {
-  const C = (props: StringArrayMapFormItemProps) => {
-    return <NullContainer nullable={param.nullable} {...props} >
-      <Input.TextArea
-        disabled={props.value === undefined}
-        defaultValue={props.value ? JSON.stringify(props.value) : ''}
-        onChange={e => {
-          let object = JSON.parse(e.target.value);
-          if (object) props.onChange?.(object);
-        }}
-      ></Input.TextArea></NullContainer>;
+    return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+      <MapInput
+        label={param.label}
+        defaultValue={defaultValue.current}
+        disabled={disabled}
+        onChange={(e: any) => {
+          let v: any = {};
+          e.target.value.forEach((i: string) => {
+            let index = i.indexOf(':');
+            v[i.substring(0, index)] = i.substring(index + 1).split(',');
+          });
+          props.onChange(param.name, v);
+          setValue(v);
+        }} />
+    </NullContainer>
   }
-  return <Col key={param.name} span={24}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  return <Grid key={param.name} item xs={12}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface IntMapFormItemProps {
-  value?: { [key: string]: number };
-  onChange?: (value?: { [key: string]: number }) => void;
-}
+const renderIntMap = (param: FormItemParam, props: FormItemProps) => {
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : {})
+    const [value, setValue] = useState(defaultValue.current);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
 
-const renderIntMap = (param: FormItemParam) => {
-  const C = (props: IntMapFormItemProps) => {
-    return <NullContainer nullable={param.nullable} {...props} >
-      <Input.TextArea
-        disabled={props.value === undefined}
-        defaultValue={props.value ? JSON.stringify(props.value) : ''}
-        onChange={e => {
-          let object = JSON.parse(e.target.value);
-          if (object) props.onChange?.(object);
-        }}
-      ></Input.TextArea></NullContainer>;
+    return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+      <MapInput
+        label={param.label}
+        defaultValue={defaultValue.current}
+        disabled={disabled}
+        onChange={(e: any) => {
+          let v: any = {};
+          e.target.value.forEach((i: string) => {
+            let index = i.indexOf(':');
+            let number = parseInt(i.substring(index + 1))
+            v[i.substring(0, index)] = number ? number : 0;
+          });
+          props.onChange(param.name, v);
+          setValue(v);
+        }} />
+    </NullContainer>
   }
-  return <Col key={param.name} span={24}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  return <Grid key={param.name} item xs={12}>
+    <C {...props} />
+  </Grid>;
 };
 
-// 表单项属性
-interface FloatMapFormItemProps {
-  value?: { [key: string]: number };
-  onChange?: (value?: { [key: string]: number }) => void;
-}
+const renderFloatMap = (param: FormItemParam, props: FormItemProps) => {
+  const C = (props: FormItemProps) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === undefined);
+    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : {})
+    const [value, setValue] = useState(defaultValue.current);
+    const init = useRef(0);
+    useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
 
-const renderFloatMap = (param: FormItemParam) => {
-  const C = (props: FloatMapFormItemProps) => {
-    return <NullContainer nullable={param.nullable} {...props} >
-      <Input.TextArea
-        disabled={props.value === undefined}
-        defaultValue={props.value ? JSON.stringify(props.value) : ''}
-        onChange={e => {
-          let object = JSON.parse(e.target.value);
-          if (object) props.onChange?.(object);
-        }}
-      ></Input.TextArea></NullContainer>;
+    return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+      <MapInput
+        label={param.label}
+        defaultValue={defaultValue.current}
+        disabled={disabled}
+        onChange={(e: any) => {
+          let v: any = {};
+          e.target.value.forEach((i: string) => {
+            let index = i.indexOf(':');
+            let number = parseFloat(i.substring(index + 1))
+            v[i.substring(0, index)] = number ? number : 0;
+          });
+          props.onChange(param.name, v);
+          setValue(v);
+        }} />
+    </NullContainer>
   }
-  return <Col key={param.name} span={24}>
-    <Form.Item name={param.name} label={param.label} rules={param.rules}>
-      <C />
-    </Form.Item>
-  </Col>;
+  return <Grid key={param.name} item xs={12}>
+    <C {...props} />
+  </Grid>;
 };
 
 export default { renderBool, renderString, renderInt, renderFloat, renderID, renderStringArray, renderIntArray, renderFloatArray, renderIDArray, renderStringMap, renderStringArrayMap, renderIntMap, renderFloatMap }

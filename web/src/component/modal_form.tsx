@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Row, Col, Popconfirm } from 'antd';
+import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@/component/icon_button';
+import Grid from '@material-ui/core/Grid';
+
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    grid: {
+      marginBottom: 0
+    },
+    actions: {
+      marginBottom: 16,
+      marginRight: 12
+    }
+  }),
+);
 
 export default (props: {
   value: any,
@@ -17,20 +30,18 @@ export default (props: {
   onCancel?: () => void,
   onFinish: (values: any) => void
 }) => {
+  const classes = useStyles();
   const { style, title, visible, value, onFinish, onCancel, onReset, children } = props;
-  const [form] = Form.useForm();
-  return <Dialog open={visible} onClose={onCancel}>
+  return <Dialog fullWidth={true} scroll="body" maxWidth="md" open={visible} onClose={onCancel}>
     <DialogTitle>{title}</DialogTitle>
     <DialogContent>
-      <Form style={style} form={form} layout="vertical" initialValues={value} onFinish={onFinish}>
-        <Row gutter={16}>
-          {children}
-        </Row>
-      </Form>
+      <Grid className={classes.grid} container spacing={3}>
+        {children}
+      </Grid>
     </DialogContent>
-    <DialogActions>
-      <IconButton title="重置" icon="Replay" onClick={(e: any) => { form.resetFields(); onReset?.(); }} color="default" />
-      <IconButton title="确认" icon="Telegram" onClick={form.submit} color="primary" />
+    <DialogActions className={classes.actions}>
+      <IconButton title="重置" icon="Replay" color="default" />
+      <IconButton title="确认" icon="Telegram" color="primary" />
     </DialogActions>
   </Dialog>
 }
