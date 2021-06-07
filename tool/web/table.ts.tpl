@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { message, Space, Typography } from 'antd';
+import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
+import { message, Space } from 'antd';
 import { useRequest, history, useModel } from 'umi';
 import allColumns from './columns';
 import ModalForm from '@/component/modal_form'
@@ -11,6 +12,8 @@ import Collapse from '@material-ui/core/Collapse';
 import TableContainer from '@material-ui/core/TableContainer';
 import TablePagination from '@material-ui/core/TablePagination';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import Toolbar from '@material-ui/core/Toolbar';
+import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import TableHead from '@/component/table_head';
 import IconButton from '@/component/icon_button';
@@ -18,7 +21,13 @@ import TableToolbar from '@/component/table_toolbar';
 import PaginationAction from '@/component/pagination_action';
 import context from '@/pages/main/context'
 
-const { Title, Text, Link } = Typography;
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    searchForm: {
+      margin: 0,
+    }
+  }),
+);
 
 const null{{.Name}} = () => {
   return {
@@ -87,6 +96,7 @@ const reverseMap = (model: any) => {
 }
 
 export default (props: TableProps<{{.Name}}>) => {
+  const classes = useStyles();
   const mainContext = useContext(context);
   // 数据源
   const [source, setSource] = useState<{ data: {{.Name}}[]; total: number }>({ data: [], total: 0 });
@@ -98,7 +108,7 @@ export default (props: TableProps<{{.Name}}>) => {
   const [modal, setModal] = useState<JSX.Element | undefined>(undefined);
   // 查询参数
   const [trash, setTrash] = useState<boolean>(false);
-  const [where, setWhere] = useState<object>(null{{.Name}}());
+  const [where, setWhere] = useState<object | undefined>(undefined);
   const [sort, setSort] = useState<[]>([]);
   const [pagination, setPagination] = useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 15 });
   // [废弃/还原]请求
@@ -253,12 +263,7 @@ export default (props: TableProps<{{.Name}}>) => {
           onCancel={() => setModal(undefined)} value={new{{.Name}}()}
           onFinish={(record: {{.Name}}) => { insert.run(reverseMap(exchangeNullable(record))); }}>{formFilter(allColumns(), props.renderAdd).map(v => v({default: new{{.Name}}(), onChange: (k, v) => console.log(k, v)}))}
         </ModalForm>)} />,
-      'search': <IconButton key="search" icon="Search" title="搜索" color={Object.keys(exchangeNullable(where)).length ? "primary" : "default"}
-        onClick={(e: any) => setModal(<ModalForm visible={true} title="搜索"
-          onFinish={(values: any) => { setWhere(values) }}
-          onReset={() => setWhere(null{{.Name}}())}
-          onCancel={() => setModal(undefined)}
-          value={null{{.Name}}()} >{searchItems}</ModalForm>)} />,
+      'search': <IconButton key="search" icon="Search" title="搜索" color={where === undefined ? "default" : "primary"} onClick={() => where === undefined ? setWhere(null{{.Name}}()) : setWhere(undefined)} />,
       'refresh': <IconButton key="refresh" title="刷新" icon="Refresh" onClick={(e: any) => setWhere({ ...where })} />,
       'import': <FileUpload key="import" action={"/api/admin/{{u $.Name}}/import"}
         onUpload={(list: any) => { message.info(`导入${list.length}项数据`); setWhere(null{{.Name}}()); }}>
@@ -286,8 +291,6 @@ export default (props: TableProps<{{.Name}}>) => {
       'delete': <IconButton key="delete" title={"彻底删除"} icon="DeleteForever" onClick={() => remove.run({ id: selection.keys })} />
     }
   }
-  // 搜索控件
-  const [searchItems] = useState(searchFilter(allColumns(), props.renderSearch).map(v => v()));
 
   // 模板
   return <Collapse in={props.display !== false}><Paper elevation={5}>
@@ -297,6 +300,9 @@ export default (props: TableProps<{{.Name}}>) => {
       tableButtons={buttonFilter(tableButtons(), props.renderTableButton, props.moreTableButton)}
       selectionButtons={buttonFilter(selectionButtons(), props.renderSelectionButton, props.moreSelectionButton)}
     />
+    {where !== undefined && <Toolbar><Grid container className={classes.searchForm} spacing={3}>
+      {searchFilter(allColumns(), props.renderSearch).map(v => v({ default: null{{.Name}}(), onChange: (k, v) => console.log(k, v) }))}
+    </Grid></Toolbar>}
     {loading ? <LinearProgress color={trash ? "secondary" : "primary"} /> : <LinearProgress color={trash ? "secondary" : "primary"} variant="determinate" value={100} />}
     <TableContainer>
       <Table size="small">

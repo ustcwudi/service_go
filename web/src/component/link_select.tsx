@@ -63,7 +63,7 @@ export default (props: any) => {
   );
   return (
     <Box className={classes.root}>
-      <FormControl className={classes.select} variant="outlined" fullWidth>
+      <FormControl className={classes.select} variant="outlined" size={props.size} fullWidth>
         <InputLabel>{props.label}</InputLabel>
         <Select
           onFocus={() => { if (keyword) run(keyword) }}
@@ -75,7 +75,7 @@ export default (props: any) => {
           {options?.map((i: any) => <MenuItem key={i.id} value={i.id}>{i.name}</MenuItem>)}
         </Select>
       </FormControl>
-      <TextField disabled={props.disabled} className={classes.input} label={`搜索${props.label}`} variant="outlined" fullWidth onChange={e => setKeyword(e.target.value)}>
+      <TextField disabled={props.disabled} size={props.size} className={classes.input} label={`搜索${props.label}`} variant="outlined" fullWidth onChange={e => setKeyword(e.target.value)}>
       </TextField>
     </Box>
   );

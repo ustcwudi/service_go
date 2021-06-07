@@ -9,14 +9,22 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       position: 'relative',
-      marginRight: 56
+      marginRight: 44
     },
     button: {
       position: 'absolute',
-      top: 4,
-      right: -52
+      top: 8,
+      height: 40,
+      right: -44
+    },
+    small_button: {
+      position: 'absolute',
+      height: 40,
+      right: -44
     },
     icon: {
+      width: 16,
+      height: 16
     }
   }),
 );
@@ -26,7 +34,7 @@ export default (props: any) => {
   const classes = useStyles();
   return props.nullable ? <Box className={classes.root}>
     <Tooltip title={props.disabled ? "取消空值" : "设为空值"}>
-      <IconButton className={classes.button} onClick={() => props.setDisabled(!props.disabled)} >
+      <IconButton className={props.small ? classes.small_button : classes.button} onClick={() => props.setDisabled(!props.disabled)} >
         <Icon name="Cancel" color={props.disabled ? 'primary' : 'action'} classes={classes} /></IconButton></Tooltip>
     {props.children}
   </Box> : props.children;

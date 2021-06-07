@@ -48,7 +48,7 @@ export default function (): { [key: string]: Column<{{.Name}}> } {
       }, props),
       {{- if .Search}}
       /* render search */
-      renderSearch: () => SearchRender.render{{mt .Type}}({
+      renderSearch: (props: SearchItemProps) => SearchRender.render{{mt .Type}}({
         name: '{{c .Name}}',
         label: '{{c .Description}}',
         search: '{{c .Search}}',
@@ -62,7 +62,7 @@ export default function (): { [key: string]: Column<{{.Name}}> } {
         link: '{{u .Link}}',
         {{- end}}
         nullable: {{if .Nullable}}true{{else}}false{{end}}
-      }),
+      }, props),
       {{- end}}{{end}}
     },
     {{- end}}
@@ -70,12 +70,12 @@ export default function (): { [key: string]: Column<{{.Name}}> } {
       title: '创建时间',
       key: 'createTime',
       render: (model: {{$.Name}}) => model.createTime ? moment(model.createTime / 1000000).format('YYYY/MM/DD') : "",
-      renderSearch: () => SearchRender.renderInt({
+      renderSearch: (props: SearchItemProps) => SearchRender.renderInt({
         name: 'createTime',
         label: '创建时间',
         search: 'between',
         nullable: false
-      })
+      }, props)
     }
   }
 }

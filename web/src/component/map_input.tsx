@@ -6,6 +6,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+import RenderItem from '@/component/render_item';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -38,7 +39,7 @@ export default (props: any) => {
   const [text, setText] = useState('');
   return (
     <Box className={classes.root}>
-      <FormControl className={classes.select} variant="outlined" fullWidth>
+      <FormControl className={classes.select} variant="outlined" size={props.size} fullWidth>
         <InputLabel>{props.label}</InputLabel>
         <Select multiple onFocus={() => { if (text.indexOf(':') > 0 && options.findIndex(i => i && i == text) < 0) { setOptions([text, ...options]) } }}
           label={props.label}
@@ -48,8 +49,7 @@ export default (props: any) => {
           {options.map((i: any) => <MenuItem key={i} value={i}>{i}</MenuItem>)}
         </Select>
       </FormControl>
-      <TextField disabled={props.disabled} className={classes.input} label={`添加${props.label}`} variant="outlined" fullWidth onChange={e => setText(e.target.value)}>
-      </TextField>
+      <RenderItem.StringPair size={props.size} disabled={props.disabled} className={classes.input} label={`添加${props.label}`} variant="outlined" fullWidth onChange={(v: string) => setText(v)} />
     </Box>
   );
 };

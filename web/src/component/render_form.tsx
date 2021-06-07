@@ -6,14 +6,14 @@ import MapInput from '@/component/map_input';
 import NullContainer from '@/component/null_container';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
+import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormLabel from '@material-ui/core/FormLabel';
 import moment from 'moment';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -126,7 +126,7 @@ const renderInt = (param: FormItemParam, props: FormItemProps) => {
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, undefined) : props.onChange(param.name, value) } }, [disabled]);
 
-    return !type ? <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
+    return type ? <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
       <TextField fullWidth
         type="datetime-local"
         variant="outlined"

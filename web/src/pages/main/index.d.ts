@@ -34,7 +34,7 @@ interface Column<M> {
   ellipsis?: boolean;
   render?: (model: M) => string | JSX.Element | JSX.Element[]; // 表格内容渲染
   renderForm?: (props: FormItemProps) => string | JSX.Element | JSX.Element[]; // 表单渲染
-  renderSearch?: () => string | JSX.Element | JSX.Element[]; // 搜索表单渲染
+  renderSearch?: (props: SearchItemProps) => string | JSX.Element | JSX.Element[]; // 搜索表单渲染
 }
 
 // 数据查询条件
@@ -43,6 +43,7 @@ interface QueryOption<T> {
   sort: { field: string; order: string }[];
   pagination: { current?: number; pageSize?: number };
 }
+
 // 表单项属性
 interface FormItemParam {
   name: string;
@@ -56,6 +57,22 @@ interface FormItemParam {
 }
 
 interface FormItemProps {
+  default: any;
+  onChange: (name: string, value: any) => void;
+}
+
+// 搜索项属性
+interface SearchItemParam {
+  name: string;
+  label: string;
+  nullable: boolean;
+  map?: { [key: string]: string };
+  link?: string;
+  search?: string;
+  rules?: any[];
+}
+
+interface SearchItemProps {
   default: any;
   onChange: (name: string, value: any) => void;
 }
