@@ -4,7 +4,7 @@ import Link from '@material-ui/core/Link';
 import Chip from '@material-ui/core/Chip';
 import Avatar from '@material-ui/core/Avatar';
 import Tooltip from '@material-ui/core/Tooltip';
-import Icon from '@/component/icon'
+import Icon from '@/component/icon/icon'
 
 const Badge = styled(Chip)({
   width: 8,

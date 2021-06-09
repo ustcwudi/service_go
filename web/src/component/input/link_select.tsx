@@ -9,7 +9,7 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
-import Icon from '@/component/icon';
+import Icon from '@/component/icon/icon';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({

@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
-import LinkSelect from '@/component/link_select';
-import ArrayInput from '@/component/array_input';
-import MapInput from '@/component/map_input';
-import NullContainer from '@/component/null_container';
+import LinkSelect from '@/component/input/link_select';
+import ArrayInput from '@/component/input/array_input';
+import MapInput from '@/component/input/map_input';
+import NullContainer from '@/component/input/null_container';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import FormLabel from '@material-ui/core/FormLabel';

@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRequest } from 'umi';
 import { message, Modal, Col, Form, Input, Typography } from 'antd';
-import ModalForm from '@/component/modal_form'
-import Captcha from '@/component/captcha'
+import ModalForm from '@/component/modal/modal_form'
+import Captcha from '@/component/input/captcha'
 
 export default (props: any) => {
   // 验证码ID
@@ -27,7 +27,7 @@ export default (props: any) => {
     }
   });
   return <Modal onCancel={() => props.onCancel?.()} width={'350px'} title={<Typography.Text strong>修改密码</Typography.Text>} visible={true} footer={null}>
-    <ModalForm onFinish={(values: any) => updateRequest.run({ ...values, id: captcha })}>
+    <ModalForm visible={true} onFinish={() => updateRequest.run({ ...{}, id: captcha })}>
       <Col span={24}>
         <Form.Item name="old_password" label='旧密码' rules={[{ required: true }]}>
           <Input.Password />

@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
-import { message, Space } from 'antd';
-import { useRequest, history, useModel } from 'umi';
+import { message } from 'antd';
+import { useRequest } from 'umi';
 import allColumns from './columns';
-import ModalForm from '@/component/modal_form'
-import FileUpload from '@/component/file_upload'
 import { filter, formFilter, searchFilter, buttonFilter } from '@/util/tableUtil'
-import TableBody from '@/component/table_body'
 import Table from '@material-ui/core/Table';
 import Collapse from '@material-ui/core/Collapse';
 import TableContainer from '@material-ui/core/TableContainer';
@@ -15,10 +12,13 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import Toolbar from '@material-ui/core/Toolbar';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import TableHead from '@/component/table_head';
-import IconButton from '@/component/icon_button';
-import TableToolbar from '@/component/table_toolbar';
-import PaginationAction from '@/component/pagination_action';
+import TableHead from '@/component/table/table_head';
+import TableToolbar from '@/component/table/table_toolbar';
+import TableBody from '@/component/table/table_body'
+import PaginationAction from '@/component/table/pagination_action';
+import ModalForm from '@/component/modal/modal_form';
+import FileUpload from '@/component/input/file_upload';
+import IconButton from '@/component/icon/icon_button';
 import context from '@/pages/main/context'
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -87,9 +87,9 @@ export default (props: TableProps<{{.Name}}>) => {
   // 列属性表
   const columns = useMemo(() => {
     return filter(allColumns(), props.render, props.moreColumn ? [...props.moreColumn, {
-      title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
+      title: '', key: '_', render: (model: {{.Name}}) => buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))
     }] : [{
-      title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
+      title: '', key: '_', render: (model: {{.Name}}) => buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))
     }])
   }, []);
   // 查询状态

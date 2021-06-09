@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
-import LinkSelect from '@/component/link_select';
-import NullContainer from '@/component/null_container';
-import RenderItem from '@/component/render_item';
+import LinkSelect from '@/component/input/link_select';
+import NullContainer from '@/component/input/null_container';
+import RenderItem from '@/component/render/render_item';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';

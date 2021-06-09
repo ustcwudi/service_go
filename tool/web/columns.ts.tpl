@@ -1,7 +1,7 @@
 import moment from 'moment';
-import Render from '@/component/render';
-import FormRender from '@/component/render_form';
-import SearchRender from '@/component/render_search';
+import Render from '@/component/render/render';
+import FormRender from '@/component/render/render_form';
+import SearchRender from '@/component/render/render_search';
 
 export default function (): { [key: string]: Column<{{.Name}}> } {
   return {

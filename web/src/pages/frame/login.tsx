@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useModel, useRequest, history } from 'umi';
 import { Form, Input, Button, Checkbox, notification, Row } from 'antd';
 import { UserOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
-import Captcha from '@/component/captcha'
+import Captcha from '@/component/input/captcha'
 
 export default (props: any) => {
   // 验证码ID

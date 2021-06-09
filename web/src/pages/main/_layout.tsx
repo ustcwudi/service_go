@@ -18,8 +18,8 @@ import Box from '@material-ui/core/Box';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import Paper from '@material-ui/core/Paper';
-import Icon from '@/component/icon'
-import UploadPassword from '@/component/update_password'
+import Icon from '@/component/icon/icon'
+import UploadPassword from '@/component/modal/update_password'
 import context from './context'
 
 const theme = createMuiTheme({
