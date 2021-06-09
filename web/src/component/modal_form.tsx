@@ -4,8 +4,9 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import IconButton from '@/component/icon_button';
+import Icon from '@/component/icon';
 import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -13,8 +14,9 @@ const useStyles = makeStyles((theme: Theme) =>
       marginBottom: 0
     },
     actions: {
+      marginTop: -4,
       marginBottom: 16,
-      marginRight: 12
+      marginRight: 16
     }
   }),
 );
@@ -31,7 +33,7 @@ export default (props: {
   onFinish: (values: any) => void
 }) => {
   const classes = useStyles();
-  const { style, title, visible, value, onFinish, onCancel, onReset, children } = props;
+  const { title, visible, value, onFinish, onCancel, onReset, children } = props;
   return <Dialog fullWidth={true} scroll="body" maxWidth="md" open={visible} onClose={onCancel}>
     <DialogTitle>{title}</DialogTitle>
     <DialogContent>
@@ -40,8 +42,8 @@ export default (props: {
       </Grid>
     </DialogContent>
     <DialogActions className={classes.actions}>
-      <IconButton title="重置" icon="Replay" color="default" />
-      <IconButton title="确认" icon="Telegram" color="primary" />
+      <Button variant="contained" color="default" startIcon={<Icon name="Replay" />} onClick={onCancel}>取消</Button>
+      <Button variant="contained" color="primary" startIcon={<Icon name="Telegram" />} onClick={onFinish}>提交</Button>
     </DialogActions>
-  </Dialog>
+  </Dialog >
 }

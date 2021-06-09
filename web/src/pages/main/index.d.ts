@@ -73,6 +73,5 @@ interface SearchItemParam {
 }
 
 interface SearchItemProps {
-  default: any;
   onChange: (name: string, value: any) => void;
 }

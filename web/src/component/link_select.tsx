@@ -7,6 +7,9 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+import Tooltip from '@material-ui/core/Tooltip';
+import IconButton from '@material-ui/core/IconButton';
+import Icon from '@/component/icon';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -14,17 +17,23 @@ const useStyles = makeStyles((theme: Theme) =>
       display: 'flex',
     },
     select: {
-      flex: 2,
-    },
-    input: {
-      marginLeft: theme.spacing(2),
       flex: 1,
+    },
+    button: (props: { size?: "small" }) => ({
+      marginTop: props.size ? 0 : 8,
+      marginLeft: 8,
+      height: 40,
+      width: 40
+    }),
+    icon: {
+      width: 16,
+      height: 16
     }
   }),
 );
 
 export default (props: any) => {
-  const classes = useStyles();
+  const classes = useStyles(props);
   const getDefaultOptions = () => {
     return props.defaultValue
       ? Array.isArray(props.defaultValue)
@@ -39,6 +48,8 @@ export default (props: any) => {
     : props.defaultValue ?
       props.defaultValue.id ? props.defaultValue.id : props.defaultValue
       : '');
+  // 设置模式
+  const [editMode, setEditMode] = useState(false);
   // 设置选项列表
   const [options, setOptions] = useState<[{ id: any, name: any }]>(getDefaultOptions());
   // 设置关键词
@@ -63,20 +74,23 @@ export default (props: any) => {
   );
   return (
     <Box className={classes.root}>
-      <FormControl className={classes.select} variant="outlined" size={props.size} fullWidth>
+      {!editMode ? <FormControl className={classes.select} variant="outlined" size={props.size} fullWidth>
         <InputLabel>{props.label}</InputLabel>
         <Select
-          onFocus={() => { if (keyword) run(keyword) }}
           label={props.label}
           disabled={props.disabled}
           multiple={props.multiple}
           onChange={props.onChange}
           defaultValue={defaultValue}>
+          {props.allowBlank && <MenuItem value="">&nbsp;</MenuItem>}
           {options?.map((i: any) => <MenuItem key={i.id} value={i.id}>{i.name}</MenuItem>)}
         </Select>
       </FormControl>
-      <TextField disabled={props.disabled} size={props.size} className={classes.input} label={`搜索${props.label}`} variant="outlined" fullWidth onChange={e => setKeyword(e.target.value)}>
-      </TextField>
+        : <TextField disabled={props.disabled} size={props.size} className={classes.select} label={`搜索${props.label}`} variant="outlined" fullWidth onChange={e => setKeyword(e.target.value)}>
+        </TextField>}
+      <Tooltip title={editMode ? "选择" : "编辑"}>
+        <span><IconButton disabled={props.disabled} className={classes.button} onClick={() => { if (keyword && editMode) run(keyword); setEditMode(!editMode); }} >
+          <Icon name={editMode ? "Send" : "Edit"} classes={classes} /></IconButton></span></Tooltip>
     </Box>
   );
 };

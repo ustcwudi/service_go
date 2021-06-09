@@ -6,6 +6,9 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+import Tooltip from '@material-ui/core/Tooltip';
+import IconButton from '@material-ui/core/IconButton';
+import Icon from '@/component/icon';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -13,35 +16,55 @@ const useStyles = makeStyles((theme: Theme) =>
       display: 'flex',
     },
     select: {
-      flex: 2,
-    },
-    input: {
-      marginLeft: theme.spacing(2),
       flex: 1,
+    },
+    button: (props: { size?: "small" }) => ({
+      marginTop: props.size ? 0 : 8,
+      marginLeft: 8,
+      height: 40,
+      width: 40
+    }),
+    icon: {
+      width: 16,
+      height: 16
     }
   }),
 );
 
 export default (props: any) => {
-  const classes = useStyles();
-  // 设置选项列表
-  const [options, setOptions] = useState<string[]>(props.defaultValue);
+  const classes = useStyles(props);
+  // 设置模式
+  const [editMode, setEditMode] = useState(false);
   // 设置选项列表
   const [text, setText] = useState('');
+  // 加入选项
+  const getList = (text: string) => {
+    let list: string[] = [];
+    if (text) {
+      text.split(' ').forEach(v => {
+        if (v && props.defaultValue.findIndex((i: string) => i == v) < 0 && list.findIndex(i => i == v) < 0) list.push(v)
+      })
+    }
+    return list
+  };
   return (
     <Box className={classes.root}>
-      <FormControl className={classes.select} variant="outlined" fullWidth>
+      {!editMode ? <FormControl className={classes.select} variant="outlined" fullWidth>
         <InputLabel>{props.label}</InputLabel>
-        <Select multiple onFocus={() => { if (text && options.findIndex(i => i && i == text) < 0) { setOptions([text, ...options]) } }}
+        <Select multiple
           label={props.label}
           disabled={props.disabled}
           onChange={props.onChange}
-          defaultValue={props.defaultValue ? props.defaultValue : []}>
-          {options.map((i: any) => <MenuItem key={i} value={i}>{i}</MenuItem>)}
+          defaultValue={props.defaultValue}>
+          {props.defaultValue.map((i: any) => <MenuItem key={i} value={i}>{i}</MenuItem>)}
+          {getList(text).map((i: any) => <MenuItem key={i} value={i}>{i}</MenuItem>)}
         </Select>
       </FormControl>
-      <TextField disabled={props.disabled} className={classes.input} label={`添加${props.label}`} variant="outlined" fullWidth onChange={e => setText(e.target.value)}>
-      </TextField>
+        : <TextField disabled={props.disabled} className={classes.select} label={`添加${props.label}`} variant="outlined" fullWidth onChange={e => setText(e.target.value)}>
+        </TextField>}
+      <Tooltip title={editMode ? "选择" : "编辑"}>
+        <span><IconButton disabled={props.disabled} className={classes.button} onClick={() => { setEditMode(!editMode); }} >
+          <Icon name={editMode ? "Send" : "Edit"} classes={classes} /></IconButton></span></Tooltip>
     </Box>
   );
 };

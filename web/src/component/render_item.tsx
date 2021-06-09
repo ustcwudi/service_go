@@ -15,26 +15,23 @@ const useStyles = makeStyles((theme: Theme) =>
       marginRight: theme.spacing(1),
       flex: 1,
     },
-    center: {
+    center: (props: { size?: "small" }) => ({
       flex: 0,
-      lineHeight: '40px',
-    },
-    small_center: {
-      flex: 0,
-      lineHeight: '56px',
-    },
+      lineHeight: props.size ? '40px' : '56px',
+    }),
     right: {
       marginLeft: theme.spacing(1),
       flex: 1,
     }
   }),
 );
-// 数值区间
-const TimeBetween = (props: any) => {
-  const classes = useStyles();
-  const [leftValue, setLeftValue] = useState<any>();
-  const [rightValue, setRightValue] = useState<any>();
-  const onChange = (l: any, r: any) => {
+
+// 时间区间
+const TimeBetween = (props: { className?: string, disabled: boolean, size?: "small", label: string, onChange: (e: undefined | (null | number)[]) => void }) => {
+  const classes = useStyles(props);
+  const [leftValue, setLeftValue] = useState<string>('');
+  const [rightValue, setRightValue] = useState<string>('');
+  const onChange = (l: string, r: string) => {
     if (l && r)
       props.onChange([moment(l).unix() * 1000000, moment(r).unix() * 1000000])
     else if (r)
@@ -42,21 +39,21 @@ const TimeBetween = (props: any) => {
     else if (l)
       props.onChange([moment(l).unix() * 1000000, null])
     else
-      props.onChange(null)
+      props.onChange(undefined)
   }
   return <Box className={clsx(classes.root, props.className)} >
-    <TextField InputLabelProps={{ shrink: true }} type="date" variant="outlined" className={classes.left} size={props.size} onChange={e => { setLeftValue(e.target.value); onChange(e.target.value, rightValue); }} label={`${props.label}下限`} />
-    <Box className={props.size == "small" ? classes.center : classes.small_center}>-</Box>
-    <TextField InputLabelProps={{ shrink: true }} type="date" variant="outlined" className={classes.right} size={props.size} onChange={e => { setRightValue(e.target.value); onChange(leftValue, e.target.value); }} label={`${props.label}上限`} />
+    <TextField disabled={props.disabled} InputLabelProps={{ shrink: true }} type="datetime-local" variant="outlined" className={classes.left} size={props.size} onChange={e => { setLeftValue(e.target.value); onChange(e.target.value, rightValue); }} label={`${props.label}下限`} />
+    <Box className={classes.center}>-</Box>
+    <TextField disabled={props.disabled} InputLabelProps={{ shrink: true }} type="datetime-local" variant="outlined" className={classes.right} size={props.size} onChange={e => { setRightValue(e.target.value); onChange(leftValue, e.target.value); }} label={`${props.label}上限`} />
   </Box>
 }
 
 // 数值区间
-const NumberBetween = (props: any) => {
-  const classes = useStyles();
-  const [leftValue, setLeftValue] = useState<any>();
-  const [rightValue, setRightValue] = useState<any>();
-  const onChange = (l: any, r: any) => {
+const NumberBetween = (props: { className?: string, disabled: boolean, size?: "small", label: string, onChange: (e: undefined | (null | number)[]) => void }) => {
+  const classes = useStyles(props);
+  const [leftValue, setLeftValue] = useState<string>('');
+  const [rightValue, setRightValue] = useState<string>('');
+  const onChange = (l: string, r: string) => {
     if (l && r)
       props.onChange([parseFloat(l), parseFloat(r)])
     else if (r)
@@ -64,18 +61,18 @@ const NumberBetween = (props: any) => {
     else if (l)
       props.onChange([parseFloat(l), null])
     else
-      props.onChange(null)
+      props.onChange(undefined)
   }
   return <Box className={clsx(classes.root, props.className)} >
-    <TextField type="number" variant="outlined" className={classes.left} size={props.size} onChange={e => { setLeftValue(e.target.value); onChange(e.target.value, rightValue); }} label={`${props.label}下限`} />
-    <Box className={props.size == "small" ? classes.center : classes.small_center}>-</Box>
-    <TextField type="number" variant="outlined" className={classes.right} size={props.size} onChange={e => { setRightValue(e.target.value); onChange(leftValue, e.target.value); }} label={`${props.label}上限`} />
+    <TextField disabled={props.disabled} type="number" variant="outlined" className={classes.left} size={props.size} onChange={e => { setLeftValue(e.target.value); onChange(e.target.value, rightValue); }} label={`${props.label}下限`} />
+    <Box className={classes.center}>-</Box>
+    <TextField disabled={props.disabled} type="number" variant="outlined" className={classes.right} size={props.size} onChange={e => { setRightValue(e.target.value); onChange(leftValue, e.target.value); }} label={`${props.label}上限`} />
   </Box>
 }
 
 // 字符串键值对
-const StringPair = (props: any) => {
-  const classes = useStyles();
+const StringPair = (props: { className?: string, disabled: boolean, size?: "small", label: string, onChange: (e: string) => void }) => {
+  const classes = useStyles(props);
   const [leftValue, setLeftValue] = useState<string>("");
   const [rightValue, setRightValue] = useState<string>("");
   const onChange = (l: string, r: string) => {
@@ -85,15 +82,15 @@ const StringPair = (props: any) => {
       props.onChange('')
   }
   return <Box className={clsx(classes.root, props.className)} >
-    <TextField variant="outlined" className={classes.left} value={leftValue} size={props.size} onChange={e => { setLeftValue(e.target.value); onChange(e.target.value, rightValue); }} label={props.label} />
-    <Box className={props.size == "small" ? classes.center : classes.small_center}>:</Box>
-    <TextField variant="outlined" className={classes.right} value={rightValue} size={props.size} onChange={e => { setRightValue(e.target.value); onChange(leftValue, e.target.value); }} label={`${props.label}值`} />
+    <TextField disabled={props.disabled} variant="outlined" className={classes.left} value={leftValue} size={props.size} onChange={e => { let v = e.target.value.replace(':', ''); setLeftValue(v); onChange(v, rightValue); }} label={props.label} />
+    <Box className={classes.center}>:</Box>
+    <TextField disabled={props.disabled} variant="outlined" className={classes.right} value={rightValue} size={props.size} onChange={e => { setRightValue(e.target.value); onChange(leftValue, e.target.value); }} label={`${props.label}值`} />
   </Box>
 }
 
 // 数字键值对
-const NumberPair = (props: any) => {
-  const classes = useStyles();
+const NumberPair = (props: { className?: string, disabled: boolean, size?: "small", label: string, onChange: (e: string) => void }) => {
+  const classes = useStyles(props);
   const [leftValue, setLeftValue] = useState<string>("");
   const [rightValue, setRightValue] = useState<string>("");
   const onChange = (l: string, r: string) => {
@@ -103,9 +100,9 @@ const NumberPair = (props: any) => {
       props.onChange('')
   }
   return <Box className={clsx(classes.root, props.className)} >
-    <TextField variant="outlined" className={classes.left} value={leftValue} size={props.size} onChange={e => { setLeftValue(e.target.value); onChange(e.target.value, rightValue); }} label={props.label} />
-    <Box className={props.size == "small" ? classes.center : classes.small_center}>:</Box>
-    <TextField type="number" variant="outlined" className={classes.right} value={rightValue} size={props.size} onChange={e => { setRightValue(e.target.value); onChange(leftValue, e.target.value); }} label={`${props.label}值`} />
+    <TextField disabled={props.disabled} variant="outlined" className={classes.left} value={leftValue} size={props.size} onChange={e => { let v = e.target.value.replace(':', ''); setLeftValue(v); onChange(v, rightValue); }} label={props.label} />
+    <Box className={classes.center}>:</Box>
+    <TextField disabled={props.disabled} type="number" variant="outlined" className={classes.right} value={rightValue} size={props.size} onChange={e => { setRightValue(e.target.value); onChange(leftValue, e.target.value); }} label={`${props.label}值`} />
   </Box>
 }
 

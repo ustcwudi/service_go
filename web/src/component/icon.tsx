@@ -29,6 +29,7 @@ import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Add from '@material-ui/icons/Add';
 import Search from '@material-ui/icons/Search';
+import Send from '@material-ui/icons/Send';
 import Refresh from '@material-ui/icons/Refresh';
 import Publish from '@material-ui/icons/Publish';
 import Delete from '@material-ui/icons/Delete';
@@ -81,6 +82,8 @@ export default (props: any) => {
       return <Add color={props.color} className={props.classes?.icon} />
     case "Search":
       return <Search color={props.color} className={props.classes?.icon} />
+    case "Send":
+      return <Send color={props.color} className={props.classes?.icon} />
     case "Refresh":
       return <Refresh color={props.color} className={props.classes?.icon} />
     case "Menu":
