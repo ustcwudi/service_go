@@ -22,18 +22,14 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export default (props: {
-  value: any,
-  style?: any,
-  footer?: any,
   children?: any,
   visible: boolean,
   title?: JSX.Element | string,
-  onReset?: () => void,
   onCancel?: () => void,
-  onFinish: (values: any) => void
+  onFinish: () => void
 }) => {
   const classes = useStyles();
-  const { title, visible, value, onFinish, onCancel, onReset, children } = props;
+  const { title, visible, onFinish, onCancel, children } = props;
   return <Dialog fullWidth={true} scroll="body" maxWidth="md" open={visible} onClose={onCancel}>
     <DialogTitle>{title}</DialogTitle>
     <DialogContent>

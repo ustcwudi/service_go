@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
 import { message, Space } from 'antd';
 import { useRequest, history, useModel } from 'umi';
 import allColumns from './columns';
 import ModalForm from '@/component/modal_form'
 import FileUpload from '@/component/file_upload'
-import { exchangeNullable, filter, formFilter, searchFilter, buttonFilter } from '@/util/tableUtil'
+import { filter, formFilter, searchFilter, buttonFilter } from '@/util/tableUtil'
 import TableBody from '@/component/table_body'
 import Table from '@material-ui/core/Table';
 import Collapse from '@material-ui/core/Collapse';
@@ -28,15 +28,6 @@ const useStyles = makeStyles((theme: Theme) =>
     }
   }),
 );
-
-const null{{.Name}} = () => {
-  return {
-    {{- range .Fields}}{{if .Search}}
-    {{c .Name}}: null,
-    {{- end}}{{end}}
-    createTime: null
-  }
-}
 
 const new{{.Name}} = () => {
   return {
@@ -79,22 +70,6 @@ const mapData = (result: any) => {
   {{- end}}{{end}}{{end}}
 }
 
-// 反映射关联字段
-const reverseMap = (model: any) => {
-  {{- range .Fields}}{{if .Link}}
-  // {{.Description}}
-  {{- if eq .Type "id"}}
-  if (model.{{c .Name}}) model.{{c .Name}} = model.{{c .Name}}.id ? model.{{c .Name}}.id : model.{{c .Name}};
-  {{- else if eq .Type "id[]"}}
-  if (model.{{c .Name}}) {
-    let ids: string[] = [];
-    model.{{c .Name}}.forEach((v: any) => v.id ? ids.push(v.id) : ids.push(v));
-    model.{{c .Name}} = ids;
-  }
-  {{- end}}{{end}}{{end}}
-  return model;
-}
-
 export default (props: TableProps<{{.Name}}>) => {
   const classes = useStyles();
   const mainContext = useContext(context);
@@ -104,13 +79,43 @@ export default (props: TableProps<{{.Name}}>) => {
   const [tableSignal, setTableSignal] = useState<{ message?: 'select_all' | 'select_none' }>({});
   // 选中项
   const [selection, setSelection] = useState<{ rows: {{.Name}}[]; keys: string[] }>({ rows: [], keys: [] });
-  // 对话框
-  const [modal, setModal] = useState<JSX.Element | undefined>(undefined);
   // 查询参数
   const [trash, setTrash] = useState<boolean>(false);
-  const [where, setWhere] = useState<object | undefined>(undefined);
+  const [where, setWhere] = useState<any>({});
   const [sort, setSort] = useState<[]>([]);
-  const [pagination, setPagination] = useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 15 });
+  const [pagination, setPagination] = useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 10 });
+  // 列属性表
+  const columns = useMemo(() => {
+    return filter(allColumns(), props.render, props.moreColumn ? [...props.moreColumn, {
+      title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
+    }] : [{
+      title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
+    }])
+  }, []);
+  // 查询状态
+  const [search, setSearch] = useState<boolean>(false);
+  const searchBar = useMemo(() => {
+    return search ? <Toolbar><Grid container className={classes.searchForm} spacing={3}>
+      {searchFilter(allColumns(), props.renderSearch).map(v => v({ onChange: (k, v) => { where[k] = v; setWhere({ ...where }) } }))}
+    </Grid></Toolbar> : setWhere({})
+  }, [search])
+  // 新增状态
+  const [add, setAdd] = useState<boolean>(false);
+  const addModal = useMemo(() => {
+    let record: any = new{{.Name}}();
+    return add ? <ModalForm title="新增" visible={true} onCancel={() => setAdd(false)} onFinish={() => insert.run(record)}>
+      {formFilter(allColumns(), props.renderAdd).map(v => v({ default: record, onChange: (k, v) => record[k] = v }))}
+    </ModalForm> : undefined
+  }, [add])
+  // 修改状态
+  const [modify, setModify] = useState<{{.Name}} | undefined>(undefined);
+  const modifyModal = useMemo(() => {
+    let record: any = {};
+    return modify ? <ModalForm title="修改" visible={true} onCancel={() => setModify(undefined)}
+      onFinish={() => { update.run({ patch: record, where: { id: modify.id } }); }}>
+      {formFilter(allColumns(), props.renderUpdate).map(v => v({ default: modify, onChange: (k, v) => record[k] = v }))}
+    </ModalForm> : undefined
+  }, [modify])
   // [废弃/还原]请求
   const action = useRequest((action: string, form: object) => ({
     url: `/api/admin/{{u .Name}}/${action}`,
@@ -139,7 +144,7 @@ export default (props: TableProps<{{.Name}}>) => {
   const { loading } = useRequest({
     url: '/api/admin/{{u .Name}}/list',
     method: 'post',
-    data: { where: { trash: trash, ...reverseMap(exchangeNullable(where)), ...props.where }, sort: sort, pagination: pagination },
+    data: { where: { trash: trash, ...where, ...props.where }, sort: sort, pagination: pagination },
     {{- if .Link}}
     headers: {
       Link: "{{range .Fields}}{{if .Link}}{{c .Name}},{{end}}{{end}}" // 关联查询
@@ -147,6 +152,7 @@ export default (props: TableProps<{{.Name}}>) => {
     {{- end}}
   }, {
     refreshDeps: [trash, where, sort, pagination], // 自动触发
+    debounceInterval: 500,
     onSuccess: (result: any) => {
       if (result.data != null) {
         mapData(result);
@@ -176,7 +182,7 @@ export default (props: TableProps<{{.Name}}>) => {
             if (index !== -1) source.data[index] = element;
           });
           setSource({ data: [...source.data], total: source.total });
-          setModal(undefined);
+          setModify(undefined);
           message.success('修改成功');
         } else {
           message.error('修改失败');
@@ -204,7 +210,7 @@ export default (props: TableProps<{{.Name}}>) => {
           mapData({ data: [result.data], map: result.map });
           source.data.unshift(result.data);
           setSource({ data: [...source.data], total: source.total + 1 });
-          setModal(undefined);
+          setAdd(false);
           message.success('新增成功');
         } else {
           message.error('新增失败');
@@ -242,11 +248,7 @@ export default (props: TableProps<{{.Name}}>) => {
   // 列按钮
   const columnButtons = (model: {{.Name}}): { [key: string]: JSX.Element } => {
     return {
-      'update': <IconButton key="upload" title="修改" icon="Edit" color="default" onClick={(e: any) => {
-        setModal(<ModalForm title="修改" visible={true} footer={null} onCancel={() => setModal(undefined)}
-          value={model} onFinish={(record: {{.Name}}) => { update.run({ patch: reverseMap(exchangeNullable(record)), where: { id: model.id } }); }}>
-          {formFilter(allColumns(), props.renderUpdate).map(v => v({default: {...model}, onChange: (k, v) => console.log(k, v)}))}</ModalForm>)
-      }} />,
+      'update': <IconButton key="upload" title="修改" icon="Edit" color="default" onClick={() => setModify(model)} />,
       {{- if .Upload}}{{range .Fields}}{{if .Upload}}
       'upload{{.Name}}': <FileUpload key="upload{{.Name}}"
         data={ {id: model.id}} action={"/api/admin/{{u $.Name}}/upload/{{u .Name}}"}
@@ -258,15 +260,11 @@ export default (props: TableProps<{{.Name}}>) => {
   // 表格按钮
   const tableButtons = (): { [key: string]: JSX.Element } => {
     return {
-      'add': <IconButton key="add" icon="Add" title="新增"
-        onClick={(e: any) => setModal(<ModalForm title="新增" visible={true}
-          onCancel={() => setModal(undefined)} value={new{{.Name}}()}
-          onFinish={(record: {{.Name}}) => { insert.run(reverseMap(exchangeNullable(record))); }}>{formFilter(allColumns(), props.renderAdd).map(v => v({default: new{{.Name}}(), onChange: (k, v) => console.log(k, v)}))}
-        </ModalForm>)} />,
-      'search': <IconButton key="search" icon="Search" title="搜索" color={where === undefined ? "default" : "primary"} onClick={() => where === undefined ? setWhere(null{{.Name}}()) : setWhere(undefined)} />,
+      'add': <IconButton key="add" icon="Add" title="新增" onClick={() => setAdd(true)} />,
+      'search': <IconButton key="search" icon="Search" title="搜索" color={search ? "primary" : "default"} onClick={() => setSearch(!search)} />,
       'refresh': <IconButton key="refresh" title="刷新" icon="Refresh" onClick={(e: any) => setWhere({ ...where })} />,
       'import': <FileUpload key="import" action={"/api/admin/{{u $.Name}}/import"}
-        onUpload={(list: any) => { message.info(`导入${list.length}项数据`); setWhere(null{{.Name}}()); }}>
+        onUpload={(list: any) => { message.info(`导入${list.length}项数据`); setWhere({}); }}>
         <IconButton title="导入" icon="Publish" />
       </FileUpload>,
       'trash': trash ? <IconButton key="trash" title="回收站" icon="DeleteOutline" onClick={(e: any) => {
@@ -300,28 +298,14 @@ export default (props: TableProps<{{.Name}}>) => {
       tableButtons={buttonFilter(tableButtons(), props.renderTableButton, props.moreTableButton)}
       selectionButtons={buttonFilter(selectionButtons(), props.renderSelectionButton, props.moreSelectionButton)}
     />
-    {where !== undefined && <Toolbar><Grid container className={classes.searchForm} spacing={3}>
-      {searchFilter(allColumns(), props.renderSearch).map(v => v({ default: null{{.Name}}(), onChange: (k, v) => console.log(k, v) }))}
-    </Grid></Toolbar>}
+    {searchBar}
     {loading ? <LinearProgress color={trash ? "secondary" : "primary"} /> : <LinearProgress color={trash ? "secondary" : "primary"} variant="determinate" value={100} />}
     <TableContainer>
       <Table size="small">
-        <TableHead<{{.Name}}> columns={filter(allColumns(), props.render, props.moreColumn ? [...props.moreColumn, {
-          title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
-        }] : [{
-          title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
-        }])}
-          type={props.canSelect} onSelectAllClick={(e) => setTableSignal(e.target.checked ? { message: "select_all" } : { message: "select_none" })} />
-        <TableBody<{{.Name}}>
-          dataSource={source.data}
-          columns={filter(allColumns(), props.render, props.moreColumn ? [...props.moreColumn, {
-            title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
-          }] : [{
-            title: '', key: '_', render: (model: {{.Name}}) => <Space>{buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))}</Space>
-          }])}
-          selectType={props.canSelect}
+        <TableHead<{{.Name}}> columns={columns} type={props.canSelect}
+          onSelectAllClick={(e) => setTableSignal(e.target.checked ? { message: "select_all" } : { message: "select_none" })} />
+        <TableBody<{{.Name}}> dataSource={source.data} columns={columns} selectType={props.canSelect} signal={tableSignal}
           onSelectChange={(records: any[]) => { setSelection({ rows: records, keys: records.map(v => v.id) }); props.onSelect?.(records) }}
-          signal={tableSignal}
         />
       </Table>
     </TableContainer>
@@ -332,7 +316,7 @@ export default (props: TableProps<{{.Name}}>) => {
       page={pagination.current - 1}
       count={source.total}
       rowsPerPage={pagination.pageSize}
-      rowsPerPageOptions={[15, 25, 50, 100]}
+      rowsPerPageOptions={[10, 20, 50, 100]}
       ActionsComponent={PaginationAction}
       onChangePage={(event: unknown, page: number) => {
         setPagination({ current: page + 1, pageSize: pagination.pageSize })
@@ -341,6 +325,7 @@ export default (props: TableProps<{{.Name}}>) => {
         setPagination({ current: 1, pageSize: parseInt(event.target.value, 10) })
       }}
     />
-    {modal}
+    {addModal}
+    {modifyModal}
   </Paper></Collapse>
 };

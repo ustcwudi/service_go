@@ -1,18 +1,3 @@
-
-// 重定义Nullable字段，因为空值定义与useRequest相反
-export function exchangeNullable(model: any) {
-    if (model === undefined) {
-        return {}
-    } else {
-        let map = new Map(Object.entries(model));
-        map.forEach((value: any, key) => {
-            if (value === null) map.delete(key)
-            else if (value === undefined) map.set(key, null)
-        });
-        return Object.fromEntries(map);
-    }
-}
-
 // 显示过滤
 export function filter<T>(allColumns: { [key: string]: Column<T> }, render: string[] | undefined, extra?: Column<T>[]) {
     let columns: Column<T>[] = []
