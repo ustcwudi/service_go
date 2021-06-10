@@ -1,21 +1,19 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
-import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
+import { makeStyles, lighten, Theme, createStyles } from '@material-ui/core/styles';
 import { message } from 'antd';
 import { useRequest } from 'umi';
 import allColumns from './columns';
 import { filter, formFilter, searchFilter, buttonFilter } from '@/util/tableUtil'
-import Table from '@material-ui/core/Table';
 import Collapse from '@material-ui/core/Collapse';
+import Typography from '@material-ui/core/Typography';
 import TableContainer from '@material-ui/core/TableContainer';
 import TablePagination from '@material-ui/core/TablePagination';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Toolbar from '@material-ui/core/Toolbar';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import TableHead from '@/component/table/table_head';
-import TableToolbar from '@/component/table/table_toolbar';
-import TableBody from '@/component/table/table_body'
-import PaginationAction from '@/component/table/pagination_action';
+import Table from '@/component/table/table'
+import PaginationAction from '@/component/table/pagination';
 import ModalForm from '@/component/modal/modal_form';
 import FileUpload from '@/component/input/file_upload';
 import IconButton from '@/component/icon/icon_button';
@@ -23,6 +21,9 @@ import context from '@/pages/main/context'
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
+    title: {
+      flex: '1 1 100%',
+    },
     searchForm: {
       margin: 0,
     }
@@ -75,36 +76,26 @@ export default (props: TableProps<{{.Name}}>) => {
   const mainContext = useContext(context);
   // 数据源
   const [source, setSource] = useState<{ data: {{.Name}}[]; total: number }>({ data: [], total: 0 });
-  // 表格消息
-  const [tableSignal, setTableSignal] = useState<{ message?: 'select_all' | 'select_none' }>({});
   // 选中项
-  const [selection, setSelection] = useState<{ rows: {{.Name}}[]; keys: string[] }>({ rows: [], keys: [] });
+  const [selection, setSelection] = useState<{{.Name}}[]>([]);
   // 查询参数
   const [trash, setTrash] = useState<boolean>(false);
   const [where, setWhere] = useState<any>({});
   const [sort, setSort] = useState<[]>([]);
   const [pagination, setPagination] = useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 10 });
-  // 列属性表
-  const columns = useMemo(() => {
-    return filter(allColumns(), props.render, props.moreColumn ? [...props.moreColumn, {
-      title: '', key: '_', render: (model: {{.Name}}) => buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))
-    }] : [{
-      title: '', key: '_', render: (model: {{.Name}}) => buttonFilter(columnButtons(model), props.renderColumnButton, props.moreColumnButton?.(model))
-    }])
-  }, []);
   // 查询状态
   const [search, setSearch] = useState<boolean>(false);
   const searchBar = useMemo(() => {
     return search ? <Toolbar><Grid container className={classes.searchForm} spacing={3}>
-      {searchFilter(allColumns(), props.renderSearch).map(v => v({ onChange: (k, v) => { where[k] = v; setWhere({ ...where }) } }))}
+      {searchFilter(allColumns(), props.renderSearch).map(v => v ? v({ onChange: (k, v) => { where[k] = v; setWhere({ ...where }) } }) : undefined)}
     </Grid></Toolbar> : setWhere({})
   }, [search])
   // 新增状态
   const [add, setAdd] = useState<boolean>(false);
   const addModal = useMemo(() => {
     let record: any = new{{.Name}}();
-    return add ? <ModalForm title="新增" visible={true} onCancel={() => setAdd(false)} onFinish={() => insert.run(record)}>
-      {formFilter(allColumns(), props.renderAdd).map(v => v({ default: record, onChange: (k, v) => record[k] = v }))}
+    return add ? <ModalForm title="新增" visible={true} onCancel={() => setAdd(false)} onFinish={() => { if (verify(record)) insert.run(record) }}>
+      {formFilter(allColumns(), props.renderAdd).map(v => v ? v({ default: record, onChange: (k, v) => record[k] = v }) : undefined)}
     </ModalForm> : undefined
   }, [add])
   // 修改状态
@@ -112,8 +103,8 @@ export default (props: TableProps<{{.Name}}>) => {
   const modifyModal = useMemo(() => {
     let record: any = {};
     return modify ? <ModalForm title="修改" visible={true} onCancel={() => setModify(undefined)}
-      onFinish={() => { update.run({ patch: record, where: { id: modify.id } }); }}>
-      {formFilter(allColumns(), props.renderUpdate).map(v => v({ default: modify, onChange: (k, v) => record[k] = v }))}
+      onFinish={() => { if (verify(record)) update.run({ patch: record, where: { id: modify.id } }); }}>
+      {formFilter(allColumns(), props.renderUpdate).map(v => v ? v({ default: modify, onChange: (k, v) => record[k] = v }) : undefined)}
     </ModalForm> : undefined
   }, [modify])
   // [废弃/还原]请求
@@ -131,7 +122,7 @@ export default (props: TableProps<{{.Name}}>) => {
             source.data.splice(source.data.findIndex(row => row.id === id), 1);
           });
           setSource({ data: [...source.data], total: source.total - result.data });
-          setTableSignal({ message: "select_none" });
+          setSelection([]);
           message.success(`${trash ? '还原' : '删除'}${result.data}项`);
         } else
           message.warning(`${trash ? '还原' : '删除'}${result.data}项`);
@@ -235,7 +226,7 @@ export default (props: TableProps<{{.Name}}>) => {
               source.data.splice(source.data.findIndex(row => row.id === id), 1);
             });
             setSource({ data: [...source.data], total: source.total - result.data });
-            setTableSignal({ message: "select_none" });
+            setSelection([]);
             message.success(`彻底删除${result.data}项`);
           } else
             message.warning(`彻底删除${result.data}项`);
@@ -245,21 +236,26 @@ export default (props: TableProps<{{.Name}}>) => {
       },
     },
   );
-  // 列按钮
-  const columnButtons = (model: {{.Name}}): { [key: string]: JSX.Element } => {
-    return {
-      'update': <IconButton key="upload" title="修改" icon="Edit" color="default" onClick={() => setModify(model)} />,
-      {{- if .Upload}}{{range .Fields}}{{if .Upload}}
-      'upload{{.Name}}': <FileUpload key="upload{{.Name}}"
-        data={ {id: model.id}} action={"/api/admin/{{u $.Name}}/upload/{{u .Name}}"}
-        onUpload={(file: any) => { model.{{u .Name}} = file; setSource({ data: [...source.data], total: source.total }); }}>
-        <IconButton color="default" title="上传{{.Description}}" icon="CloudUpload" /></FileUpload>,
-      {{- end}}{{end}}{{end}}
+
+  // 列表
+  const columns = useMemo(() => {
+    let operation = {
+      name: '_', label: '', render: (model: {{.Name}}) => buttonFilter({
+        'update': <IconButton key="upload" title="修改" icon="Edit" color="default" onClick={() => setModify(model)} />,
+        {{- if .Upload}}{{range .Fields}}{{if .Upload}}
+        'upload{{.Name}}': <FileUpload key="upload{{.Name}}"
+          data={ {id: model.id }} action={"/api/admin/{{u $.Name}}/upload/{{u .Name}}"}
+          onUpload={(file: any) => { model.{{u .Name}} = file; setSource({ data: [...source.data], total: source.total }); }}>
+          <IconButton color="default" title="上传{{.Description}}" icon="CloudUpload" /></FileUpload>,
+        {{- end}}{{end}}{{end}}
+      }, props.renderColumnButton, props.moreColumnButton?.(model))
     }
-  }
-  // 表格按钮
-  const tableButtons = (): { [key: string]: JSX.Element } => {
-    return {
+    return filter(props.moreColumn ? [...allColumns(), ...props.moreColumn, operation] : [...allColumns(), operation], props.render)
+  }, []);
+
+  // 工具栏
+  const tableBar = useMemo(() => {
+    let buttons = {
       'add': <IconButton key="add" icon="Add" title="新增" onClick={() => setAdd(true)} />,
       'search': <IconButton key="search" icon="Search" title="搜索" color={search ? "primary" : "default"} onClick={() => setSearch(!search)} />,
       'refresh': <IconButton key="refresh" title="刷新" icon="Refresh" onClick={(e: any) => setWhere({ ...where })} />,
@@ -267,47 +263,64 @@ export default (props: TableProps<{{.Name}}>) => {
         onUpload={(list: any) => { message.info(`导入${list.length}项数据`); setWhere({}); }}>
         <IconButton title="导入" icon="Publish" />
       </FileUpload>,
-      'trash': trash ? <IconButton key="trash" title="回收站" icon="DeleteOutline" onClick={(e: any) => {
-        message.info("离开回收站"); setTrash(!trash); setTableSignal({ message: "select_none" });
-      }} />
-        : <IconButton key="trash" title="回收站" color="default" icon="DeleteOutline" onClick={(e: any) => {
-          message.info("进入回收站"); setTrash(!trash); setTableSignal({ message: "select_none" });
-        }} />
+      'trash': <IconButton key="trash" title="回收站" color={trash ? "primary" : "default"} icon="DeleteOutline"
+        onClick={() => { message.info(trash ? "离开回收站" : "进入回收站"); setTrash(!trash); setSelection([]); }} />
     }
-  }
-  // 选中按钮
-  const selectionButtons = (): { [key: string]: JSX.Element } => {
-    return {
+    return <Toolbar>
+      <Typography className={classes.title} variant="h6" component="div">
+        {mainContext.title}
+      </Typography>
+      {buttonFilter(buttons, props.renderTableButton, props.moreTableButton)}
+    </Toolbar>
+  }, [trash, search])
+
+  // 选择工具栏
+  const selectionBar = useMemo(() => {
+    let buttons = {
+      'unselect': <IconButton key="unselect" color="default" title="取消" icon="Replay" onClick={() => setSelection([])} />,
       'trash': <IconButton key="trash" title={trash ? "恢复" : "删除"} color="default"
-        icon={trash ? "SettingsBackupRestore" : "Delete"} onClick={(e: any) => {
-          if (trash) {
-            action.run('restore', { id: selection.keys });
-          } else {
-            action.run('trash', { id: selection.keys });
-          }
-        }} />,
-      'delete': <IconButton key="delete" title={"彻底删除"} icon="DeleteForever" onClick={() => remove.run({ id: selection.keys })} />
+        icon={trash ? "SettingsBackupRestore" : "Delete"} onClick={() => action.run(trash ? 'restore' : 'trash', { id: selection.map(i => i.id) })} />,
+      'delete': <IconButton key="delete" title="彻底删除" icon="DeleteForever" onClick={() => remove.run({ id: selection.map(i => i.id) })} />
     }
+    return <Toolbar>
+      <Typography className={classes.title} color="inherit" variant="subtitle1" component="div">
+        选中 {selection.length} 项
+        </Typography>
+      {buttonFilter(buttons, props.renderSelectionButton, props.moreSelectionButton)}
+    </Toolbar>
+  }, [trash, selection])
+
+  // 验证字段
+  const verify = (record: any) => {
+    let columns = allColumns()
+    for (let i = 0; i < columns.length; i++) {
+      const column = columns[i];
+      let value = record[column.name]
+      if (column.nullable && value === null) {
+        // allow null
+      } else if (value === undefined) {
+        // modify allow undefined
+      } else if (column.rules) {
+        for (let index = 0; index < column.rules.length; index++) {
+          const rule = column.rules[index];
+          if (!rule.check(record)) {
+            message.error(rule.message)
+            return false
+          }
+        }
+      }
+    }
+    return true
   }
 
   // 模板
   return <Collapse in={props.display !== false}><Paper elevation={5}>
-    <TableToolbar
-      title={mainContext.title ? mainContext.title : "用户"}
-      numSelected={selection.keys.length}
-      tableButtons={buttonFilter(tableButtons(), props.renderTableButton, props.moreTableButton)}
-      selectionButtons={buttonFilter(selectionButtons(), props.renderSelectionButton, props.moreSelectionButton)}
-    />
+    {selection.length ? selectionBar : tableBar}
     {searchBar}
     {loading ? <LinearProgress color={trash ? "secondary" : "primary"} /> : <LinearProgress color={trash ? "secondary" : "primary"} variant="determinate" value={100} />}
     <TableContainer>
-      <Table size="small">
-        <TableHead<{{.Name}}> columns={columns} type={props.canSelect}
-          onSelectAllClick={(e) => setTableSignal(e.target.checked ? { message: "select_all" } : { message: "select_none" })} />
-        <TableBody<{{.Name}}> dataSource={source.data} columns={columns} selectType={props.canSelect} signal={tableSignal}
-          onSelectChange={(records: any[]) => { setSelection({ rows: records, keys: records.map(v => v.id) }); props.onSelect?.(records) }}
-        />
-      </Table>
+      <Table<{{.Name}}> size="small" dataSource={source.data} selection={selection} columns={columns} selectType={props.canSelect}
+        onSelectChange={(records: {{.Name}}[]) => { setSelection(records); props.onSelect?.(records) }} />
     </TableContainer>
     <TablePagination
       component="div"

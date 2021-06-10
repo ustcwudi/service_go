@@ -3,14 +3,21 @@ import Render from '@/component/render/render';
 import FormRender from '@/component/render/render_form';
 import SearchRender from '@/component/render/render_search';
 
-export default function (): { [key: string]: Column<{{.Name}}> } {
-  return {
+export default function (): Column<{{.Name}}>[] {
+  return [
     /* range fields */
     {{- range .Fields}}
-    '{{c .Name}}': {
-      title: '{{.Description}}',
-      key: '{{c .Name}}',
-      ellipsis: true,
+    {
+      name: '{{c .Name}}',
+      label: '{{.Description}}',
+      {{- if .Nullable}}
+      nullable: true,
+      {{- end}}
+      {{- if eq .Name "Name"}}
+      rules: [{ check: i => typeof i.{{c .Name}} == "string" && i.{{c .Name}}.length > 0, message: '{{.Description}}不能为空' }],
+      {{- else if eq .Type "id"}}
+      rules: [{ check: i => typeof i.{{c .Name}} == "string" && i.{{c .Name}}.length == 24, message: '请选择{{.Description}}' }],
+      {{- end}}
       {{- if eq .Name "Password"}}
       /* if password */
       renderForm: (props: FormItemProps) => FormRender.render{{mt .Type}}({
@@ -41,9 +48,6 @@ export default function (): { [key: string]: Column<{{.Name}}> } {
         {{- if .Link}}
         link: '{{u .Link}}',
         {{- end}}
-        {{- if eq .Name "Name"}}
-        rules: [{ required: true }],
-        {{- end}}
         nullable: {{if .Nullable}}true{{else}}false{{end}}
       }, props),
       {{- if .Search}}
@@ -66,9 +70,10 @@ export default function (): { [key: string]: Column<{{.Name}}> } {
       {{- end}}{{end}}
     },
     {{- end}}
-    'createTime': {
-      title: '创建时间',
-      key: 'createTime',
+    {
+      name: 'createTime',
+      label: '创建时间',
+      nullable: false,
       render: (model: {{$.Name}}) => model.createTime ? moment(model.createTime / 1000000).format('YYYY/MM/DD') : "",
       renderSearch: (props: SearchItemProps) => SearchRender.renderInt({
         name: 'createTime',
@@ -77,5 +82,5 @@ export default function (): { [key: string]: Column<{{.Name}}> } {
         nullable: false
       }, props)
     }
-  }
+  ]
 }

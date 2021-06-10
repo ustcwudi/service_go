@@ -1,85 +1,20 @@
 // 显示过滤
-export function filter<T>(allColumns: { [key: string]: Column<T> }, render: string[] | undefined, extra?: Column<T>[]) {
-    let columns: Column<T>[] = []
-    if (render !== undefined) {
-        render.forEach(k => {
-            let value = allColumns[k]
-            if (value && value.render)
-                columns.push(value)
-        })
-        if (extra) {
-            columns.push(...extra)
-        }
-        if (!render.includes('_')) {
-            columns.pop()
-        }
-    } else {
-        for (let value of Object.values(allColumns)) {
-            if (value.render)
-                columns.push(value)
-        }
-        if (extra) {
-            columns.push(...extra)
-        }
-    }
-    return columns;
+export function filter<T>(columns: Column<T>[], render: string[] | undefined) {
+  return render ? render.map(key => columns.find(column => column.name == key)) : columns
 };
 
 // 表单项过滤
-export function formFilter<T>(allColumns: { [key: string]: Column<T> }, render: string[] | undefined) {
-    let columns = []
-    if (render !== undefined) {
-        render.forEach(k => {
-            let value = allColumns[k]
-            if (value && value.renderForm)
-                columns.push(value.renderForm)
-        })
-    } else {
-        for (let value of Object.values(allColumns)) {
-            if (value.renderForm)
-                columns.push(value.renderForm)
-        }
-    }
-    return columns;
+export function formFilter<T>(columns: Column<T>[], render: string[] | undefined) {
+  return render ? render.map(key => columns.find(column => column.name == key)?.renderForm) : columns.map(column => column.renderForm)
 };
 
 // 搜索项过滤
-export function searchFilter<T>(allColumns: { [key: string]: Column<T> }, render: string[] | undefined) {
-    let columns = []
-    if (render !== undefined) {
-        render.forEach(k => {
-            let value = allColumns[k]
-            if (value && value.renderSearch)
-                columns.push(value.renderSearch)
-        })
-    } else {
-        for (let value of Object.values(allColumns)) {
-            if (value.renderSearch)
-                columns.push(value.renderSearch)
-        }
-    }
-    return columns;
+export function searchFilter<T>(columns: Column<T>[], render: string[] | undefined) {
+  return render ? render.map(key => columns.find(column => column.name == key)?.renderSearch) : columns.map(column => column.renderSearch)
 };
 
 // 按钮过滤
 export function buttonFilter(columnButtons: { [key: string]: JSX.Element }, render: string[] | undefined, extra?: JSX.Element[]) {
-    if (render !== undefined) {
-        let buttons: JSX.Element[] = [];
-        render.forEach(k => {
-            let value = columnButtons[k]
-            if (value)
-                buttons.push(value)
-        });
-        if (extra)
-            buttons.push(...extra)
-        return buttons;
-    } else {
-        if (extra) {
-            let buttons = Object.values(columnButtons);
-            buttons.push(...extra)
-            return buttons;
-        }
-        else
-            return Object.values(columnButtons)
-    }
+  let buttons = render ? render.map(k => columnButtons[k]) : Object.values(columnButtons)
+  return extra ? buttons.concat(extra) : buttons
 };
