@@ -36,13 +36,13 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-const renderBool = (param: FormItemParam, props: FormItemProps) => {
-  const C = (props: FormItemProps) => {
+const renderBool = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
+  const C = (props: InputProps<T>) => {
     const classes = useStyles();
 
     return <FormControl className={classes.root} fullWidth>
       <FormLabel className={classes.label}>{param.label}</FormLabel>
-      <RadioGroup className={classes.group} name={param.name} defaultValue={props.default[param.name] == null ? 'null' : props.default[param.name]?.toString()}
+      <RadioGroup className={classes.group} name={param.name} defaultValue={props.default?.[param.name] == null ? 'null' : props.default[param.name]?.toString()}
         onChange={e => props.onChange?.(param.name, e.currentTarget.value == "null" ? null : e.currentTarget.value == "true")}>
         <FormControlLabel value={'true'} control={<Radio />} label={param.name == 'sex' || param.name == 'gender' ? '男' : '✔'} />
         <FormControlLabel value={'false'} control={<Radio />} label={param.name == 'sex' || param.name == 'gender' ? '女' : '✖'} />
@@ -55,7 +55,7 @@ const renderBool = (param: FormItemParam, props: FormItemProps) => {
   </Grid>;
 };
 
-const renderString = (param: FormItemParam, props: FormItemProps) => {
+const renderString = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
   let choices: { label: string, value: any }[] = [];
   if (param.map) {
     for (let key in param.map) {
@@ -63,9 +63,9 @@ const renderString = (param: FormItemParam, props: FormItemProps) => {
     }
   }
 
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : param.map ? choices[0].value : '')
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ? props.default[param.name] : param.map ? choices[0].value : '')
     const [value, setValue] = useState(defaultValue.current);
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, null) : props.onChange(param.name, value) } }, [disabled]);
@@ -81,7 +81,7 @@ const renderString = (param: FormItemParam, props: FormItemProps) => {
           {choices.map(i => <MenuItem key={i.label} value={i.value}>{i.label}</MenuItem>)}
         </TextField>
       </NullContainer>
-    else if (param.password)
+    else if (param.name == "password")
       return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
         <TextField fullWidth
           type="password"
@@ -115,12 +115,12 @@ const renderString = (param: FormItemParam, props: FormItemProps) => {
   </Grid>;
 };
 
-const renderInt = (param: FormItemParam, props: FormItemProps) => {
+const renderInt = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
   let type = param.name.substring(param.name.length - 4) === "Time" ? "time" : '';
 
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ?
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ?
       (type ? moment(new Date(props.default[param.name])) : props.default[param.name])
       : (type ? moment(new Date()) : 0))
     const [value, setValue] = useState(type ? defaultValue.current.unix() * 1000000 : defaultValue.current);
@@ -153,10 +153,10 @@ const renderInt = (param: FormItemParam, props: FormItemProps) => {
   </Grid>;
 };
 
-const renderFloat = (param: FormItemParam, props: FormItemProps) => {
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : 0)
+const renderFloat = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ? props.default[param.name] : 0)
     const [value, setValue] = useState(defaultValue.current);
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, null) : props.onChange(param.name, value) } }, [disabled]);
@@ -177,10 +177,10 @@ const renderFloat = (param: FormItemParam, props: FormItemProps) => {
   </Grid>;
 };
 
-const renderID = (param: FormItemParam, props: FormItemProps) => {
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : '')
+const renderID = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ? props.default[param.name] : '')
     const [value, setValue] = useState(defaultValue.current);
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, null) : props.onChange(param.name, value) } }, [disabled]);
@@ -208,7 +208,7 @@ const renderID = (param: FormItemParam, props: FormItemProps) => {
   </Grid>;
 };
 
-const renderStringArray = (param: FormItemParam, props: FormItemProps) => {
+const renderStringArray = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
   let choices: { label: string, value: any }[] = [];
   if (param.map) {
     for (let key in param.map) {
@@ -216,9 +216,9 @@ const renderStringArray = (param: FormItemParam, props: FormItemProps) => {
     }
   }
 
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : [])
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ? props.default[param.name] : [])
     const [value, setValue] = useState(defaultValue.current);
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, null) : props.onChange(param.name, value) } }, [disabled]);
@@ -249,7 +249,7 @@ const renderStringArray = (param: FormItemParam, props: FormItemProps) => {
   </Grid>;
 };
 
-const renderIntArray = (param: FormItemParam, props: FormItemProps) => {
+const renderIntArray = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
   let choices: { label: string, value: any }[] = [];
   if (param.map) {
     for (let key in param.map) {
@@ -257,9 +257,9 @@ const renderIntArray = (param: FormItemParam, props: FormItemProps) => {
     }
   }
 
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : [])
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ? props.default[param.name] : [])
     const [value, setValue] = useState(defaultValue.current);
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, null) : props.onChange(param.name, value) } }, [disabled]);
@@ -290,16 +290,16 @@ const renderIntArray = (param: FormItemParam, props: FormItemProps) => {
   </Grid>;
 };
 
-const renderFloatArray = (param: FormItemParam, props: FormItemProps) => {
+const renderFloatArray = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
   let choices: { label: string, value: any }[] = [];
   if (param.map) {
     for (let key in param.map) {
       choices.push({ label: key, value: param.map[key] })
     }
   }
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : [])
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ? props.default[param.name] : [])
     const [value, setValue] = useState(defaultValue.current);
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, null) : props.onChange(param.name, value) } }, [disabled]);
@@ -330,10 +330,10 @@ const renderFloatArray = (param: FormItemParam, props: FormItemProps) => {
   </Grid>;
 };
 
-const renderIDArray = (param: FormItemParam, props: FormItemProps) => {
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : [])
+const renderIDArray = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ? props.default[param.name] : [])
     const [value, setValue] = useState(defaultValue.current);
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, null) : props.onChange(param.name, value) } }, [disabled]);
@@ -353,10 +353,10 @@ const renderIDArray = (param: FormItemParam, props: FormItemProps) => {
 };
 
 
-const renderStringMap = (param: FormItemParam, props: FormItemProps) => {
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : {})
+const renderStringMap = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ? props.default[param.name] : {})
     const [value, setValue] = useState(defaultValue.current);
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, null) : props.onChange(param.name, value) } }, [disabled]);
@@ -382,10 +382,10 @@ const renderStringMap = (param: FormItemParam, props: FormItemProps) => {
   </Grid>;
 };
 
-const renderStringArrayMap = (param: FormItemParam, props: FormItemProps) => {
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : {})
+const renderStringArrayMap = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ? props.default[param.name] : {})
     const [value, setValue] = useState(defaultValue.current);
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, null) : props.onChange(param.name, value) } }, [disabled]);
@@ -411,10 +411,10 @@ const renderStringArrayMap = (param: FormItemParam, props: FormItemProps) => {
   </Grid>;
 };
 
-const renderIntMap = (param: FormItemParam, props: FormItemProps) => {
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : {})
+const renderIntMap = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ? props.default[param.name] : {})
     const [value, setValue] = useState(defaultValue.current);
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, null) : props.onChange(param.name, value) } }, [disabled]);
@@ -441,10 +441,10 @@ const renderIntMap = (param: FormItemParam, props: FormItemProps) => {
   </Grid>;
 };
 
-const renderFloatMap = (param: FormItemParam, props: FormItemProps) => {
-  const C = (props: FormItemProps) => {
-    const [disabled, setDisabled] = useState(param.nullable && props.default[param.name] === null);
-    const defaultValue = useRef(props.default[param.name] ? props.default[param.name] : {})
+const renderFloatMap = <T extends { [index: string]: any }, Q>(param: Column<T, Q>, props: InputProps<T>) => {
+  const C = (props: InputProps<T>) => {
+    const [disabled, setDisabled] = useState(param.nullable && props.default?.[param.name] === null);
+    const defaultValue = useRef(props.default?.[param.name] ? props.default[param.name] : {})
     const [value, setValue] = useState(defaultValue.current);
     const init = useRef(0);
     useEffect(() => { if (init.current++) { disabled ? props.onChange(param.name, null) : props.onChange(param.name, value) } }, [disabled]);

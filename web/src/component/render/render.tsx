@@ -84,49 +84,45 @@ const renderIDArray = (value?: (string | { id: string, name: string })[]) => {
   return value === undefined || value === null ? <Badge color="default" /> : value.map((v: string | { id: string; name: string; }) => renderID(v))
 };
 
-const renderStringMap = (value?: Map<string, string>) => {
+const renderStringMap = (value?: { [key: string]: string }) => {
   if (value === undefined || value === null) return <Badge color="default" />
   else {
     var list = []
-    if (!(value instanceof Map)) value = new Map(Object.entries(value));
-    for (let [k, v] of value) {
-      list.push(<Tooltip key={k} title={k}><Chip size="small" label={v} /></Tooltip>)
+    for (let key in value) {
+      list.push(<Tooltip key={key} title={key}><Chip size="small" label={value[key]} /></Tooltip>)
     }
     return list
   }
 };
 
-const renderStringArrayMap = (value?: Map<string, string[]>) => {
+const renderStringArrayMap = (value?: { [key: string]: string[] }) => {
   if (value === undefined || value === null) return <Badge color="default" />
   else {
     var list = []
-    if (!(value instanceof Map)) value = new Map(Object.entries(value));
-    for (let [k, v] of value) {
-      list.push(<Tooltip key={k} title={k}><Chip size="small" label={v.join(",")} /></Tooltip>)
+    for (let key in value) {
+      list.push(<Tooltip key={key} title={key}><Chip size="small" label={value[key].join(",")} /></Tooltip>)
     }
     return list
   }
 };
 
-const renderIntMap = (value?: Map<string, number>) => {
+const renderIntMap = (value?: { [key: string]: number }) => {
   if (value === undefined || value === null) return <Badge color="default" />
   else {
     var list = []
-    if (!(value instanceof Map)) value = new Map(Object.entries(value));
-    for (let [k, v] of value) {
-      list.push(<Tooltip key={k} title={k}><Chip size="small" label={v} /></Tooltip>)
+    for (let key in value) {
+      list.push(<Tooltip key={key} title={key}><Chip size="small" label={value[key]} /></Tooltip>)
     }
     return list
   }
 };
 
-const renderFloatMap = (value?: Map<string, number>) => {
+const renderFloatMap = (value?: { [key: string]: number }) => {
   if (value === undefined || value === null) return <Badge color="default" />
   else {
     var list = []
-    if (!(value instanceof Map)) value = new Map(Object.entries(value));
-    for (let [k, v] of value) {
-      list.push(<Tooltip key={k} title={k}><Chip size="small" label={v} /></Tooltip>)
+    for (let key in value) {
+      list.push(<Tooltip key={key} title={key}><Chip size="small" label={value[key]} /></Tooltip>)
     }
     return list
   }

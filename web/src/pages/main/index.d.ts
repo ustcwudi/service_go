@@ -9,10 +9,10 @@ interface MenuItem {
 }
 
 // 表格属性
-interface TableProps<T> {
+interface TableProps<T, Q> {
   display?: boolean;
-  where?: {};
-  moreColumn?: Column<T>[]; // 更多表格列
+  where?: Q;
+  moreColumn?: Column<T, Q>[]; // 更多表格列
   moreColumnButton?: (model: T) => JSX.Element[]; // 更多列按钮
   moreTableButton?: JSX.Element[]; // 更多表格按钮
   moreSelectionButton?: JSX.Element[]; // 更多选中按钮
@@ -28,14 +28,18 @@ interface TableProps<T> {
 }
 
 // 表格列属性
-interface Column<T> {
+interface Column<T, Q> {
   name: string; // 键名
   label: string; // 表头
   nullable?: boolean; // 可空
-  rules?: { check: (i: T) => boolean, message: string }[]; // 校验规则
-  render?: (model: T) => string | JSX.Element | JSX.Element[]; // 表格内容渲染
-  renderForm?: (props: FormItemProps) => string | JSX.Element | JSX.Element[]; // 表单渲染
-  renderSearch?: (props: SearchItemProps) => string | JSX.Element | JSX.Element[]; // 搜索表单渲染
+  map?: { [key: string]: string }; // 键值对
+  link?: string; // 外链
+  size?: number; // 大小
+  search?: string; // 搜索
+  rules?: { check: (model: T) => boolean, message: string }[]; // 校验规则
+  render?: (model: T) => string | number | JSX.Element | JSX.Element[]; // 表格内容渲染
+  renderForm?: (column: Column<T, Q>, props: InputProps<T>) => string | number | JSX.Element | JSX.Element[]; // 表单渲染
+  renderSearch?: (column: Column<T, Q>, props: InputProps<Q>) => string | number | JSX.Element | JSX.Element[]; // 搜索表单渲染
 }
 
 // 数据查询条件
@@ -45,34 +49,7 @@ interface QueryOption<T> {
   pagination: { current?: number; pageSize?: number };
 }
 
-// 表单项属性
-interface FormItemParam {
-  name: string;
-  label: string;
-  nullable: boolean;
-  map?: { [key: string]: string };
-  link?: string;
-  size?: number;
-  password?: boolean;
-  rules?: any[];
-}
-
-interface FormItemProps {
-  default: any;
-  onChange: (name: string, value: any) => void;
-}
-
-// 搜索项属性
-interface SearchItemParam {
-  name: string;
-  label: string;
-  nullable: boolean;
-  map?: { [key: string]: string };
-  link?: string;
-  search?: string;
-  rules?: any[];
-}
-
-interface SearchItemProps {
+interface InputProps<T> {
+  default?: T;
   onChange: (name: string, value: any) => void;
 }

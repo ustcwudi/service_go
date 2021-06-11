@@ -25,12 +25,12 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-export default function <T extends { id: string, [index: string]: any }>(
+export default function <T extends { id: string, [index: string]: any }, Q>(
   props: {
     dataSource: T[],
     selection: T[],
     size: "medium" | "small",
-    columns: (Column<T> | undefined)[],
+    columns: (Column<T, Q> | undefined)[],
     selectType: "checkbox" | "radio" | undefined,
     onSelectChange: (records: T[]) => void
   }) {

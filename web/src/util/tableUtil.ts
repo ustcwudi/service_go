@@ -1,16 +1,18 @@
 // 显示过滤
-export function filter<T>(columns: Column<T>[], render: string[] | undefined) {
+export function filter<T, Q>(columns: Column<T, Q>[], render: string[] | undefined) {
   return render ? render.map(key => columns.find(column => column.name == key)) : columns
 };
 
 // 表单项过滤
-export function formFilter<T>(columns: Column<T>[], render: string[] | undefined) {
-  return render ? render.map(key => columns.find(column => column.name == key)?.renderForm) : columns.map(column => column.renderForm)
+export function formFilter<T, Q>(columns: Column<T, Q>[], render: string[] | undefined) {
+  let list = render ? render.map(key => columns.find(column => column.name == key)) : columns
+  return list.map(column => (props: InputProps<T>) => column?.renderForm?.(column, props))
 };
 
 // 搜索项过滤
-export function searchFilter<T>(columns: Column<T>[], render: string[] | undefined) {
-  return render ? render.map(key => columns.find(column => column.name == key)?.renderSearch) : columns.map(column => column.renderSearch)
+export function searchFilter<T, Q>(columns: Column<T, Q>[], render: string[] | undefined) {
+  let list = render ? render.map(key => columns.find(column => column.name == key)) : columns
+  return list.map(column => (props: InputProps<Q>) => column?.renderSearch?.(column, props))
 };
 
 // 按钮过滤

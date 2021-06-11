@@ -71,7 +71,7 @@ const mapData = (result: any) => {
   {{- end}}{{end}}{{end}}
 }
 
-export default (props: TableProps<{{.Name}}>) => {
+export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
   const classes = useStyles();
   const mainContext = useContext(context);
   // 数据源
@@ -80,7 +80,7 @@ export default (props: TableProps<{{.Name}}>) => {
   const [selection, setSelection] = useState<{{.Name}}[]>([]);
   // 查询参数
   const [trash, setTrash] = useState<boolean>(false);
-  const [where, setWhere] = useState<any>({});
+  const [where, setWhere] = useState<{{.Name}}Query>({});
   const [sort, setSort] = useState<[]>([]);
   const [pagination, setPagination] = useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 10 });
   // 查询状态
@@ -319,7 +319,7 @@ export default (props: TableProps<{{.Name}}>) => {
     {searchBar}
     {loading ? <LinearProgress color={trash ? "secondary" : "primary"} /> : <LinearProgress color={trash ? "secondary" : "primary"} variant="determinate" value={100} />}
     <TableContainer>
-      <Table<{{.Name}}> size="small" dataSource={source.data} selection={selection} columns={columns} selectType={props.canSelect}
+      <Table<{{.Name}}, {{.Name}}Query> size="small" dataSource={source.data} selection={selection} columns={columns} selectType={props.canSelect}
         onSelectChange={(records: {{.Name}}[]) => { setSelection(records); props.onSelect?.(records) }} />
     </TableContainer>
     <TablePagination

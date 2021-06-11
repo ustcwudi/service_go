@@ -57,13 +57,13 @@ func ScriptType(t string) string {
 	case "id[]":
 		return "string[]"
 	case "map[string]string":
-		return "Map<string, string>"
+		return "{ [key: string]: string }"
 	case "map[string]int":
-		return "Map<string, number>"
+		return "{ [key: string]: number }"
 	case "map[string]float":
-		return "Map<string, number>"
+		return "{ [key: string]: number }"
 	case "map[string]string[]":
-		return "Map<string, string[]>"
+		return "{ [key: string]: string[] }"
 	default:
 		panic(t)
 	}

@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 // 时间区间
-const TimeBetween = (props: { className?: string, disabled: boolean, size?: "small", label: string, onChange: (e: undefined | (null | number)[]) => void }) => {
+const TimeBetween = (props: { className?: string, disabled?: boolean, size?: "small", label: string, onChange: (e: undefined | (null | number)[]) => void }) => {
   const classes = useStyles(props);
   const [leftValue, setLeftValue] = useState<string>('');
   const [rightValue, setRightValue] = useState<string>('');
@@ -49,7 +49,7 @@ const TimeBetween = (props: { className?: string, disabled: boolean, size?: "sma
 }
 
 // 数值区间
-const NumberBetween = (props: { className?: string, disabled: boolean, size?: "small", label: string, onChange: (e: undefined | (null | number)[]) => void }) => {
+const NumberBetween = (props: { className?: string, disabled?: boolean, size?: "small", label: string, onChange: (e: undefined | (null | number)[]) => void }) => {
   const classes = useStyles(props);
   const [leftValue, setLeftValue] = useState<string>('');
   const [rightValue, setRightValue] = useState<string>('');
@@ -71,7 +71,7 @@ const NumberBetween = (props: { className?: string, disabled: boolean, size?: "s
 }
 
 // 字符串键值对
-const StringPair = (props: { className?: string, disabled: boolean, size?: "small", label: string, onChange: (e: string) => void }) => {
+const StringPair = (props: { className?: string, disabled?: boolean, size?: "small", label: string, onChange: (e: string) => void }) => {
   const classes = useStyles(props);
   const [leftValue, setLeftValue] = useState<string>("");
   const [rightValue, setRightValue] = useState<string>("");
@@ -89,7 +89,7 @@ const StringPair = (props: { className?: string, disabled: boolean, size?: "smal
 }
 
 // 数字键值对
-const NumberPair = (props: { className?: string, disabled: boolean, size?: "small", label: string, onChange: (e: string) => void }) => {
+const NumberPair = (props: { className?: string, disabled?: boolean, size?: "small", label: string, onChange: (e: string) => void }) => {
   const classes = useStyles(props);
   const [leftValue, setLeftValue] = useState<string>("");
   const [rightValue, setRightValue] = useState<string>("");

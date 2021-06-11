@@ -32,8 +32,8 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-const renderBool = (param: SearchItemParam, props: SearchItemProps) => {
-  const C = (props: SearchItemProps) => {
+const renderBool = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
+  const C = (props: InputProps<Q>) => {
     const classes = useStyles();
 
     return <FormControl className={classes.root} fullWidth>
@@ -52,7 +52,7 @@ const renderBool = (param: SearchItemParam, props: SearchItemProps) => {
 };
 
 
-const renderString = (param: SearchItemParam, props: SearchItemProps) => {
+const renderString = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
   let choices: { label: string, value: any }[] = [];
   if (param.map) {
     for (let key in param.map) {
@@ -60,7 +60,7 @@ const renderString = (param: SearchItemParam, props: SearchItemProps) => {
     }
   }
 
-  const C = (props: SearchItemProps) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<string | undefined>('');
     const init = useRef(0);
@@ -91,10 +91,10 @@ const renderString = (param: SearchItemParam, props: SearchItemProps) => {
   </Grid>;
 };
 
-const renderInt = (param: SearchItemParam, props: SearchItemProps) => {
+const renderInt = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
   let type = param.name.substring(param.name.length - 4) === "Time" ? "time" : '';
 
-  const C = (props: SearchItemProps) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<number | (number | null)[] | undefined>(undefined);
     const init = useRef(0);
@@ -136,8 +136,8 @@ const renderInt = (param: SearchItemParam, props: SearchItemProps) => {
   </Grid>;
 };
 
-const renderFloat = (param: SearchItemParam, props: SearchItemProps) => {
-  const C = (props: SearchItemProps) => {
+const renderFloat = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<number | (number | null)[] | undefined>(undefined);
     const init = useRef(0);
@@ -169,8 +169,8 @@ const renderFloat = (param: SearchItemParam, props: SearchItemProps) => {
   </Grid>;
 };
 
-const renderID = (param: SearchItemParam, props: SearchItemProps) => {
-  const C = (props: SearchItemProps) => {
+const renderID = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<string | undefined>(undefined);
     const init = useRef(0);
@@ -200,14 +200,14 @@ const renderID = (param: SearchItemParam, props: SearchItemProps) => {
   </Grid>;
 };
 
-const renderStringArray = (param: SearchItemParam, props: SearchItemProps) => {
+const renderStringArray = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
   let choices: { label: string, value: any }[] = [];
   if (param.map) {
     for (let key in param.map) {
       choices.push({ label: key, value: param.map[key] })
     }
   }
-  const C = (props: SearchItemProps) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<string | undefined>('');
     const init = useRef(0);
@@ -240,8 +240,8 @@ const renderStringArray = (param: SearchItemParam, props: SearchItemProps) => {
 };
 
 
-const renderIntArray = (param: SearchItemParam, props: SearchItemProps) => {
-  const C = (props: SearchItemProps) => {
+const renderIntArray = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<number | undefined>(undefined);
     const init = useRef(0);
@@ -264,8 +264,8 @@ const renderIntArray = (param: SearchItemParam, props: SearchItemProps) => {
 };
 
 
-const renderFloatArray = (param: SearchItemParam, props: SearchItemProps) => {
-  const C = (props: SearchItemProps) => {
+const renderFloatArray = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<number | undefined>(undefined);
     const init = useRef(0);
@@ -287,8 +287,8 @@ const renderFloatArray = (param: SearchItemParam, props: SearchItemProps) => {
   </Grid>;
 };
 
-const renderIDArray = (param: SearchItemParam, props: SearchItemProps) => {
-  const C = (props: SearchItemProps) => {
+const renderIDArray = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<string | undefined>(undefined);
     const init = useRef(0);
@@ -310,8 +310,8 @@ const renderIDArray = (param: SearchItemParam, props: SearchItemProps) => {
 };
 
 
-const renderStringMap = (param: SearchItemParam, props: SearchItemProps) => {
-  const C = (props: SearchItemProps) => {
+const renderStringMap = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<object | undefined>(undefined);
     const init = useRef(0);
@@ -341,8 +341,8 @@ const renderStringMap = (param: SearchItemParam, props: SearchItemProps) => {
   </Grid>;
 };
 
-const renderStringArrayMap = (param: SearchItemParam, props: SearchItemProps) => {
-  const C = (props: SearchItemProps) => {
+const renderStringArrayMap = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<object | undefined>(undefined);
     const init = useRef(0);
@@ -372,8 +372,8 @@ const renderStringArrayMap = (param: SearchItemParam, props: SearchItemProps) =>
   </Grid>;
 };
 
-const renderIntMap = (param: SearchItemParam, props: SearchItemProps) => {
-  const C = (props: SearchItemProps) => {
+const renderIntMap = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<object | undefined>(undefined);
     const init = useRef(0);
@@ -403,8 +403,8 @@ const renderIntMap = (param: SearchItemParam, props: SearchItemProps) => {
   </Grid>;
 };
 
-const renderFloatMap = (param: SearchItemParam, props: SearchItemProps) => {
-  const C = (props: SearchItemProps) => {
+const renderFloatMap = <T, Q extends { [index: string]: any }>(param: Column<T, Q>, props: InputProps<Q>) => {
+  const C = (props: InputProps<Q>) => {
     const [disabled, setDisabled] = useState(param.nullable);
     const [value, setValue] = useState<object | undefined>(undefined);
     const init = useRef(0);

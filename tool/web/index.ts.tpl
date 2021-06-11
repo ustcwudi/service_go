@@ -11,6 +11,8 @@ declare class {{.Name}} {
   updateTime?: number;
   // 废弃时间
   deleteTime?: number;
+  // 索引
+  [key: string]: boolean | number | number[] | string | string[] | { [key: string]: string | string[] | number } |{{range .Fields}}{{if .Link}} {{.Link}} |{{end}}{{end}} undefined | null;
 }
 
 declare class {{.Name}}Query {
@@ -23,7 +25,7 @@ declare class {{.Name}}Query {
   boolean;
 
   {{- else if or (eq .Type "id") (eq .Type "id[]")}}
-  {{c .Name}}?: {{- if .Nullable}}null | {{end -}}
+  {{c .Name}}?: {{if .Nullable}}null | {{end -}}
   string | string[];
 
   {{- else if or (eq .Type "int") (eq .Type "float") (eq .Type "int[]") (eq .Type "float[]")}}
@@ -39,11 +41,11 @@ declare class {{.Name}}Query {
   {{- end}};
 
   {{- else if or (eq .Type "map[string]string") (eq .Type "map[string]string[]")}}
-  {{c .Name}}?: {{- if .Nullable}}null | {{end -}}
+  {{c .Name}}?: {{if .Nullable}}null | {{end -}}
   { [key: string]: string };
 
   {{- else if or (eq .Type "map[string]int") (eq .Type "map[string]float")}}
-  {{c .Name}}?: {{- if .Nullable}}null | {{end -}}
+  {{c .Name}}?: {{if .Nullable}}null | {{end -}}
   { [key: string]: number };
 
   {{- else}}
@@ -52,9 +54,11 @@ declare class {{.Name}}Query {
 
   {{- end}}{{end}}
   // 创建时间
-  createTime?: [number, number];
+  createTime?: [null | number, null | number];
   // 修改时间
-  updateTime?: [number, number];
+  updateTime?: [null | number, null | number];
   // 废弃时间
-  deleteTime?: [number, number];
+  deleteTime?: [null | number, null | number];
+  // 索引
+  [key: string]: boolean | number | number[] | string | string[] | { [key: string]: string | number } | [null | number, null | number] | undefined | null;
 }
