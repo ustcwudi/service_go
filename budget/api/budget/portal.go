@@ -1,6 +1,7 @@
 package budget
 
 import (
+	"service/model"
 	"service/mongo"
 
 	"lib/auth"
@@ -31,7 +32,8 @@ func RoutePortal(router *gin.Engine) {
 		portal.GET("/summary", auth.CheckLogin, route.FetchQuery, AssertWhere, Summary)
 		portal.GET("/one_summary", auth.CheckLogin, route.FetchQuery, AssertWhere, OneLevelSummary)
 		portal.GET("/two_summary", auth.CheckLogin, route.FetchQuery, AssertWhere, TwoLevelSummary)
-		portal.GET("/goal_summary", auth.CheckLogin, route.FetchQuery, AssertWhere, GoalSummary)
+		portal.GET("/longterm_goal_summary", auth.CheckLogin, route.FetchQuery, AssertWhere, LongtermGoalSummary)
+		portal.GET("/annual_goal_summary", auth.CheckLogin, route.FetchQuery, AssertWhere, AnnualGoalSummary)
 	}
 }
 
@@ -290,38 +292,47 @@ func Summary(c *gin.Context) {
 	data := make([]map[string]interface{}, 0)
 	for _, budget := range *budgets {
 		row := make(map[string]interface{})
+		row["budget"] = budget
+		row["department"] = budget.Department
 		amount := .0
-		details, _ := mongo.FindManyBudgetDetail(bson.M{"budget": budget.ID}, bson.M{})
-		for _, detail := range *details {
-			if detail.AdjustAmount > 0 {
-				amount += detail.AdjustAmount
-			} else {
-				amount += detail.Amount
+		if details, err := mongo.FindManyBudgetDetail(bson.M{"budget": budget.ID}, bson.M{}); err == nil {
+			row["detail"] = details
+			for _, detail := range *details {
+				if detail.AdjustAmount > 0 {
+					amount += detail.AdjustAmount
+				} else {
+					amount += detail.Amount
+				}
 			}
 		}
-		row["id"] = budget.ID
-		row["name"] = budget.Name
-		row["department"] = budget.Department
-		row["detail"] = details
-		row["amount"] = amount
-		if budget.SchoolQuota > 0 {
-			row["quota"] = "SchoolQuota"
-			row["schoolQuota"] = budget.SchoolQuota
-		} else if budget.GovernmentQuota > 0 {
-			row["quota"] = "GovernmentQuota"
-			row["governmentQuota"] = budget.GovernmentQuota
+		if budget.Category > 0 {
+			row["special_amount"] = amount
+			if budget.SchoolQuota > 0 {
+				row["quota"] = "SchoolQuota"
+				row["special_school_quota"] = amount
+			} else if budget.GovernmentQuota > 0 {
+				row["quota"] = "GovernmentQuota"
+				row["special_government_quota"] = amount
+			} else {
+				row["quota"] = "OtherQuota"
+				row["special_other_quota"] = amount
+			}
 		} else {
-			row["quota"] = "OtherQuota"
-			row["otherQuota"] = budget.OtherQuota
+			row["normal_amount"] = amount
+			if budget.SchoolQuota > 0 {
+				row["quota"] = "SchoolQuota"
+				row["normal_school_quota"] = amount
+			} else if budget.GovernmentQuota > 0 {
+				row["quota"] = "GovernmentQuota"
+				row["normal_government_quota"] = amount
+			} else {
+				row["quota"] = "OtherQuota"
+				row["normal_other_quota"] = amount
+			}
 		}
-		row["year"] = budget.Year
-		row["parent"] = budget.Parent
-		row["type"] = budget.Type
-		row["expenseType"] = budget.ExpenseType
-		row["category"] = budget.Category
-		row["categoryType"] = budget.Category > 0
 		data = append(data, row)
 	}
+	// 映射部门
 	ids := make([]primitive.ObjectID, len(data))
 	for _, row := range data {
 		if row["department"] != nil {
@@ -329,7 +340,14 @@ func Summary(c *gin.Context) {
 		}
 	}
 	department, _ := mongo.FindManyDepartment(bson.M{"_id": bson.M{"$in": ids}}, bson.M{})
-	c.JSON(http.StatusOK, r.SetData(data).AddMapData("department", department))
+	departmentMap := make(map[string]model.Department)
+	for _, item := range *department {
+		departmentMap[item.ID.Hex()] = item
+	}
+	for _, row := range data {
+		row["department"] = departmentMap[row["department"].(primitive.ObjectID).Hex()]
+	}
+	c.JSON(http.StatusOK, r.SetData(data))
 }
 
 // OneLevelSummary 一级汇总
@@ -347,38 +365,41 @@ func OneLevelSummary(c *gin.Context) {
 	for _, budget := range *budgets {
 		details, _ := mongo.FindManyBudgetDetail(bson.M{"budget": budget.ID}, bson.M{})
 		for _, detail := range *details {
-			amount := .0
-			source := "OtherQuota"
 			code := detail.ExpenseTypeCode
 			category := budget.Category > 0
+			amount := .0
 			if detail.AdjustAmount > 0 {
 				amount = detail.AdjustAmount
 			} else {
 				amount = detail.Amount
 			}
+			quota := "OtherQuota"
 			if budget.SchoolQuota > 0 {
-				source = "SchoolQuota"
+				quota = "SchoolQuota"
 			} else if budget.GovernmentQuota > 0 {
-				source = "GovernmentQuota"
+				quota = "GovernmentQuota"
 			}
+			// 找到对应行，累加
 			find := false
 			for _, row := range data {
-				if row["source"] == source && row["code"] == code && row["category"] == category {
+				if row["quota"] == quota && row["code"] == code && row["category"] == category {
 					row["amount"] = amount + row["amount"].(float64)
 					find = true
 					break
 				}
 			}
+			// 如果没找到，则新建行
 			if !find {
 				row := make(map[string]interface{})
+				row["quota"] = quota
 				row["code"] = code
-				row["source"] = source
 				row["category"] = category
 				row["amount"] = amount
 				data = append(data, row)
 			}
 		}
 	}
+	// 获取经济分类
 	ids := make([]primitive.ObjectID, len(data))
 	for _, row := range data {
 		if code, ok := row["code"].(string); ok {
@@ -388,6 +409,7 @@ func OneLevelSummary(c *gin.Context) {
 		}
 	}
 	classification, _ := mongo.FindManyClassification(bson.M{"_id": bson.M{"$in": ids}}, bson.M{})
+	// 获取经济分类父子关系
 	dictionary := make(map[string]string)
 	for _, item := range *classification {
 		dictionary[item.ID.Hex()] = item.Parent.Hex()
@@ -399,9 +421,10 @@ func OneLevelSummary(c *gin.Context) {
 		if id, err := primitive.ObjectIDFromHex(item["code"].(string)); err == nil {
 			ids = append(ids, id)
 		}
+		// 按一级经济分类二次汇总
 		find := false
 		for _, row := range summary {
-			if row["source"].(string) == item["source"].(string) && row["code"].(string) == item["code"].(string) && row["category"].(bool) == item["category"].(bool) {
+			if row["quota"].(string) == item["quota"].(string) && row["code"].(string) == item["code"].(string) && row["category"].(bool) == item["category"].(bool) {
 				row["amount"] = item["amount"].(float64) + row["amount"].(float64)
 				find = true
 				break
@@ -411,7 +434,37 @@ func OneLevelSummary(c *gin.Context) {
 			summary = append(summary, item)
 		}
 	}
+	// 映射分类
 	classification, _ = mongo.FindManyClassification(bson.M{"_id": bson.M{"$in": ids}}, bson.M{})
+	classificationMap := make(map[string]model.Classification)
+	for _, item := range *classification {
+		classificationMap[item.ID.Hex()] = item
+	}
+	for _, row := range summary {
+		row["code"] = classificationMap[row["code"].(string)]
+	}
+	// 字段拆分
+	for _, row := range summary {
+		if row["category"].(bool) {
+			row["special_amount"] = row["amount"].(float64)
+			if row["quota"].(string) == "SchoolQuota" {
+				row["special_school_quota"] = row["amount"].(float64)
+			} else if row["quota"].(string) == "GovernmentQuota" {
+				row["special_government_quota"] = row["amount"].(float64)
+			} else {
+				row["special_other_quota"] = row["amount"].(float64)
+			}
+		} else {
+			row["normal_amount"] = row["amount"].(float64)
+			if row["quota"].(string) == "SchoolQuota" {
+				row["normal_school_quota"] = row["amount"].(float64)
+			} else if row["quota"].(string) == "GovernmentQuota" {
+				row["normal_government_quota"] = row["amount"].(float64)
+			} else {
+				row["normal_other_quota"] = row["amount"].(float64)
+			}
+		}
+	}
 	c.JSON(http.StatusOK, r.SetData(summary).AddMapData("classification", classification))
 }
 
@@ -431,7 +484,7 @@ func TwoLevelSummary(c *gin.Context) {
 		details, _ := mongo.FindManyBudgetDetail(bson.M{"budget": budget.ID}, bson.M{})
 		for _, detail := range *details {
 			amount := .0
-			source := "OtherQuota"
+			quota := "OtherQuota"
 			code := detail.ExpenseTypeCode
 			category := budget.Category > 0
 			if detail.AdjustAmount > 0 {
@@ -440,13 +493,13 @@ func TwoLevelSummary(c *gin.Context) {
 				amount = detail.Amount
 			}
 			if budget.SchoolQuota > 0 {
-				source = "SchoolQuota"
+				quota = "SchoolQuota"
 			} else if budget.GovernmentQuota > 0 {
-				source = "GovernmentQuota"
+				quota = "GovernmentQuota"
 			}
 			find := false
 			for _, row := range data {
-				if row["source"] == source && row["code"] == code && row["category"] == category {
+				if row["quota"] == quota && row["code"] == code && row["category"] == category {
 					row["amount"] = amount + row["amount"].(float64)
 					find = true
 					break
@@ -455,7 +508,7 @@ func TwoLevelSummary(c *gin.Context) {
 			if !find {
 				row := make(map[string]interface{})
 				row["code"] = code
-				row["source"] = source
+				row["quota"] = quota
 				row["category"] = category
 				row["amount"] = amount
 				data = append(data, row)
@@ -471,34 +524,86 @@ func TwoLevelSummary(c *gin.Context) {
 		}
 	}
 	classification, _ := mongo.FindManyClassification(bson.M{"_id": bson.M{"$in": ids}}, bson.M{})
+	classificationMap := make(map[string]model.Classification)
+	for _, item := range *classification {
+		classificationMap[item.ID.Hex()] = item
+	}
+	for _, row := range data {
+		row["code"] = classificationMap[row["code"].(string)]
+	}
+	// 字段拆分
+	for _, row := range data {
+		if row["category"].(bool) {
+			row["special_amount"] = row["amount"].(float64)
+			if row["quota"].(string) == "SchoolQuota" {
+				row["special_school_quota"] = row["amount"].(float64)
+			} else if row["quota"].(string) == "GovernmentQuota" {
+				row["special_government_quota"] = row["amount"].(float64)
+			} else {
+				row["special_other_quota"] = row["amount"].(float64)
+			}
+		} else {
+			row["normal_amount"] = row["amount"].(float64)
+			if row["quota"].(string) == "SchoolQuota" {
+				row["normal_school_quota"] = row["amount"].(float64)
+			} else if row["quota"].(string) == "GovernmentQuota" {
+				row["normal_government_quota"] = row["amount"].(float64)
+			} else {
+				row["normal_other_quota"] = row["amount"].(float64)
+			}
+		}
+	}
 	c.JSON(http.StatusOK, r.SetData(data).AddMapData("classification", classification))
 }
 
-// GoalSummary 目标汇总
-// @summary 目标汇总
+// LongtermGoalSummary 长期目标汇总
+// @summary 长期目标汇总
 // @tags budget portal
 // @produce json
 // @param data body map[string]interface{} true "data"
 // @success 200 {object} interface{}
-// @router /api/budget/goal_summary [get]
-func GoalSummary(c *gin.Context) {
+// @router /api/budget/longterm_goal_summary [get]
+func LongtermGoalSummary(c *gin.Context) {
 	var r define.Result
 	where := c.MustGet("where").(map[string]interface{})
 	budgets, _ := mongo.FindManyBudget(where, nil)
+	budgetMap := make(map[string]model.Budget)
+	for _, item := range *budgets {
+		budgetMap[item.ID.Hex()] = item
+	}
 	data := make([]map[string]interface{}, 0)
 	for _, budget := range *budgets {
-		row := make(map[string]interface{})
-		goals, _ := mongo.FindManyLongtermGoal(bson.M{"budget": budget.ID}, bson.M{})
-		row["id"] = budget.ID
-		row["name"] = budget.Name
-		row["year"] = budget.Year
-		row["goal"] = goals
-		row["parent"] = budget.Parent
-		row["type"] = budget.Type
-		row["expenseType"] = budget.ExpenseType
-		row["category"] = budget.Category
-		row["categoryType"] = budget.Category > 0
-		data = append(data, row)
+		goals, _ := mongo.FindManyLongtermGoalData(bson.M{"budget": budget.ID}, bson.M{})
+		for _, row := range *goals {
+			row["budget"] = budgetMap[row["budget"].(primitive.ObjectID).Hex()]
+			data = append(data, row)
+		}
+	}
+	c.JSON(http.StatusOK, r.SetData(data))
+}
+
+// AnnualGoalSummary 年度目标汇总
+// @summary 年度目标汇总
+// @tags budget portal
+// @produce json
+// @param data body map[string]interface{} true "data"
+// @success 200 {object} interface{}
+// @router /api/budget/annual_goal_summary [get]
+func AnnualGoalSummary(c *gin.Context) {
+	var r define.Result
+	where := c.MustGet("where").(map[string]interface{})
+	budgets, _ := mongo.FindManyBudget(where, nil)
+	budgetMap := make(map[string]model.Budget)
+	for _, item := range *budgets {
+		budgetMap[item.ID.Hex()] = item
+	}
+	data := make([]map[string]interface{}, 0)
+	for _, budget := range *budgets {
+		goals, _ := mongo.FindManyAnnualGoalData(bson.M{"budget": budget.ID}, bson.M{})
+		for _, row := range *goals {
+			row["budget"] = budgetMap[row["budget"].(primitive.ObjectID).Hex()]
+			data = append(data, row)
+		}
 	}
 	c.JSON(http.StatusOK, r.SetData(data))
 }
