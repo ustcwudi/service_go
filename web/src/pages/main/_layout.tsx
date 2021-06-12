@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { createMuiTheme } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/styles';
 import { useModel, useRequest, history } from 'umi';
@@ -84,22 +84,14 @@ export default (props: any) => {
   const classes = useStyles();
   // 用户菜单
   const [userMenuAnchor, setUserMenuAnchor] = React.useState<null | HTMLElement>(null);
-  // 通过权限检查
-  const [pass, setPass] = useState<boolean>(false);
-  // 当前路径
-  const [path, setPath] = useState('');
   // 对话框
   const [modal, setModal] = useState<JSX.Element | undefined>(undefined);
-  // 对话框
+  // 简略菜单
   const [iconMenu, setIconMenu] = useState<boolean>(false);
   // 菜单列表
   const [menuArray, setMenuArray] = useState<MenuItem[]>([]);
-  // 菜单结构
-  const [menuTree, setMenuTree] = useState<MenuItem[]>([]);
-  // 当前面包屑菜单
-  const [breadcrumb, setBreadcrumb] = useState<any[]>([]);
   // 当前一级菜单ID
-  const [topMenu, setTopMenu] = useState<string>();
+  const [topMenu, setTopMenu] = useState<MenuItem>();
   // 展开二级菜单ID
   const [expandMenu, setExpandMenu] = useState<string>();
   // 展开二级菜单ID
@@ -111,16 +103,6 @@ export default (props: any) => {
     login: model.login,
     logout: model.logout,
   }));
-  // 路由监听
-  useEffect(() => {
-    const unlisten = history.listen((location: any, action: any) => {
-      setPath(location.pathname);
-    });
-
-    return () => {
-      unlisten();
-    }
-  }, [])
   // 用户信息获取请求
   useRequest(
     () => ({
@@ -136,7 +118,6 @@ export default (props: any) => {
           login(result.data, result.map.role[0]);
           menuRequest.run();
         } else {
-          //message.error("用户未登录");
           history.push('/frame/login');
         }
       },
@@ -152,7 +133,6 @@ export default (props: any) => {
       manual: true,
       onSuccess: (result, params: any) => {
         logout();
-        //message.success("退出系统");
         history.push('/frame/login');
       },
     },
@@ -178,7 +158,6 @@ export default (props: any) => {
             }
           });
           setMenuArray(result.data);
-          setPath(history.location.pathname);
         } else {
           // 无菜单数据，退回登录
           history.push('/frame/login');
@@ -186,22 +165,20 @@ export default (props: any) => {
       },
     },
   );
-  // 编制菜单结构
-  useEffect(() => {
-    let menu: MenuItem[] = [];
+  // 菜单结构
+  const menuTree = useMemo(() => {
+    // 提取一级菜单
+    let topMenu: MenuItem[] = [];
     menuArray.forEach((item: any) => {
-      // 提取一级菜单
-      if (!item.parent) {
-        menu.push(item)
-      }
+      if (!item.parent) topMenu.push(item)
     });
     // 提取二级菜单
     let subMenu: MenuItem[] = [];
-    menu.forEach((parent: MenuItem) => {
-      parent.children = new Array<MenuItem>();
+    topMenu.forEach((parent: MenuItem) => {
       menuArray.forEach((item: any) => {
         if (item.parent === parent.key) {
-          parent.children?.push(item)
+          if (parent.children == undefined) parent.children = []
+          parent.children.push(item)
           subMenu.push(item)
         }
       });
@@ -210,40 +187,61 @@ export default (props: any) => {
     subMenu.forEach((parent: MenuItem) => {
       menuArray.forEach((item: any) => {
         if (item.parent === parent.key) {
-          if (parent.children == undefined)
-            parent.children = new Array<MenuItem>()
-          parent.children?.push(item)
+          if (parent.children == undefined) parent.children = []
+          parent.children.push(item)
         }
       });
     });
-    setMenuTree(menu)
+    return topMenu;
   }, [menuArray]
   );
-  // 检查路径权限
-  useEffect(() => {
-    let pass = false;
+  // 面包屑菜单
+  const breadcrumb = useMemo(() => {
+    let list: MenuItem[] = [];
     // 检查当前路径是否在列表中
-    if (path) {
-      menuArray.forEach((item: any) => {
-        if (item.path && path.indexOf(item.path) === 0) {
-          pass = true;
-          // 构造面包屑导航
-          let list = [item];
+    if (history.location.pathname) {
+      menuArray.forEach((item: MenuItem) => {
+        if (item.path && history.location.pathname.indexOf(item.path) === 0) {
+          list.push(item);
           let parent = item.parent;
           while (parent) {
             let parentItem = menuArray.find(i => i.key === parent);
-            list.push(parentItem);
-            parent = parentItem?.parent;
+            if (parentItem) {
+              list.push(parentItem);
+              parent = parentItem.parent;
+            }
           }
-          setBreadcrumb(list.reverse())
-          if (list.length > 0) setTopMenu(list[0].key);
         }
       });
     };
-    setPass(pass);
-  }, [menuArray, path]
+    return list.reverse()
+  }, [menuArray, history.location.pathname]
   );
-
+  // 导航菜单
+  const navMenu = useMemo(() => {
+    let topKey = topMenu ? topMenu.key : breadcrumb[0]?.key
+    let currentKey = breadcrumb[breadcrumb.length - 1]?.key
+    let topNode = menuTree.find((i: MenuItem) => i.key === topKey)
+    return topNode ? <Paper elevation={5}><List component="nav">{topNode.children?.map((i: MenuItem) => <Box key={i.key}>
+      <ListItem selected={i.key === currentKey} className={classes.menuItem} button onClick={() => i.children ? setExpandMenu(i.key) : i.path && history.push(i.path)}>
+        {iconMenu ? <Icon name={i.icon} /> : <>
+          <ListItemIcon className={classes.menuItemIcon}><Icon name={i.icon} /></ListItemIcon>
+          <ListItemText primary={i.title} />
+          {i.children && <Icon name={expandMenu === i.key ? "ExpandLess" : "ExpandMore"} />}
+        </>}
+      </ListItem>
+      {
+        i.children && <Collapse in={expandMenu === i.key} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {i.children.map((i: MenuItem) => <ListItem key={i.key} button selected={i.key === currentKey} className={classes.menuItem} onClick={() => i.path && history.push(i.path)}>
+              {iconMenu ? <Icon color="action" name={i.icon} /> : <><ListItemIcon><Icon name={i.icon} /></ListItemIcon><ListItemText primary={i.title} /></>}
+            </ListItem>)}
+          </List>
+        </Collapse>
+      }
+    </Box>)}</List></Paper> : undefined
+  }, [topMenu, breadcrumb, iconMenu, expandMenu]
+  );
   return <ThemeProvider theme={theme}>
     <AppBar>
       <Toolbar>
@@ -254,49 +252,22 @@ export default (props: any) => {
           管理终端
         </Typography>
         {
-          menuTree.map((i: MenuItem) => <Button color="inherit" startIcon={<Icon name={i.icon} />} onClick={() => setTopMenu(i.key)} key={i.key}>{i.title}</Button>)
+          menuTree.map((i: MenuItem) => <Button color="inherit" startIcon={<Icon name={i.icon} />} onClick={() => setTopMenu(i)} key={i.key}>{i.title}</Button>)
         }
         <Button color="inherit" startIcon={<Icon name="AccountCircle" />} onClick={e => setUserMenuAnchor(e.currentTarget)}>{user?.name}</Button>
       </Toolbar>
     </AppBar>
     <Box className={classes.main}>
       <Box className={iconMenu ? classes.iconMenu : classes.menu}>
-        <Paper elevation={5}>
-          <List component="nav">
-            {
-              menuTree.find((i: MenuItem) => i.key === topMenu)?.children?.map((i: MenuItem) => {
-                return <Box key={i.key}>
-                  <ListItem className={classes.menuItem} button onClick={() => i.children ? setExpandMenu(i.key) : i.path && history.push(i.path)}>
-                    {iconMenu ? <Icon name={i.icon} /> : <>
-                      <ListItemIcon className={classes.menuItemIcon}><Icon name={i.icon} /></ListItemIcon>
-                      <ListItemText primary={i.title} />
-                      {i.children && <Icon name={expandMenu === i.key ? "ExpandLess" : "ExpandMore"} />}
-                    </>}
-                  </ListItem>
-                  {
-                    i.children && <Collapse in={expandMenu === i.key} timeout="auto" unmountOnExit>
-                      <List component="div" disablePadding>
-                        {i.children.map((i: MenuItem) => <ListItem key={i.key} button className={classes.menuItem} onClick={() => i.path && history.push(i.path)}>
-                          {iconMenu ? <Icon color="action" name={i.icon} /> : <><ListItemIcon><Icon name={i.icon} /></ListItemIcon><ListItemText primary={i.title} /></>}
-                        </ListItem>)}
-                      </List>
-                    </Collapse>
-                  }
-                </Box>
-              })
-            }
-          </List>
-        </Paper>
+        {navMenu}
       </Box>
       <Box className={classes.content}>
         <context.Provider value={{
           title: <Breadcrumbs className={classes.breadcrumbs}>
-            {
-              breadcrumb.map(i => <Typography color="textPrimary" className={classes.breadcrumb} key={i.key}><Icon classes={{ icon: classes.icon }} name={i.icon} /> {i.title}</Typography>)
-            }
+            {breadcrumb.map(i => <Typography color="textPrimary" className={classes.breadcrumb} key={i.key}><Icon classes={{ icon: classes.icon }} name={i.icon} /> {i.title}</Typography>)}
           </Breadcrumbs>,
           alert: setAlert
-        }}>{pass ? props.children : undefined}</context.Provider>
+        }}>{breadcrumb.length > 0 ? props.children : undefined}</context.Provider>
       </Box>
     </Box>
     <Menu
