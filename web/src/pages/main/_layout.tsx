@@ -18,6 +18,8 @@ import Box from '@material-ui/core/Box';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import Paper from '@material-ui/core/Paper';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 import Icon from '@/component/icon/icon'
 import UploadPassword from '@/component/modal/update_password'
 import context from './context'
@@ -100,6 +102,8 @@ export default (props: any) => {
   const [topMenu, setTopMenu] = useState<string>();
   // 展开二级菜单ID
   const [expandMenu, setExpandMenu] = useState<string>();
+  // 展开二级菜单ID
+  const [alert, setAlert] = useState<{ type: "info" | "success" | "error" | "warning", message: string } | undefined>(undefined);
   // 用户信息
   const { user, role, login, logout } = useModel('auth', model => ({
     user: model.user,
@@ -290,7 +294,8 @@ export default (props: any) => {
             {
               breadcrumb.map(i => <Typography color="textPrimary" className={classes.breadcrumb} key={i.key}><Icon classes={{ icon: classes.icon }} name={i.icon} /> {i.title}</Typography>)
             }
-          </Breadcrumbs>
+          </Breadcrumbs>,
+          alert: setAlert
         }}>{pass ? props.children : undefined}</context.Provider>
       </Box>
     </Box>
@@ -306,5 +311,10 @@ export default (props: any) => {
       <MenuItem onClick={() => { exit.run(); setUserMenuAnchor(null); }}>退出登录</MenuItem>
     </Menu>
     {modal}
+    <Snackbar open={alert != undefined} autoHideDuration={3000} transitionDuration={0} onClose={(event, reason) => { if (reason !== 'clickaway') setAlert(undefined) }}>
+      <MuiAlert elevation={6} onClose={() => setAlert(undefined)} severity={alert?.type} variant="filled">
+        {alert?.message}
+      </MuiAlert>
+    </Snackbar>
   </ThemeProvider>;
 };

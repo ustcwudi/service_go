@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { makeStyles, lighten, Theme, createStyles } from '@material-ui/core/styles';
-import { message } from 'antd';
 import { useRequest } from 'umi';
 import allColumns from './columns';
 import { filter, formFilter, searchFilter, buttonFilter } from '@/util/tableUtil'
@@ -123,11 +122,11 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
           });
           setSource({ data: [...source.data], total: source.total - result.data });
           setSelection([]);
-          message.success(`${trash ? '还原' : '删除'}${result.data}项`);
+          mainContext.alert?.({ type: 'success', message: `${trash ? '还原' : '删除'}${result.data}项` })
         } else
-          message.warning(`${trash ? '还原' : '删除'}${result.data}项`);
+          mainContext.alert?.({ type: 'warning', message: `${trash ? '还原' : '删除'}${result.data}项` })
       } else {
-        message.error(`${trash ? '还原' : '删除'}失败`);
+        mainContext.alert?.({ type: 'error', message: `${trash ? '还原' : '删除'}失败` })
       }
     },
   });
@@ -174,9 +173,9 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
           });
           setSource({ data: [...source.data], total: source.total });
           setModify(undefined);
-          message.success('修改成功');
+          mainContext.alert?.({ type: 'success', message: '修改成功' })
         } else {
-          message.error('修改失败');
+          mainContext.alert?.({ type: 'error', message: '修改失败' })
         }
       },
     },
@@ -202,9 +201,9 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
           source.data.unshift(result.data);
           setSource({ data: [...source.data], total: source.total + 1 });
           setAdd(false);
-          message.success('新增成功');
+          mainContext.alert?.({ type: 'success', message: '新增成功' })
         } else {
-          message.error('新增失败');
+          mainContext.alert?.({ type: 'error', message: '新增失败' })
         }
       },
     },
@@ -227,11 +226,11 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
             });
             setSource({ data: [...source.data], total: source.total - result.data });
             setSelection([]);
-            message.success(`彻底删除${result.data}项`);
+            mainContext.alert?.({ type: 'success', message: `彻底删除${result.data}项` })
           } else
-            message.warning(`彻底删除${result.data}项`);
+            mainContext.alert?.({ type: 'warning', message: `彻底删除${result.data}项` })
         } else {
-          message.error(`彻底删除失败`);
+          mainContext.alert?.({ type: 'error', message: '彻底删除失败' })
         }
       },
     },
@@ -260,11 +259,11 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
       'search': <IconButton key="search" icon="Search" title="搜索" color={search ? "primary" : "default"} onClick={() => setSearch(!search)} />,
       'refresh': <IconButton key="refresh" title="刷新" icon="Refresh" onClick={(e: any) => setWhere({ ...where })} />,
       'import': <FileUpload key="import" action={"/api/admin/{{u $.Name}}/import"}
-        onUpload={(list: any) => { message.info(`导入${list.length}项数据`); setWhere({}); }}>
+        onUpload={(list: any) => { mainContext.alert?.({ type: 'info', message: `导入${list.length}项数据` }); setWhere({}); }}>
         <IconButton title="导入" icon="Publish" />
       </FileUpload>,
       'trash': <IconButton key="trash" title="回收站" color={trash ? "primary" : "default"} icon="DeleteOutline"
-        onClick={() => { message.info(trash ? "离开回收站" : "进入回收站"); setTrash(!trash); setSelection([]); }} />
+        onClick={() => { mainContext.alert?.({ type: 'warning', message: trash ? "离开回收站" : "进入回收站" }); setTrash(!trash); setSelection([]); }} />
     }
     return <Toolbar>
       <Typography className={classes.title} variant="h6" component="div">
@@ -276,16 +275,18 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
 
   // 选择工具栏
   const selectionBar = useMemo(() => {
-    let buttons = {
+    let buttons: { [key: string]: JSX.Element } = trash ? {
       'unselect': <IconButton key="unselect" color="default" title="取消" icon="Replay" onClick={() => setSelection([])} />,
-      'trash': <IconButton key="trash" title={trash ? "恢复" : "删除"} color="default"
-        icon={trash ? "SettingsBackupRestore" : "Delete"} onClick={() => action.run(trash ? 'restore' : 'trash', { id: selection.map(i => i.id) })} />,
+      'trash': <IconButton key="trash" title="恢复" color="default" icon="SettingsBackupRestore" onClick={() => action.run('restore', { id: selection.map(i => i.id) })} />,
       'delete': <IconButton key="delete" title="彻底删除" icon="DeleteForever" onClick={() => remove.run({ id: selection.map(i => i.id) })} />
+    } : {
+      'unselect': <IconButton key="unselect" color="default" title="取消" icon="Replay" onClick={() => setSelection([])} />,
+      'trash': <IconButton key="trash" title="删除" icon="Delete" onClick={() => action.run('trash', { id: selection.map(i => i.id) })} />,
     }
     return <Toolbar>
       <Typography className={classes.title} color="inherit" variant="subtitle1" component="div">
         选中 {selection.length} 项
-        </Typography>
+      </Typography>
       {buttonFilter(buttons, props.renderSelectionButton, props.moreSelectionButton)}
     </Toolbar>
   }, [trash, selection])
@@ -304,7 +305,7 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
         for (let index = 0; index < column.rules.length; index++) {
           const rule = column.rules[index];
           if (!rule.check(record)) {
-            message.error(rule.message)
+            mainContext.alert?.({ type: 'error', message: rule.message })
             return false
           }
         }
