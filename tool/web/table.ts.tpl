@@ -241,10 +241,10 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
     let operation = {
       name: '_', label: '', render: (model: {{.Name}}) => buttonFilter({
         'update': <IconButton key="upload" title="修改" icon="Edit" color="default" onClick={() => setModify(model)} />,
-        {{- if .Upload}}{{range .Fields}}{{if .Upload}}
+        {{- if .Upload}}{{range .Fields}}{{if or (eq .Type "upload") (eq .Type "upload[]")}}
         'upload{{.Name}}': <FileUpload key="upload{{.Name}}"
           data={ {id: model.id }} action={"/api/admin/{{u $.Name}}/upload/{{u .Name}}"}
-          onUpload={(file: any) => { model.{{u .Name}} = file; setSource({ data: [...source.data], total: source.total }); }}>
+          onUpload={(file: any) => { model.{{u .Name}} = file; mainContext.alert?.({ type: 'success', message: '{{.Description}}上传成功' }); }}>
           <IconButton color="default" title="上传{{.Description}}" icon="CloudUpload" /></FileUpload>,
         {{- end}}{{end}}{{end}}
       }, props.renderColumnButton, props.moreColumnButton?.(model))
@@ -301,9 +301,9 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
         // allow null
       } else if (value === undefined) {
         // modify allow undefined
-      } else if (column.rules) {
-        for (let index = 0; index < column.rules.length; index++) {
-          const rule = column.rules[index];
+      } else if (column.rule) {
+        for (let key in column.rule) {
+          const rule = column.rule[key];
           if (!rule.check(record)) {
             mainContext.alert?.({ type: 'error', message: rule.message })
             return false

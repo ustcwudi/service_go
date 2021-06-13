@@ -91,7 +91,7 @@ const renderString = <T extends { [index: string]: any }, Q>(param: Column<T, Q>
           disabled={disabled}
           onChange={e => { let v = e.target.value ? e.target.value : undefined; props.onChange(param.name, v); setValue(v); }} />
       </NullContainer>;
-    else if (param.size && param.size > 100)
+    else if (param.rule?.size?.value > 100)
       return <NullContainer nullable={param.nullable} disabled={disabled} setDisabled={setDisabled}>
         <TextField fullWidth multiline
           variant="outlined"
@@ -110,7 +110,7 @@ const renderString = <T extends { [index: string]: any }, Q>(param: Column<T, Q>
           onChange={e => { let v = e.target.value; props.onChange(param.name, v); setValue(v); }} />
       </NullContainer>;
   }
-  return <Grid key={param.name} item xs={param.name == "remark" || (param.size && param?.size > 100) ? 12 : 6}>
+  return <Grid key={param.name} item xs={param.name == "remark" || (param.rule?.size?.value > 100) ? 12 : 6}>
     <C {...props} />
   </Grid>;
 };

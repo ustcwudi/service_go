@@ -12,9 +12,10 @@ import (
 	"lib/util"
 	{{- if eq .Name "Upload"}}
 	"lib/storage"
+	{{- else if eq .Name "User"}}
+	"lib/config"
 	{{- end}}
 	{{- if .Upload}}
-	"lib/config"
 	"lib/storage"
 	"path"
 	{{- end}}
@@ -45,12 +46,16 @@ func RouteAdmin(router *gin.Engine) {
 			{{u .Name}}.PUT("", auth.CheckLogin, route.FetchEditForm, AssertDataMap, AssertWhere, permission.Check("{{.Name}}", "Edit"), permission.Aspect("{{.Name}}.Edit"), Edit)
 			{{u .Name}}.PUT("/trash", auth.CheckLogin, route.FetchWhere, AssertWhere, permission.Check("{{.Name}}", "Trash"), permission.Aspect("{{.Name}}.Trash"), Trash)
 			{{u .Name}}.PUT("/restore", auth.CheckLogin, route.FetchWhere, AssertWhere, permission.Check("{{.Name}}", "Restore"), permission.Aspect("{{.Name}}.Restore"), Restore)
-			{{u .Name}}.DELETE("", auth.CheckLogin, route.FetchWhere, AssertWhere, permission.Check("{{.Name}}", "Delete"), permission.Aspect("{{.Name}}.Delete"), Delete){{range $index, $elem := .Fields}}{{if .Upload}}
+			{{u .Name}}.DELETE("", auth.CheckLogin, route.FetchWhere, AssertWhere, permission.Check("{{.Name}}", "Delete"), permission.Aspect("{{.Name}}.Delete"), Delete)
+			{{- range $index, $elem := .Fields}}{{if or (eq $elem.Type "upload") (eq $elem.Type "upload[]")}}
 			{{u $.Name}}.POST("/upload/{{u $elem.Name}}", auth.CheckLogin, permission.Check("{{.Name}}", "Upload{{$elem.Name}}"), permission.Aspect("{{.Name}}.Upload{{$elem.Name}}"), Upload{{$elem.Name}})
-			{{u $.Name}}.GET("/download/{{u $elem.Name}}/:file", auth.CheckLogin, permission.Check("{{.Name}}", "Download{{$elem.Name}}"), permission.Aspect("{{.Name}}.Download{{$elem.Name}}"), Download{{$elem.Name}}){{end}}{{end}}
+			{{u $.Name}}.GET("/download/{{u $elem.Name}}/:file", auth.CheckLogin, permission.Check("{{.Name}}", "Download{{$elem.Name}}"), permission.Aspect("{{.Name}}.Download{{$elem.Name}}"), Download{{$elem.Name}})
+			{{- end}}{{end}}
 		}
-	}{{range $index, $elem := .Fields}}{{if .Upload}}
-	storage.CreateBucket("{{h $.Name}}-{{h $elem.Name}}"){{end}}{{end}}
+	}
+	{{- range $index, $elem := .Fields}}{{if or (eq $elem.Type "upload") (eq $elem.Type "upload[]")}}
+	storage.CreateBucket("{{h $.Name}}-{{h $elem.Name}}")
+	{{- end}}{{end}}
 }
 
 // Get 查询
@@ -190,7 +195,7 @@ func Edit(c *gin.Context) {
 	// 数据库操作
 	if ids, err := mongo.Get{{.Name}}IDList(where); err == nil {
 		if _, err := mongo.UpdateMany{{.Name}}(bson.M{"_id": bson.M{"$in": ids}}, data); err == nil {
-			updates, _ := mongo.FindMany{{.Name}}Data(bson.M{"_id": bson.M{"$in": ids}}, nil)
+			updates, _ := mongo.FindMany{{.Name}}Data(bson.M{"_id": bson.M{"$in": ids}}, permission.GetRestrictQuery(c, "{{.Name}}"))
 			{{- if .Link}}
 			linkData(c, updates, &result)
 			{{- end}}
@@ -269,7 +274,7 @@ func Delete(c *gin.Context) {
 	}
 }
 
-{{- range $index, $elem := .Fields}}{{if .Upload}}
+{{- range $index, $elem := .Fields}}{{if or (eq $elem.Type "upload") (eq $elem.Type "upload[]")}}
 
 // Upload{{$elem.Name}} 上传{{.Description}}
 // @summary 上传{{.Description}}
@@ -292,14 +297,18 @@ func Upload{{$elem.Name}}(c *gin.Context) {
 	id := form.Value["id"][0]
 	item, _ := mongo.FindOne{{$.Name}}ByID(id, bson.M{"_id": 1, "{{c $elem.Name}}": 1})
 	files := form.File["upload"]
-	{{- if eq $elem.Type "string[]"}}
+	{{- if eq $elem.Type "upload[]"}}
 	var list []string
 	var attachments []model.Upload
-	for _, file := range files {
-		if file.Size > {{c $elem.Size}}*1024*1024 {
-			c.JSON(http.StatusOK, result.SetCode(define.LogicError))
+	{{- if $elem.Rule.Size}}
+	for _, f := range files {
+		if f.Size > {{$elem.Rule.Size}}*1024*1024 {
+			c.JSON(http.StatusOK, result.SetCode(define.LogicError).SetMessage("文件大小超过限制"))
 			return
 		}
+	}
+	{{- end}}
+	for _, file := range files {
 		var attachment model.Upload
 		index := strings.LastIndex(file.Filename, ".")
 		attachment.User = currentUser.ID
@@ -317,12 +326,14 @@ func Upload{{$elem.Name}}(c *gin.Context) {
 	mongo.InsertManyUpload(&attachments)
 	mongo.UpdateOne{{$.Name}}(bson.M{"_id": item.ID}, bson.M{"{{c $elem.Name}}": list})
 	c.JSON(http.StatusOK, result.SetData(list))
-	{{- else if eq $elem.Type "string"}}
+	{{- else if eq $elem.Type "upload"}}
 	file := files[0]
-	if file.Size > config.Service.Upload.Size*1024*1024 {
-		c.JSON(http.StatusOK, result.SetCode(define.LogicError))
+	{{- if $elem.Rule.Size}}
+	if file.Size > {{$elem.Rule.Size}}*1024*1024 {
+		c.JSON(http.StatusOK, result.SetCode(define.LogicError).SetMessage("文件大小超过限制"))
 		return
 	}
+	{{- end}}
 	index := strings.LastIndex(file.Filename, ".")
 	var attachment model.Upload
 	attachment.User = currentUser.ID
@@ -473,8 +484,12 @@ func AssertWhere(c *gin.Context) {
 			case "createTime":
 				pair := util.ToFloatPair(v)
 				where[k] = bson.M{"$gte": pair[0] * 1e6, "$lte": pair[1] * 1e6}
-			{{- range .Fields}}{{if or (eq .Type "id") (eq .Type "id[]")}}
+			case "updateTime":
+				pair := util.ToFloatPair(v)
+				where[k] = bson.M{"$gte": pair[0] * 1e6, "$lte": pair[1] * 1e6}
+			{{- range .Fields}}
 			case "{{c .Name}}":
+			{{- if or (eq .Type "id") (eq .Type "id[]")}}
 				switch v.(type) {
 				case []interface{}:
 					where[k] = bson.M{"$in": util.ToIDArray(v)}
@@ -482,7 +497,6 @@ func AssertWhere(c *gin.Context) {
 					where[k] = util.ToID(v)
 				}
 			{{- else if or (eq .Type "string") (eq .Type "string[]")}}
-			case "{{c .Name}}":
 				{{- if eq .Search "like"}}
 				where[k] = primitive.Regex{Pattern: util.ToString(v), Options: "i"}
 				{{- else}}
@@ -494,7 +508,6 @@ func AssertWhere(c *gin.Context) {
 				}
 				{{- end}}
 			{{- else if or (eq .Type "int") (eq .Type "int[]")}}
-			case "{{c .Name}}":
 				{{- if eq .Search "between"}}
 				pair := util.ToFloatPair(v)
 				where[k] = bson.M{"$gte": pair[0], "$lte": pair[1]}
@@ -507,7 +520,6 @@ func AssertWhere(c *gin.Context) {
 				}
 				{{- end}}
 			{{- else if or (eq .Type "float") (eq .Type "float[]")}}
-			case "{{c .Name}}":
 				{{- if eq .Search "between"}}
 				pair := util.ToFloatPair(v)
 				where[k] = bson.M{"$gte": pair[0], "$lte": pair[1]}
@@ -520,7 +532,6 @@ func AssertWhere(c *gin.Context) {
 				}
 				{{- end}}
 			{{- else if or (eq .Type "map[string]string") (eq .Type "map[string]int") (eq .Type "map[string]float") (eq .Type "map[string]string[]")}}
-			case "{{c .Name}}":
 				switch v := v.(type) {
 				case map[string]interface{}:
 					for key, value := range v {
@@ -530,10 +541,8 @@ func AssertWhere(c *gin.Context) {
 					delete(where, k)
 				}
 			{{- else if eq .Type "bool"}}
-			case "{{c .Name}}":
 				where[k] = util.ToBool(v)
 			{{- else}}
-			case "{{c .Name}}":
 				delete(where, k)
 			{{- end}}{{end}}
 			default:

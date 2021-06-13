@@ -11,32 +11,32 @@ import (
 
 // Model 类定义
 type Model struct {
-	Name        string
-	Description string
-	Link        bool // 有外键字段
-	Upload      bool // 有上传字段
-	Nullable    bool // 有可空字段
+	Name        string // 名称
+	Description string // 描述
+	Link        bool   // 有外键字段
+	Upload      bool   // 有上传字段
+	Nullable    bool   // 有可空字段
 	Fields      []Field
 }
 
 // Field 字段定义
+// 校验规则 Rule:
+// 必填 Require: bool
+// 文件大小/字符串长度 Size: int
+// 最大值 Max: float
+// 最小值 Min: float
+// 正则 Regex: string
+// 小数精度 Accuracy: int
+// 文件后缀 Ext: string[]
 type Field struct {
-	Name        string
-	Type        string
-	Link        string   // 外链
-	Map         []Pair   // 映射
-	Description string   // 描述
-	Search      string   // 查询方式
-	Hide        []string // 隐藏
-	Upload      bool     // 文件上传
-	Size        int      // 文件或字符串大小
-	Nullable    bool     // 可空类型
-}
-
-// Pair 类定义
-type Pair struct {
-	Key   string
-	Value string
+	Name        string                 // 名称
+	Type        string                 // 类型(15): bool, string, int, float, id, upload, array, map
+	Description string                 // 描述
+	Nullable    bool                   // 可空
+	Link        string                 // 外链
+	Search      string                 // 查询: equal, between, like
+	Map         map[string]string      // 映射
+	Rule        map[string]interface{} // 校验规则
 }
 
 // ScriptType ts类型转换
@@ -48,9 +48,9 @@ func ScriptType(t string) string {
 		return "number[]"
 	case "bool":
 		return "boolean"
-	case "string":
+	case "string", "upload":
 		return "string"
-	case "string[]":
+	case "string[]", "upload[]":
 		return "string[]"
 	case "id":
 		return "string"
@@ -82,9 +82,9 @@ func GolangType(t string) string {
 		return "[]float64"
 	case "bool":
 		return "bool"
-	case "string":
+	case "string", "upload":
 		return "string"
-	case "string[]":
+	case "string[]", "upload[]":
 		return "[]string"
 	case "id":
 		return "primitive.ObjectID"
@@ -116,9 +116,9 @@ func MethodType(t string) string {
 		return "FloatArray"
 	case "bool":
 		return "Bool"
-	case "string":
+	case "string", "upload":
 		return "String"
-	case "string[]":
+	case "string[]", "upload[]":
 		return "StringArray"
 	case "id":
 		return "ID"
@@ -137,10 +137,18 @@ func MethodType(t string) string {
 	}
 }
 
-// UnderScoreCase 下划线命名
+// CamelCase c:大驼峰转小驼峰命名
+func CamelCase(name string) string {
+	temp := []rune(name)
+	if temp[0] < 91 {
+		temp[0] += 32
+	}
+	return string(temp)
+}
+
+// UnderScoreCase u:大驼峰转下划线命名
 func UnderScoreCase(name string) string {
 	var slice []rune
-	name = strings.ReplaceAll(name, "ID", "Id")
 	for _, c := range name {
 		if c < 91 {
 			slice = append(slice, '_')
@@ -152,10 +160,23 @@ func UnderScoreCase(name string) string {
 	return strings.ToLower(string(slice[1:]))
 }
 
-// UpperCase 大写命名
+// HyphenCase h:大驼峰转横线命名
+func HyphenCase(name string) string {
+	var slice []rune
+	for _, c := range name {
+		if c < 91 {
+			slice = append(slice, '-')
+			slice = append(slice, c)
+		} else {
+			slice = append(slice, c)
+		}
+	}
+	return strings.ToLower(string(slice[1:]))
+}
+
+// UpperCase 下划线/横线转大驼峰命名
 func UpperCase(name string) string {
 	var slice []rune
-	name = strings.ReplaceAll(name, "_id", "ID")
 	up := false
 	for index, c := range name {
 		if index == 0 || up {
@@ -168,31 +189,6 @@ func UpperCase(name string) string {
 		}
 	}
 	return string(slice)
-}
-
-// HyphenCase 横线命名
-func HyphenCase(name string) string {
-	var slice []rune
-	name = strings.ReplaceAll(name, "ID", "Id")
-	for _, c := range name {
-		if c < 91 {
-			slice = append(slice, '-')
-			slice = append(slice, c)
-		} else {
-			slice = append(slice, c)
-		}
-	}
-	return strings.ToLower(string(slice[1:]))
-}
-
-// CamelCase 驼峰命名
-func CamelCase(name string) string {
-	name = strings.ReplaceAll(name, "ID", "Id")
-	temp := []rune(name)
-	if temp[0] < 91 {
-		temp[0] += 32
-	}
-	return string(temp)
 }
 
 // GetModel 根据名称获取Model
@@ -227,7 +223,7 @@ func getModels(path string) []Model {
 			json.Unmarshal(content, &model)
 			model.Name = strings.TrimSuffix(file.Name(), ".json")
 			for _, j := range model.Fields {
-				if j.Upload {
+				if j.Type == "upload" || j.Type == "upload[]" {
 					model.Upload = true
 				}
 				if j.Nullable {
@@ -245,23 +241,33 @@ func getModels(path string) []Model {
 
 // 根据定义生成文件
 func generate(module string) {
-	// 合并基本定义和模块定义
+	// 基本定义
 	commonModels := getModels("./define/")
+	// 模块定义
 	models := getModels("../" + module + "/define/")
 	for x, model := range models {
 		for y, commonModel := range commonModels {
+			// 合并定义
 			if commonModel.Name == model.Name {
 				models[x].Link = commonModel.Link || model.Link
 				models[x].Nullable = commonModel.Nullable || model.Nullable
 				models[x].Upload = commonModel.Upload || model.Upload
+				// 移除基本定义,合入模块定义
 				models[x].Fields = append(commonModel.Fields, model.Fields...)
-				commonModels = append(commonModels[:y], commonModels[y+1:]...) // 移除重复
+				commonModels = append(commonModels[:y], commonModels[y+1:]...)
 				break
 			}
 		}
 	}
+	// 合并完成
 	models = append(models, commonModels...)
-	funcMap := template.FuncMap{"u": UnderScoreCase, "c": CamelCase, "h": HyphenCase, "gt": GolangType, "st": ScriptType, "mt": MethodType,
+	funcMap := template.FuncMap{
+		"u":     UnderScoreCase, //转下划线
+		"c":     CamelCase,      //转小驼峰
+		"h":     HyphenCase,     //转横线
+		"gt":    GolangType,     //转go类型
+		"st":    ScriptType,     //转ts类型
+		"mt":    MethodType,     //根据名称获取定义
 		"model": func(name string) *Model { return GetModel(name, models) }}
 	// output model define
 	content := read("service/model.go.tpl")
@@ -307,7 +313,7 @@ func generate(module string) {
 	tmpl, _ = template.New("service_route").Funcs(funcMap).Parse(string(content))
 	f, _ := os.Create("../" + module + "/api/route.go")
 	tmpl.Execute(f, map[string]interface{}{"PathList": pathList, "PackageList": packageList})
-	// output web index
+	// output web defination
 	os.Mkdir("../web/src/pages/main/base", os.ModePerm)
 	content = read("web/index.ts.tpl")
 	tmpl, _ = template.New("web_index").Funcs(funcMap).Parse(string(content))
@@ -316,7 +322,7 @@ func generate(module string) {
 		f, _ := os.Create("../web/src/pages/main/base/" + UnderScoreCase(define.Name) + "/index.d.ts")
 		tmpl.Execute(f, define)
 	}
-	// output web index
+	// output web column
 	content = read("web/columns.ts.tpl")
 	tmpl, _ = template.New("web_columns").Funcs(funcMap).Parse(string(content))
 	for _, define := range models {

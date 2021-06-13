@@ -1,23 +1,11 @@
-declare class {{.Name}} {
-  // ID
-  id: string;
+declare class {{.Name}} extends Model {
   {{- range .Fields}}
   // {{.Description}}
   {{c .Name}}{{- if .Nullable}}?{{end}}: {{st .Type}}{{if .Link}} | {{.Link}}{{if eq .Type "id[]"}}[]{{end}}{{end}};
   {{- end}}
-  // 创建时间
-  createTime?: number;
-  // 修改时间
-  updateTime?: number;
-  // 废弃时间
-  deleteTime?: number;
-  // 索引
-  [key: string]: boolean | number | number[] | string | string[] | { [key: string]: string | string[] | number } |{{range .Fields}}{{if .Link}} {{.Link}} |{{end}}{{end}} undefined | null;
 }
 
-declare class {{.Name}}Query {
-  // ID
-  id?: string | string[];
+declare class {{.Name}}Query extends QueryModel {
   {{- range .Fields}}
   // {{.Description}}
   {{- if eq .Type "bool"}}
@@ -53,12 +41,4 @@ declare class {{.Name}}Query {
   {{st .Type}};
 
   {{- end}}{{end}}
-  // 创建时间
-  createTime?: [null | number, null | number];
-  // 修改时间
-  updateTime?: [null | number, null | number];
-  // 废弃时间
-  deleteTime?: [null | number, null | number];
-  // 索引
-  [key: string]: boolean | number | number[] | string | string[] | { [key: string]: string | number } | [null | number, null | number] | undefined | null;
 }

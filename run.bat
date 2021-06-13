@@ -1,3 +1,4 @@
+echo off
 xcopy .\web\src\pages\main\%1\ .\web\src\extra\%1\ /s /y
 cd tool
 go run main.go %1

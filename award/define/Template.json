@@ -18,7 +18,9 @@
       "Name": "Content",
       "Type": "string",
       "Description": "内容",
-      "Size": 5000
+      "Rule": {
+        "Size": 5000
+      }
     },
     {
       "Name": "Width",
@@ -32,15 +34,21 @@
     },
     {
       "Name": "Background",
-      "Type": "string",
-      "Description": "背景",
-      "Upload": true
+      "Type": "upload",
+      "Description": "背景"
     },
     {
       "Name": "Signet",
-      "Type": "string",
+      "Type": "upload",
       "Description": "印章",
-      "Upload": true
+      "Rule": {
+        "Size": 5,
+        "Ext": [
+          "jpg",
+          "jpeg",
+          "png"
+        ]
+      }
     },
     {
       "Name": "SignetPositionX",

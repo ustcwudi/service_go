@@ -10,10 +10,7 @@
     {
       "Name": "Password",
       "Type": "string",
-      "Description": "密码",
-      "Hide": [
-        "Table"
-      ]
+      "Description": "密码"
     },
     {
       "Name": "Role",
@@ -30,9 +27,16 @@
     },
     {
       "Name": "Avatar",
-      "Type": "string",
+      "Type": "upload",
       "Description": "头像",
-      "Upload": true
+      "Rule": {
+        "Size": 1,
+        "Ext": [
+          "jpg",
+          "jpeg",
+          "png"
+        ]
+      }
     },
     {
       "Name": "Phone",

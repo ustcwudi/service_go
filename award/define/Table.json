@@ -16,9 +16,8 @@
     },
     {
       "Name": "File",
-      "Type": "string",
-      "Description": "文件",
-      "Upload": true
+      "Type": "upload",
+      "Description": "文件"
     },
     {
       "Name": "Template",

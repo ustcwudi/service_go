@@ -30,13 +30,13 @@ interface TableProps<T, Q> {
 // 表格列属性
 interface Column<T, Q> {
   name: string; // 键名
-  label: string; // 表头
+  type?: string; // 类型
+  label: string; // 标签
   nullable?: boolean; // 可空
-  map?: { [key: string]: string }; // 键值对
   link?: string; // 外链
-  size?: number; // 大小
-  search?: string; // 搜索
-  rules?: { check: (model: T) => boolean, message: string }[]; // 校验规则
+  search?: string; // 查询
+  map?: { [key: string]: string }; // 映射
+  rule?: { [key: string]: { value: any, check: (model: T) => boolean, message: string } }; // 校验规则
   render?: (model: T) => string | number | JSX.Element | JSX.Element[]; // 表格内容渲染
   renderForm?: (column: Column<T, Q>, props: InputProps<T>) => string | number | JSX.Element | JSX.Element[]; // 表单渲染
   renderSearch?: (column: Column<T, Q>, props: InputProps<Q>) => string | number | JSX.Element | JSX.Element[]; // 搜索表单渲染
@@ -52,4 +52,32 @@ interface QueryOption<T> {
 interface InputProps<T> {
   default?: T;
   onChange: (name: string, value: any) => void;
+}
+
+// 基类
+declare class Model {
+  // ID
+  id: string
+  // 创建时间
+  createTime?: number;
+  // 修改时间
+  updateTime?: number;
+  // 废弃时间
+  deleteTime?: number;
+  // 索引
+  [key: string]: any
+}
+
+// 查询基类
+declare class QueryModel {
+  // ID
+  id?: string | string[];
+  // 创建时间
+  createTime?: [null | number, null | number];
+  // 修改时间
+  updateTime?: [null | number, null | number];
+  // 废弃时间
+  deleteTime?: [null | number, null | number];
+  // 索引
+  [key: string]: any
 }

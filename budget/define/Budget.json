@@ -437,9 +437,8 @@
     },
     {
       "Name": "Attachment",
-      "Type": "string",
-      "Description": "附件",
-      "Upload": true
+      "Type": "upload",
+      "Description": "附件"
     },
     {
       "Name": "ChildrenCount",

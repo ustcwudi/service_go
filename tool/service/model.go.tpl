@@ -8,7 +8,8 @@ import (
 type {{.Name}} struct {
 	ID		primitive.ObjectID	`bson:"_id,omitempty" json:"id,omitempty"`
 	{{- range .Fields}}{{if .Nullable}}
-	{{.Name}}		*{{gt .Type}}	`bson:"{{c .Name}}" json:"{{c .Name}},omitempty"`	// {{.Description}}{{else}}
+	{{.Name}}		*{{gt .Type}}	`bson:"{{c .Name}}" json:"{{c .Name}},omitempty"`	// {{.Description}}
+	{{- else}}
 	{{.Name}}		{{gt .Type}}	`bson:"{{c .Name}}" json:"{{c .Name}}"`	// {{.Description}}
 	{{- end}}{{end}}
 	CreateTime		int64	`bson:"createTime" json:"createTime,omitempty"`
