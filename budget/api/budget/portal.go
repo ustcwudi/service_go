@@ -293,7 +293,9 @@ func Summary(c *gin.Context) {
 	for _, budget := range *budgets {
 		row := make(map[string]interface{})
 		row["budget"] = budget
+		row["category"] = budget.Category
 		row["department"] = budget.Department
+		row["superior"] = budget.SuperiorDepartment
 		amount := .0
 		if details, err := mongo.FindManyBudgetDetail(bson.M{"budget": budget.ID}, bson.M{}); err == nil {
 			row["detail"] = details
@@ -333,10 +335,13 @@ func Summary(c *gin.Context) {
 		data = append(data, row)
 	}
 	// 映射部门
-	ids := make([]primitive.ObjectID, len(data))
+	ids := make([]primitive.ObjectID, 0)
 	for _, row := range data {
 		if row["department"] != nil {
 			ids = append(ids, row["department"].(primitive.ObjectID))
+		}
+		if row["superior"] != nil {
+			ids = append(ids, row["superior"].(primitive.ObjectID))
 		}
 	}
 	department, _ := mongo.FindManyDepartment(bson.M{"_id": bson.M{"$in": ids}}, bson.M{})
@@ -346,6 +351,7 @@ func Summary(c *gin.Context) {
 	}
 	for _, row := range data {
 		row["department"] = departmentMap[row["department"].(primitive.ObjectID).Hex()]
+		row["superior"] = departmentMap[row["superior"].(primitive.ObjectID).Hex()]
 	}
 	c.JSON(http.StatusOK, r.SetData(data))
 }
