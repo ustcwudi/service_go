@@ -9,12 +9,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// InsertOne{{.Name}} 新增单个{{.Description}}数据
-func InsertOne{{.Name}}(model *model.{{.Name}}) (interface{}, error) {
+// InsertOne{{.Name}} 新增单个{{.Description}}数据，返回自增ID
+func InsertOne{{.Name}}(model *model.{{.Name}}) (primitive.ObjectID, error) {
 	model.CreateTime = time.Now().UnixNano()
-	result, err := mongo.InsertOne("{{.Name}}", model)
-	model.ID = result.InsertedID.(primitive.ObjectID)
-	return result.InsertedID, err
+	var err error
+	if result, err := mongo.InsertOne("{{.Name}}", model); err == nil {
+		model.ID = result.InsertedID.(primitive.ObjectID)
+		return model.ID, err
+	}
+	return primitive.NilObjectID, err
 }
 
 // InsertMany{{.Name}} 新增多个{{.Description}}数据
@@ -32,14 +35,12 @@ func InsertMany{{.Name}}(list *[]model.{{.Name}}) ([]interface{}, error) {
 // FindOne{{.Name}}ByID 根据ID查询单个{{.Description}}数据
 func FindOne{{.Name}}ByID(hex string, projection interface{}) (*model.{{.Name}}, error) {
 	var model model.{{.Name}}
-	id, err := primitive.ObjectIDFromHex(hex)
-	if err != nil {
-		return nil, err
-	}
-	result, err := mongo.FindOneByID("{{.Name}}", id, projection)
-	if err == nil {
-		if err = result.Decode(&model); err == nil {
-			return &model, err
+	var err error
+	if id, err := primitive.ObjectIDFromHex(hex); err == nil {
+		if result, err := mongo.FindOneByID("{{.Name}}", id, projection); err == nil {
+			if err = result.Decode(&model); err == nil {
+				return &model, err
+			}
 		}
 	}
 	return nil, err
@@ -48,8 +49,8 @@ func FindOne{{.Name}}ByID(hex string, projection interface{}) (*model.{{.Name}},
 // FindOne{{.Name}} 查询单个{{.Description}}数据
 func FindOne{{.Name}}(filter interface{}, projection interface{}) (*model.{{.Name}}, error) {
 	var model model.{{.Name}}
-	result, err := mongo.FindOne("{{.Name}}", filter, projection)
-	if err == nil {
+	var err error
+	if result, err := mongo.FindOne("{{.Name}}", filter, projection); err == nil {
 		if err = result.Decode(&model); err == nil {
 			return &model, err
 		}
@@ -60,14 +61,15 @@ func FindOne{{.Name}}(filter interface{}, projection interface{}) (*model.{{.Nam
 // FindMany{{.Name}} 查询多个{{.Description}}
 func FindMany{{.Name}}(filter interface{}, projection interface{}) (*[]model.{{.Name}}, error) {
 	var list []model.{{.Name}}
-	cursor, context, err := mongo.FindMany("{{.Name}}", filter, projection)
-	if err == nil {
+	var err error
+	if cursor, context, err := mongo.FindMany("{{.Name}}", filter, projection); err == nil {
 		for cursor.Next(context) {
 			var item model.{{.Name}}
-			if err := cursor.Decode(&item); err != nil {
-				return &list, err
+			if err := cursor.Decode(&item); err == nil {
+				list = append(list, item)
+			} else {
+				break
 			}
-			list = append(list, item)
 		}
 		defer cursor.Close(context)
 	}
@@ -77,15 +79,16 @@ func FindMany{{.Name}}(filter interface{}, projection interface{}) (*[]model.{{.
 // FindMany{{.Name}}Data 查询多个{{.Description}}数据
 func FindMany{{.Name}}Data(filter interface{}, projection interface{}) (*[]map[string]interface{}, error) {
 	var list []map[string]interface{}
-	cursor, context, err := mongo.FindMany("{{.Name}}", filter, projection)
-	if err == nil {
-		err = cursor.All(context, &list)
-	}
-	// 重命名_id
-	for _, item := range list {
-		if id, exist := item["_id"]; exist {
-			item["id"] = id
-			delete(item, "_id")
+	var err error
+	if cursor, context, err := mongo.FindMany("{{.Name}}", filter, projection); err == nil {
+		if err = cursor.All(context, &list); err == nil {
+			// 重命名_id
+			for _, item := range list {
+				if id, exist := item["_id"]; exist {
+					item["id"] = id
+					delete(item, "_id")
+				}
+			}
 		}
 	}
 	return &list, err
@@ -94,14 +97,15 @@ func FindMany{{.Name}}Data(filter interface{}, projection interface{}) (*[]map[s
 // FindMany{{.Name}}Limit 限量查询多个{{.Description}}
 func FindMany{{.Name}}Limit(filter interface{}, limit int64, sort interface{}, projection interface{}) (*[]model.{{.Name}}, error) {
 	var list []model.{{.Name}}
-	cursor, context, err := mongo.FindManyLimit("{{.Name}}", filter, limit, sort, projection)
-	if err == nil {
+	var err error
+	if cursor, context, err := mongo.FindManyLimit("{{.Name}}", filter, limit, sort, projection); err == nil {
 		for cursor.Next(context) {
 			var item model.{{.Name}}
-			if err := cursor.Decode(&item); err != nil {
-				return &list, err
+			if err := cursor.Decode(&item); err == nil {
+				list = append(list, item)
+			} else {
+				break
 			}
-			list = append(list, item)
 		}
 		defer cursor.Close(context)
 	}
@@ -111,15 +115,16 @@ func FindMany{{.Name}}Limit(filter interface{}, limit int64, sort interface{}, p
 // FindMany{{.Name}}DataLimit 限量查询多个{{.Description}}数据
 func FindMany{{.Name}}DataLimit(filter interface{}, limit int64, sort interface{}, projection interface{}) (*[]map[string]interface{}, error) {
 	var list []map[string]interface{}
-	cursor, context, err := mongo.FindManyLimit("{{.Name}}", filter, limit, sort, projection)
-	if err == nil {
-		err = cursor.All(context, &list)
-	}
-	// 重命名_id
-	for _, item := range list {
-		if id, exist := item["_id"]; exist {
-			item["id"] = id
-			delete(item, "_id")
+	var err error
+	if cursor, context, err := mongo.FindManyLimit("{{.Name}}", filter, limit, sort, projection); err == nil {
+		if err = cursor.All(context, &list); err == nil {
+			// 重命名_id
+			for _, item := range list {
+				if id, exist := item["_id"]; exist {
+					item["id"] = id
+					delete(item, "_id")
+				}
+			}
 		}
 	}
 	return &list, err
@@ -128,14 +133,15 @@ func FindMany{{.Name}}DataLimit(filter interface{}, limit int64, sort interface{
 // FindMany{{.Name}}Skip 分页查询多个{{.Description}}
 func FindMany{{.Name}}Skip(filter interface{}, skip int64, limit int64, sort interface{}, projection interface{}) (*[]model.{{.Name}}, error) {
 	var list []model.{{.Name}}
-	cursor, context, err := mongo.FindManySkip("{{.Name}}", filter, skip, limit, sort, projection)
-	if err == nil {
+	var err error
+	if cursor, context, err := mongo.FindManySkip("{{.Name}}", filter, skip, limit, sort, projection); err == nil {
 		for cursor.Next(context) {
 			var item model.{{.Name}}
-			if err := cursor.Decode(&item); err != nil {
-				return &list, err
+			if err := cursor.Decode(&item); err == nil {
+				list = append(list, item)
+			} else {
+				break
 			}
-			list = append(list, item)
 		}
 		defer cursor.Close(context)
 	}
@@ -145,15 +151,16 @@ func FindMany{{.Name}}Skip(filter interface{}, skip int64, limit int64, sort int
 // FindMany{{.Name}}DataSkip 分页查询多个{{.Description}}数据
 func FindMany{{.Name}}DataSkip(filter interface{}, skip int64, limit int64, sort interface{}, projection interface{}) (*[]map[string]interface{}, error) {
 	var list []map[string]interface{}
-	cursor, context, err := mongo.FindManySkip("{{.Name}}", filter, skip, limit, sort, projection)
-	if err == nil {
-		err = cursor.All(context, &list)
-	}
-	// 重命名_id
-	for _, item := range list {
-		if id, exist := item["_id"]; exist {
-			item["id"] = id
-			delete(item, "_id")
+	var err error
+	if cursor, context, err := mongo.FindManySkip("{{.Name}}", filter, skip, limit, sort, projection); err == nil {
+		if err = cursor.All(context, &list); err == nil {
+			// 重命名_id
+			for _, item := range list {
+				if id, exist := item["_id"]; exist {
+					item["id"] = id
+					delete(item, "_id")
+				}
+			}
 		}
 	}
 	return &list, err
@@ -210,14 +217,15 @@ func Count{{.Name}}(filter interface{}) (int64, error) {
 // Get{{.Name}}IDList 查询{{.Description}}ID列表
 func Get{{.Name}}IDList(filter interface{}) (*[]primitive.ObjectID, error) {
 	var list []primitive.ObjectID
-	cursor, context, err := mongo.FindMany("{{.Name}}", filter, bson.M{"_id":1})
-	if err == nil {
+	var err error
+	if cursor, context, err := mongo.FindMany("{{.Name}}", filter, bson.M{"_id": 1}); err == nil {
 		for cursor.Next(context) {
 			var item model.{{.Name}}
-			if err := cursor.Decode(&item); err != nil {
-				return &list, err
+			if err := cursor.Decode(&item); err == nil {
+				list = append(list, item.ID)
+			} else {
+				break
 			}
-			list = append(list, item.ID)
 		}
 		defer cursor.Close(context)
 	}
