@@ -3,7 +3,6 @@ package util
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"reflect"
 	"strings"
 )
 
@@ -23,38 +22,38 @@ func Hash(data []byte) string {
 
 // Split 转义分割字符串
 func Split(text string, sep string) []string {
-	if strings.Contains(text, "\\"+sep) {
-		// 处理转义
-		span := strings.ReplaceAll(text, "\\"+sep, "\u99aa")
-		items := strings.Split(span, sep)
-		for index, item := range items {
-			items[index] = strings.ReplaceAll(item, "\u99aa", sep)
+	var result []string
+	items := strings.Split(text, sep)
+	for index, item := range items {
+		if len(item) > 0 {
+			if item[len(item)-1] == '\\' && len(items) > index+1 {
+				items[index+1] = item[:len(item)-1] + sep + items[index+1]
+			} else {
+				result = append(result, item)
+			}
 		}
-		return items
-	} else {
-		return strings.Split(text, sep)
 	}
+	return result
 }
 
-// CamelCase 驼峰命名
-func CamelCase(name string) string {
-	name = strings.ReplaceAll(name, "ID", "Id")
-	temp := []rune(name)
-	if temp[0] < 91 {
-		temp[0] += 32
+// IndexString 搜索字符串
+func IndexString(search string, array []string) int {
+	index := -1
+	for i, item := range array {
+		if item == search {
+			return i
+		}
 	}
-	return string(temp)
+	return index
 }
 
-// StructToMap struct转map
-func StructToMap(object interface{}) map[string]interface{} {
-	keys := reflect.TypeOf(object)
-	values := reflect.ValueOf(object)
-
-	var data = make(map[string]interface{})
-	for i := 0; i < keys.NumField(); i++ {
-		key := keys.Field(i).Name
-		data[CamelCase(key)] = values.Field(i).Interface()
+// IndexInt 搜索整型数值
+func IndexInt(search int, array []int) int {
+	index := -1
+	for i, item := range array {
+		if item == search {
+			return i
+		}
 	}
-	return data
+	return index
 }

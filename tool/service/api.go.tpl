@@ -158,7 +158,7 @@ func Add(c *gin.Context) {
 		// 数据库新增
 		if r, err := mongo.InsertOne{{.Name}}(&data); err == nil {
 			{{- if .Link}}
-			linkData(c, &[]map[string]interface{}{util.StructToMap(data)}, &result)
+			linkData(c, ids([]model.{{.Name}}{data}), &result)
 			{{- end}}
 			c.Set("result", r)
 			c.JSON(http.StatusOK, result.SetData(data))
@@ -287,12 +287,7 @@ func Delete(c *gin.Context) {
 // @router /api/admin/{{u $.Name}}/upload/{{u $elem.Name}} [post]
 func Upload{{$elem.Name}}(c *gin.Context) {
 	var result define.Result
-	current, exist := c.Get("current")
-	if !exist {
-		c.JSON(http.StatusOK, result.SetCode(define.AuthError))
-		return
-	}
-	currentUser := current.(*model.User)
+	currentUser := permission.GetCurrentUser(c)
 	form, _ := c.MultipartForm()
 	id := form.Value["id"][0]
 	item, _ := mongo.FindOne{{$.Name}}ByID(id, bson.M{"_id": 1, "{{c $elem.Name}}": 1})
@@ -314,14 +309,18 @@ func Upload{{$elem.Name}}(c *gin.Context) {
 		attachment.User = currentUser.ID
 		attachment.Name = file.Filename[:index]
 		attachment.Ext = strings.ToLower(file.Filename[index+1:])
-		attachment.Size = file.Size
-		attachment.Table = "{{h $.Name}}"
-		attachment.Field = "{{h $elem.Name}}"
-		attachment.Key = item.ID
-		fileName := "api/admin/{{u $.Name}}/download/{{u $elem.Name}}/"+attachment.ID.Hex()+"."+attachment.Ext
-		storage.Upload("{{h $.Name}}-{{h $elem.Name}}", attachment.ID.Hex()+"."+attachment.Ext, file)
-		list = append(list, fileName)
-		attachments = append(attachments, attachment)
+		{{- if $elem.Rule.Ext}}
+		if util.IndexString(attachment.Ext, []string{ {{range $elem.Rule.Ext}}"{{.}}", {{end}}}) > -1 {
+			attachment.Size = file.Size
+			attachment.Table = "{{h $.Name}}"
+			attachment.Field = "{{h $elem.Name}}"
+			attachment.Key = item.ID
+			fileName := "api/admin/{{u $.Name}}/download/{{u $elem.Name}}/"+attachment.ID.Hex()+"."+attachment.Ext
+			storage.Upload("{{h $.Name}}-{{h $elem.Name}}", attachment.ID.Hex()+"."+attachment.Ext, file)
+			list = append(list, fileName)
+			attachments = append(attachments, attachment)
+		}
+		{{- end}}
 	}
 	mongo.InsertManyUpload(&attachments)
 	mongo.UpdateOne{{$.Name}}(bson.M{"_id": item.ID}, bson.M{"{{c $elem.Name}}": list})
@@ -339,6 +338,12 @@ func Upload{{$elem.Name}}(c *gin.Context) {
 	attachment.User = currentUser.ID
 	attachment.Name = file.Filename[:index]
 	attachment.Ext = strings.ToLower(file.Filename[index+1:])
+	{{- if $elem.Rule.Ext}}
+	if util.IndexString(attachment.Ext, []string{ {{range $elem.Rule.Ext}}"{{.}}", {{end}}}) == -1 {
+		c.JSON(http.StatusOK, result.SetCode(define.LogicError).SetMessage("文件类型不符合要求"))
+		return
+	}
+	{{- end}}
 	attachment.Size = file.Size
 	attachment.Table = "{{h $.Name}}"
 	attachment.Field = "{{h $elem.Name}}"
@@ -372,7 +377,13 @@ func Download{{$elem.Name}}(c *gin.Context) {
 	case ".png":
 		c.Writer.Header().Set("Content-Type", "image/png")
 	case ".jpg":
-		c.Writer.Header().Set("Content-Type", "image/jpg")
+		c.Writer.Header().Set("Content-Type", "image/jpeg")
+	case ".gif":
+		c.Writer.Header().Set("Content-Type", "image/gif")
+	case ".mp4":
+		c.Writer.Header().Set("Content-Type", "video/mp4")
+	case ".mp3":
+		c.Writer.Header().Set("Content-Type", "audio/mpeg")
 	default:
 		c.Writer.Header().Set("Content-Type", "application/octet-stream")
 	}
@@ -382,6 +393,25 @@ func Download{{$elem.Name}}(c *gin.Context) {
 {{- end}}{{end}}
 
 {{- if .Link}}
+
+// ids 获取外链ID列表
+func ids(list []model.{{.Name}}) *[]map[string]interface{} {
+	result := make([]map[string]interface{}, len(list))
+	for _, i := range list {
+		row := make(map[string]interface{})
+		{{- range .Fields}}{{if .Link}}
+		{{- if .Nullable}}
+		if i.{{.Name}} != nil {
+			row["{{c .Name}}"] = *i.{{.Name}}
+		}
+		{{- else}}
+		row["{{c .Name}}"] = i.{{.Name}}
+		{{- end}}
+		{{- end}}{{end}}
+		result = append(result, row)
+	}
+	return &result
+}
 
 // linkData 生成外链数据
 func linkData(c *gin.Context, list *[]map[string]interface{}, r *define.Result) {

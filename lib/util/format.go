@@ -140,8 +140,11 @@ func ToID(value interface{}) primitive.ObjectID {
 	case primitive.ObjectID:
 		return value
 	case string:
-		id, _ := primitive.ObjectIDFromHex(value)
-		return id
+		if id, err := primitive.ObjectIDFromHex(value); err == nil {
+			return id
+		} else {
+			return primitive.NilObjectID
+		}
 	default:
 		return primitive.NilObjectID
 	}
