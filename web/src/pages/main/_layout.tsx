@@ -22,12 +22,12 @@ import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import Icon from '@/component/icon/icon'
 import UploadPassword from '@/component/modal/update_password'
-import context from './context'
+import context from '@/context'
 
 const theme = createMuiTheme({
   palette: {
-    primary: { main: '#59A289' },
-    secondary: { main: '#a0ac48' },
+    primary: { main: '#407cac' },
+    secondary: { main: '#c85d44' },
   },
 });
 
@@ -75,7 +75,8 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     content: {
       padding: theme.spacing(2),
-      flex: 1
+      flex: 1,
+      backgroundColor: '#eee'
     }
   }),
 );
@@ -94,7 +95,7 @@ export default (props: any) => {
   const [topMenu, setTopMenu] = useState<MenuItem>();
   // 展开二级菜单ID
   const [expandMenu, setExpandMenu] = useState<string>();
-  // 展开二级菜单ID
+  // 提示框
   const [alert, setAlert] = useState<{ type: "info" | "success" | "error" | "warning", message: string } | undefined>(undefined);
   // 用户信息
   const { user, role, login, logout } = useModel('auth', model => ({
@@ -278,7 +279,7 @@ export default (props: any) => {
       open={userMenuAnchor !== null}
       onClose={() => setUserMenuAnchor(null)}
     >
-      <MenuItem onClick={() => { setModal(<UploadPassword onCancel={() => setModal(undefined)} />); setUserMenuAnchor(null); }}>修改密码</MenuItem>
+      <MenuItem onClick={() => { setModal(<UploadPassword setAlert={setAlert} onCancel={() => setModal(undefined)} />); setUserMenuAnchor(null); }}>修改密码</MenuItem>
       <MenuItem onClick={() => { exit.run(); setUserMenuAnchor(null); }}>退出登录</MenuItem>
     </Menu>
     {modal}

@@ -16,7 +16,7 @@ import PaginationAction from '@/component/table/pagination';
 import ModalForm from '@/component/modal/modal_form';
 import FileUpload from '@/component/input/file_upload';
 import IconButton from '@/component/icon/icon_button';
-import context from '@/pages/main/context'
+import context from '@/context'
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({

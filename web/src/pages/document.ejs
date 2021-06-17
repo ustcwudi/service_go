@@ -4,15 +4,33 @@
 <head>
   <meta charSet="utf-8" />
   <title>管理平台</title>
+  <script src="http://www.internetke.com/jsEffects/2015010304/js/ThreeWebGL.js"></script>
+  <script src="http://www.internetke.com/jsEffects/2015010304/js/ThreeExtras.js"></script>
   <style>
     #root {
+      width: 100%;
       height: 100%;
+    }
+
+    .cloud {
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
     }
   </style>
 </head>
 
 <body>
+  <div id="cloud"></div>
   <div id="root">载入中...</div>
+  <script id="vs" type="x-shader/x-vertex">
+    varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }
+  </script>
+  <script id="fs" type="x-shader/x-fragment">
+    uniform sampler2D map; uniform vec3 fogColor; uniform float fogNear; uniform float fogFar; varying vec2 vUv; void main() { float depth = gl_FragCoord.z / gl_FragCoord.w; float fogFactor = smoothstep( fogNear, fogFar, depth ); gl_FragColor = texture2D( map, vUv ); gl_FragColor.w *= pow( gl_FragCoord.z, 20.0 ); gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor ); }
+  </script>
 </body>
 
 </html>

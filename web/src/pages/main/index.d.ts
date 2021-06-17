@@ -1,3 +1,8 @@
+declare module "@/util/cloud" {
+  let cloud: () => void;
+  export = cloud;
+}
+
 // 菜单项
 interface MenuItem {
   key?: string;

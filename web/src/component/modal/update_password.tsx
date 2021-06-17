@@ -1,49 +1,52 @@
 
 import React, { useState, useEffect } from 'react';
-import { useRequest } from 'umi';
-import { message, Modal, Col, Form, Input, Typography } from 'antd';
+import request from 'umi-request';
 import ModalForm from '@/component/modal/modal_form'
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
 import Captcha from '@/component/input/captcha'
 
 export default (props: any) => {
-  // 验证码ID
-  const [captcha, setCaptcha] = useState('');
-  // 登录请求
-  const updateRequest = useRequest((form: object) => ({
-    url: '/api/user/update_password',
+  // 组件
+  const [model, setModel] = useState<{ id?: string, captcha?: string, old_password?: string, new_password?: string, re_password?: string }>({});
+  // 请求
+  const updateRequest = () => request('/api/user/update_password', {
     method: 'post',
-    data: form,
-  }), {
-    manual: true,
-    onSuccess: (result: any, params: any) => {
-      if (result.success) {
-        props.onCancel?.();
-        message.success(result.message);
-      } else {
-        if (result.message) {
-          message.error(result.message);
-        }
-      }
-    }
-  });
-  return <Modal onCancel={() => props.onCancel?.()} width={'350px'} title={<Typography.Text strong>修改密码</Typography.Text>} visible={true} footer={null}>
-    <ModalForm visible={true} onFinish={() => updateRequest.run({ ...{}, id: captcha })}>
-      <Col span={24}>
-        <Form.Item name="old_password" label='旧密码' rules={[{ required: true }]}>
-          <Input.Password />
-        </Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item name="new_password" label='新密码' rules={[{ required: true }]}>
-          <Input.Password />
-        </Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item name="re_password" label='重复' rules={[{ required: true }]}>
-          <Input.Password />
-        </Form.Item>
-      </Col>
-      <Captcha label='验证码' onChange={(id: string) => setCaptcha(id)} />
-    </ModalForm>
-  </Modal >
+    data: model,
+  })
+    .then(function (response) {
+      props.setAlert({ type: response.success ? 'success' : 'error', message: response.message ? response.message : response.success ? '修改成功' : '操作失败' })
+    })
+    .catch(function (error) {
+      props.setAlert({ type: 'error', message: error.response ? error.response.statusText : error.message })
+    });
+  return <ModalForm visible={true} onCancel={props.onCancel} onFinish={() => updateRequest()}>
+    <Grid item xs={12}>
+      <TextField fullWidth
+        type="password"
+        variant="outlined"
+        label={"旧密码"}
+        onChange={e => { setModel({ ...model, old_password: e.target.value }) }} />
+    </Grid>
+    <Grid item xs={6}>
+      <TextField fullWidth
+        type="password"
+        variant="outlined"
+        label={"新密码"}
+        onChange={e => { setModel({ ...model, new_password: e.target.value }) }} />
+    </Grid>
+    <Grid item xs={6}>
+      <TextField fullWidth
+        type="password"
+        variant="outlined"
+        label={"重复"}
+        onChange={e => { setModel({ ...model, re_password: e.target.value }) }} />
+    </Grid>
+    <Grid item xs={12}>
+      <Captcha onChange={id => setModel({ ...model, id: id })} >
+        <TextField fullWidth variant="outlined" label="验证码" onChange={e => setModel({ ...model, captcha: e.target.value })} />
+      </Captcha>
+    </Grid>
+  </ModalForm>
+
 }
