@@ -5,9 +5,17 @@ import AwardTable from '@/pages/main/base/award/table';
 import ProList from '@ant-design/pro-list';
 import ProForm, { ProFormText, ProFormRadio } from '@ant-design/pro-form';
 import { useRequest, useModel } from 'umi';
+import StepForm from '@/component/modal/step_form';
+
+function getSteps() {
+  return [{ name: '选择奖证', description: `在右侧奖证列表中勾选准备颁发的奖证` },
+  { name: '审核确认', description: `确认奖证信息无误，填入审核意见并确认` },
+  { name: '审核记录', description: `查看以往审核记录` }];
+}
 
 export default () => {
-  const [current, setCurrent] = useState<number>(0);
+  // 步骤
+  const [step, setStep] = useState(0);
   const [awards, setAwards] = useState<any[]>([]);
   // 用户信息
   const { user } = useModel('auth', model => ({
@@ -31,32 +39,25 @@ export default () => {
     },
   );
   return (
-    <>
-      <ProCard style={{ marginBottom: 16 }}>
-        <Steps
-          type="navigation"
-          current={current}
-          onChange={current => setCurrent(current)}
-        >
-          <Steps.Step title="选择奖证"></Steps.Step>
-          <Steps.Step title="审核确认"></Steps.Step>
-          <Steps.Step title="审核记录"></Steps.Step>
-        </Steps>
-      </ProCard>
-      {current == 0 && (
+    <StepForm
+      step={step}
+      onChange={setStep}
+      steps={getSteps()}
+      canNext={(step == 0 && awards.length > 0) || (step == 1 && awards.length > 0) || (step == 2) || (step == 3)}>
+      {step == 0 && (
         <AwardTable
-          renderSelectionButton={['|', 'cancel']}
+          renderSelectionButton={['unselect']}
           renderTableButton={['search']}
           canSelect="checkbox"
           where={{ audit: false }}
           render={['name', 'code', 'class', 'issuer', 'template', 'parameter', 'audit', 'remark']}
-          renderSearch={['name', 'code', 'class', 'issuer', 'template', 'parameter', 'remark']}
+          renderSearch={['name', 'code', 'class', 'parameter', 'audit']}
           onSelect={(selection: any[]) => {
             setAwards(selection);
           }}
         />
       )}
-      {current == 1 && (
+      {step == 1 && (
         <>
           <ProCard style={{ marginBottom: 16 }}>
             <ProList<any>
@@ -132,7 +133,7 @@ export default () => {
           </ProCard>
         </>
       )}
-      {current == 2 && (
+      {step == 2 && (
         <AwardTable
           renderSelectionButton={[]}
           renderTableButton={['search']}
@@ -141,18 +142,6 @@ export default () => {
           where={{ audit: true }}
         />
       )}
-      <div style={{ marginTop: '16px' }}>
-        {current < 2 && (
-          <Button type="primary" onClick={() => setCurrent(current + 1)}>
-            下一步
-          </Button>
-        )}
-        {current > 0 && (
-          <Button style={{ margin: '0 8px' }} onClick={() => setCurrent(current - 1)}>
-            上一步
-          </Button>
-        )}
-      </div>
-    </>
+    </StepForm>
   );
 };

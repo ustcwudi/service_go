@@ -5,9 +5,16 @@ import ProCard from '@ant-design/pro-card';
 import Table from '@/pages/main/base/table/table';
 import ProForm from '@ant-design/pro-form';
 import { PushpinOutlined } from '@ant-design/icons';
+import StepForm from '@/component/modal/step_form';
+
+function getSteps() {
+  return [{ name: '选择奖证', description: `在右侧奖证列表中勾选准备颁发的奖证` },
+  { name: '打印确认', description: `确认奖证信息无误，填入审核意见并确认` }];
+}
 
 export default () => {
-  const [current, setCurrent] = useState<number>(0);
+  // 步骤
+  const [step, setStep] = useState(0);
   const [id, setId] = useState<string>('');
   const importData = useRequest(
     (id) => ({
@@ -26,36 +33,29 @@ export default () => {
     },
   );
   return (
-    <>
-      <ProCard style={{ marginBottom: 16 }}>
-        <Steps
-          type="navigation"
-          current={current}
-          onChange={current => setCurrent(current)}
-        >
-          <Steps.Step title="选择表格"></Steps.Step>
-          <Steps.Step title="打印确认"></Steps.Step>
-        </Steps>
-      </ProCard>
+    <StepForm
+      step={step}
+      onChange={setStep}
+      steps={getSteps()}
+      canNext={step == 0 && id != ''}>
       <Table
-        display={current == 0}
+        display={step == 0}
         renderSelectionButton={[]}
         renderTableButton={[]}
         canSelect="radio"
         render={['name', 'template', 'file', 'remark', '_']}
         renderColumnButton={['uploadFile']}
         onSelect={(selection: any[]) => {
-          setId(selection[0].id);
-          setCurrent(1);
+          setId(selection.length > 0 ? selection[0].id : '');
         }}
         moreColumn={[{
-          title: '导入', key: 'id', render: (model: Table) => <Popconfirm
+          label: '导入', name: 'id', render: (model: Table) => <Popconfirm
             title="请确保没有重复导入"
             onConfirm={() => importData.run(model.id)}
           ><Typography.Link><PushpinOutlined /></Typography.Link></Popconfirm>
         }]}
       />
-      {current == 1 && (
+      {step == 1 && (
         <>
           <ProCard layout="center">
             <ProForm
@@ -75,7 +75,7 @@ export default () => {
                 }
               >
                 打印
-            </Button>
+              </Button>
               <Button
                 type="link"
                 key="view"
@@ -87,11 +87,11 @@ export default () => {
                 }
               >
                 预览
-            </Button>
+              </Button>
             </ProForm>
           </ProCard>
         </>
       )}
-    </>
+    </StepForm>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Steps, message, Tag, Space, Button, Typography } from 'antd';
+import { message, Tag, Space } from 'antd';
 import ProCard from '@ant-design/pro-card';
 import StudentTable from '@/pages/main/base/student/table';
 import TemplateTable from '@/pages/main/base/template/table';
@@ -7,19 +7,27 @@ import AwardTable from '@/pages/main/base/award/table';
 import ProList from '@ant-design/pro-list';
 import ProForm, { ProFormText } from '@ant-design/pro-form';
 import { useRequest, useModel } from 'umi';
-import { SearchOutlined, EyeOutlined } from '@ant-design/icons';
+import Link from '@material-ui/core/Link';
+import StepForm from '@/component/modal/step_form';
+
+function getSteps() {
+  return [{ name: '选择模板', description: `在右侧奖证列表中勾选需要颁发的奖证模板` },
+  { name: '选择获奖者', description: `在右侧人员列表中勾选指定获奖者，可以多选` },
+  { name: '提交审核', description: `填写奖证基本信息，提交确认后等待校领导或管理员电子盖章` },
+  { name: '提交记录', description: `查看奖证提交发布的记录，确认审核通过情况` }];
+}
 
 export default () => {
+  // 步骤
+  const [step, setStep] = useState(0);
   // 用户信息
   const { user } = useModel('auth', model => ({
     user: model.user,
   }));
-  // 步骤
-  const [current, setCurrent] = useState<number>(0);
+  // 奖证模板
+  const [template, setTemplate] = useState<any>(undefined);
   // 学生列表
   const [students, setStudents] = useState<any[]>([]);
-  // 模板
-  const [template, setTemplate] = useState<any>(undefined);
   // 输入框
   const [inputs, setInputs] = useState<any[]>([]);
   const createInputs = (content: string): JSX.Element[] => {
@@ -75,43 +83,35 @@ export default () => {
     });
   };
   return (
-    <>
-      <Card style={{ marginBottom: 16 }}>
-        <Steps
-          type="navigation"
-          current={current}
-          onChange={current => setCurrent(current)}
-        >
-          <Steps.Step title="选择模板"></Steps.Step>
-          <Steps.Step title="选择获奖者"></Steps.Step>
-          <Steps.Step title="提交审核"></Steps.Step>
-          <Steps.Step title="提交记录"></Steps.Step>
-        </Steps>
-      </Card>
+    <StepForm
+      step={step}
+      onChange={setStep}
+      steps={getSteps()}
+      canNext={(step == 0 && template) || (step == 1 && students.length > 0) || (step == 2) || (step == 3)}>
       <TemplateTable
-        display={current == 0}
-        renderSelectionButton={[]}
+        display={step == 0}
+        renderSelectionButton={['unselect']}
         renderTableButton={[]}
         canSelect="radio"
-        render={['name', 'width', 'height', 'parameter', 'remark']}
+        render={['name', 'width', 'height', 'parameter', 'remark', 'preview']}
         onSelect={(selection: any[]) => {
-          setTemplate(selection[0]);
+          setTemplate(selection.length > 0 ? selection[0] : undefined);
           setInputs(createInputs(selection[0] ? selection[0].content : ''));
         }}
         moreColumn={[{
-          title: '预览', key: 'id', render: (model: Template) => <Typography.Link href={`/api/template/display/${model.id}`} target="_blank"><EyeOutlined /></Typography.Link>
+          label: '预览', name: 'preview', render: (model: Template) => <Link target="_blank" href={`/api/template/display/${model.id}`}>预览</Link>
         }]}
       />
       <StudentTable
-        display={current == 1}
+        display={step == 1}
         canSelect="checkbox"
         render={['name', 'class', 'code', 'sex', 'remark']}
         renderTableButton={['search']}
-        renderSelectionButton={['|', 'cancel']}
+        renderSelectionButton={['unselect']}
         renderSearch={['name', 'class', 'code', 'remark']}
         onSelect={(selection: any[]) => setStudents(selection)}
       />
-      {current == 2 && (
+      {step == 2 && (
         <ProCard gutter={8}>
           <ProCard colSpan={8} bordered>
             <ProList<any>
@@ -144,18 +144,7 @@ export default () => {
             colSpan={16}
             layout="center"
             bordered
-            title={
-              template && (
-                <Button
-                  type="dashed"
-                  target="_blank"
-                  href={`/api/template/display/${template.id}`}
-                  icon={<SearchOutlined />}
-                >
-                  预览模板
-                </Button>
-              )
-            }
+            title={template && <Link target="_blank" href={`/api/template/display/${template.id}`}>预览模板</Link>}
           >
             <ProForm
               initialValues={template ? template.parameter : undefined}
@@ -173,25 +162,12 @@ export default () => {
           </ProCard>
         </ProCard>
       )}
-      {current == 3 && (
+      {step == 3 && (
         <AwardTable
           renderTableButton={[]}
           render={['name', 'code', 'class', 'template', 'table', 'parameter', 'audit', 'auditor', 'remark']}
           where={{ issuer: user.id }}
         />
-      )}
-      <div style={{ marginTop: '16px' }}>
-        {current < 3 && (
-          <Button type="primary" onClick={() => setCurrent(current + 1)}>
-            下一步
-          </Button>
-        )}
-        {current > 0 && (
-          <Button style={{ margin: '0 8px' }} onClick={() => setCurrent(current - 1)}>
-            上一步
-          </Button>
-        )}
-      </div>
-    </>
+      )}</StepForm>
   );
 };

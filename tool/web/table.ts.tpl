@@ -122,6 +122,7 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
           });
           setSource({ data: [...source.data], total: source.total - result.data });
           setSelection([]);
+          props.onSelect?.([]);
           mainContext.alert?.({ type: 'success', message: `${trash ? '还原' : '删除'}${result.data}项` })
         } else
           mainContext.alert?.({ type: 'warning', message: `${trash ? '还原' : '删除'}${result.data}项` })
@@ -226,6 +227,7 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
             });
             setSource({ data: [...source.data], total: source.total - result.data });
             setSelection([]);
+            props.onSelect?.([]);
             mainContext.alert?.({ type: 'success', message: `彻底删除${result.data}项` })
           } else
             mainContext.alert?.({ type: 'warning', message: `彻底删除${result.data}项` })
@@ -276,11 +278,11 @@ export default (props: TableProps<{{.Name}}, {{.Name}}Query>) => {
   // 选择工具栏
   const selectionBar = useMemo(() => {
     let buttons: { [key: string]: JSX.Element } = trash ? {
-      'unselect': <IconButton key="unselect" color="default" title="取消" icon="Replay" onClick={() => setSelection([])} />,
+      'unselect': <IconButton key="unselect" color="default" title="取消" icon="Replay" onClick={() => { setSelection([]); props.onSelect?.([]); }} />,
       'trash': <IconButton key="trash" title="恢复" color="default" icon="SettingsBackupRestore" onClick={() => action.run('restore', { id: selection.map(i => i.id) })} />,
       'delete': <IconButton key="delete" title="彻底删除" icon="DeleteForever" onClick={() => remove.run({ id: selection.map(i => i.id) })} />
     } : {
-      'unselect': <IconButton key="unselect" color="default" title="取消" icon="Replay" onClick={() => setSelection([])} />,
+      'unselect': <IconButton key="unselect" color="default" title="取消" icon="Replay" onClick={() => { setSelection([]); props.onSelect?.([]); }} />,
       'trash': <IconButton key="trash" title="删除" icon="Delete" onClick={() => action.run('trash', { id: selection.map(i => i.id) })} />,
     }
     return <Toolbar>
