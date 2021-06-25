@@ -2,6 +2,7 @@ package api
 
 import (
 	"lib/auth"
+	"lib/config"
 	"lib/define"
 	"lib/log"
 	"lib/wechat"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // RouteWechat wechat
@@ -48,14 +50,14 @@ func Login(c *gin.Context) {
 		auth.Login(c, user.ID.Hex(), false)
 		c.JSON(http.StatusOK, result.SetData(user))
 	} else {
+		role, _ := primitive.ObjectIDFromHex(config.Service.Wechat.Role)
 		if unionid, ok := response["unionid"]; ok {
-			user := model.User{Account: response["openid"].(string), OpenIdentify: response["openid"].(string), UnionIdentify: unionid.(string), Enable: true}
+			user := model.User{Account: response["openid"].(string), Role: &role, OpenIdentify: response["openid"].(string), UnionIdentify: unionid.(string), Enable: true}
 			mongo.InsertOneUser(&user)
 			auth.Login(c, user.ID.Hex(), false)
 			c.JSON(http.StatusOK, result.SetData(user))
-
 		} else {
-			user := model.User{Account: response["openid"].(string), OpenIdentify: response["openid"].(string), Enable: true}
+			user := model.User{Account: response["openid"].(string), Role: &role, OpenIdentify: response["openid"].(string), Enable: true}
 			mongo.InsertOneUser(&user)
 			auth.Login(c, user.ID.Hex(), false)
 			c.JSON(http.StatusOK, result.SetData(user))

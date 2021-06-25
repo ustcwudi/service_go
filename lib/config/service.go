@@ -56,6 +56,7 @@ type ServiceYml struct {
 	Wechat struct {
 		AppID     string
 		AppSecret string
+		Role      string
 	}
 }
 

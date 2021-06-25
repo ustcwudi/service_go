@@ -40,3 +40,5 @@ jwt:
   key: jwt
   secret: jwt_!@#$%^&*
   exp: 720
+wechat:
+  role: 60d578e4ceb90c01e8693f8d
