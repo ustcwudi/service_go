@@ -167,30 +167,34 @@ func OutputPdf(c *gin.Context, width float64, height float64, background string,
 		}
 	}
 	c.Writer.Header().Set("Content-Type", "application/pdf")
-	var buffer bytes.Buffer
-	maker.Write(bufio.NewWriter(&buffer))
-	// 电子签章
-	reader, _ := pdf.NewPdfReader(bytes.NewReader(buffer.Bytes()))
-	appender, _ := pdf.NewPdfAppender(reader)
-	handler, _ := sighandler.NewAdobePKCS7Detached(key, cert[0])
-	signature := pdf.NewPdfSignature(handler)
-	signature.SetName("e-Certificate")
-	signature.SetReason("e-Certificate")
-	signature.SetDate(time.Now(), "")
-	signature.Initialize()
-	opts := annotator.NewSignatureFieldOpts()
-	opts.AutoSize = true
-	field, _ := annotator.NewSignatureField(
-		signature,
-		[]*annotator.SignatureLine{},
-		opts,
-	)
-	field.T = core.MakeString("e-Certificate")
-	appender.Sign(1, field)
-	// ltv
-	ltv, _ := pdf.NewLTV(appender)
-	ltv.EnableChain(cert)
-	appender.Write(c.Writer)
+	if len(texts) > 1 {
+		maker.Write(c.Writer)
+	} else {
+		var buffer bytes.Buffer
+		maker.Write(bufio.NewWriter(&buffer))
+		// 电子签章
+		reader, _ := pdf.NewPdfReader(bytes.NewReader(buffer.Bytes()))
+		appender, _ := pdf.NewPdfAppender(reader)
+		handler, _ := sighandler.NewAdobePKCS7Detached(key, cert[0])
+		signature := pdf.NewPdfSignature(handler)
+		signature.SetName("e-Certificate")
+		signature.SetReason("e-Certificate")
+		signature.SetDate(time.Now(), "")
+		signature.Initialize()
+		opts := annotator.NewSignatureFieldOpts()
+		opts.AutoSize = true
+		field, _ := annotator.NewSignatureField(
+			signature,
+			[]*annotator.SignatureLine{},
+			opts,
+		)
+		field.T = core.MakeString("e-Certificate")
+		appender.Sign(1, field)
+		// ltv
+		ltv, _ := pdf.NewLTV(appender)
+		ltv.EnableChain(cert)
+		appender.Write(c.Writer)
+	}
 }
 
 // 读取CA证书
