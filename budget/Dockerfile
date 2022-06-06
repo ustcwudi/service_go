@@ -13,7 +13,7 @@ WORKDIR /service/tool
 RUN go run main.go budget
 
 WORKDIR /service/budget
-RUN go get -u github.com/swaggo/swag/cmd/swag && \
+RUN go install github.com/swaggo/swag/cmd/swag@latest && \
     swag init -g service.go && \
     go mod tidy && go mod download && \
     CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o service .
