@@ -63,14 +63,14 @@
     },
     {
       "Name": "AdjustAmount",
-      "Type": "string",
-      "Description": "调整金额",
+      "Type": "float",
+      "Description": "调整后金额",
       "Search": "equal"
     },
     {
-      "Name": "AdjustedAmount",
-      "Type": "float",
-      "Description": "调整后金额",
+      "Name": "AdjustAmountInfo",
+      "Type": "string",
+      "Description": "调整金额",
       "Search": "equal"
     },
     {
