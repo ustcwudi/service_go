@@ -33,12 +33,24 @@
     },
     {
       "Name": "AdjustQuantity",
+      "Type": "string",
+      "Description": "调整数量",
+      "Search": "equal"
+    },
+    {
+      "Name": "AdjustedQuantity",
       "Type": "int",
       "Description": "调整后数量",
       "Search": "equal"
     },
     {
       "Name": "AdjustAmount",
+      "Type": "string",
+      "Description": "调整金额",
+      "Search": "equal"
+    },
+    {
+      "Name": "AdjustedAmount",
       "Type": "float",
       "Description": "调整后金额",
       "Search": "equal"
