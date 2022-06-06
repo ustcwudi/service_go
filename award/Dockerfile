@@ -3,7 +3,8 @@ FROM golang:alpine AS builder
 WORKDIR /
 RUN apk update && \
     apk add git nodejs npm && \
-    git clone --depth=1 https://github.com/ustcwudi/service
+    git clone --depth=1 https://github.com/ustcwudi/service_go && \
+    mv service_go service
 
 WORKDIR /service/web/src
 RUN mv extra/award/ pages/main/
