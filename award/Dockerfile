@@ -1,4 +1,4 @@
-FROM golang:alpine AS builder
+FROM golang:1.16-alpine AS builder
 
 WORKDIR /
 RUN apk update && \
@@ -13,7 +13,7 @@ WORKDIR /service/tool
 RUN go run main.go award
 
 WORKDIR /service/award
-RUN go install github.com/swaggo/swag/cmd/swag@1.7.8 && \
+RUN go install github.com/swaggo/swag/cmd/swag@1.7.0 && \
     swag init -g service.go && \
     go mod tidy && go mod download && \
     CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o service .
